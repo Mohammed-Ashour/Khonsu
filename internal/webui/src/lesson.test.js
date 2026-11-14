@@ -78,7 +78,7 @@ function setup({ views = true } = {}) {
     list,
     layers: () => panel,
     showSatellite: (id) => log.push(['satellite', id]),
-    face: (lat, lon) => log.push(['face', lat, lon]),
+    face: (lat, lon, distance) => log.push(['face', lat, lon, distance]),
     onChange: () => { changes += 1; },
   });
   return { player, card, list, log, changes: () => changes };
@@ -97,7 +97,7 @@ test('lessonFromUrl and withLesson round-trip the lesson and step', () => {
 test('a lesson sets up each step, asks before answering and steps through', async () => {
   const { player, card, log, changes } = setup();
   assert.equal(await player.start('light-and-heat'), true);
-  assert.deepEqual(log, [['satellite', '60133'], ['show', 'goes-east-visible'], ['face', 5, -75]]);
+  assert.deepEqual(log, [['satellite', '60133'], ['show', 'goes-east-visible'], ['face', 5, -75, null]]);
   assert.equal(card.hidden, false);
   assert.match(textOf(card), /step 1 of 3/);
   assert.equal(findAll(card, (node) => node.tagName === 'a').length, 1, 'only the https source is linked');
@@ -125,10 +125,10 @@ test('a lesson sets up each step, asks before answering and steps through', asyn
   assert.ok(changes() >= 4);
 });
 
-test('a shared link to a later step applies the earlier steps without moving the camera twice', async () => {
+test('a shared link to a later step applies the earlier steps, then the last camera once', async () => {
   const { player, log } = setup();
   await player.start('light-and-heat', 1);
-  assert.deepEqual(log, [['satellite', '60133'], ['show', 'goes-east-visible'], ['show', 'goes-east-infrared']]);
+  assert.deepEqual(log, [['satellite', '60133'], ['show', 'goes-east-visible'], ['show', 'goes-east-infrared'], ['face', 5, -75, null]]);
   assert.equal(await player.start('nope'), false);
 });
 

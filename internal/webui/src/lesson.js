@@ -1,4 +1,5 @@
 import { appendSources } from './datatab.js';
+import { barChart, lineChart, yearlyAverages } from './charts.js';
 
 // Guided lessons: short steps that set the satellite, the globe picture and the camera,
 // then explain what is on screen with a source for every sentence. A question asks for a
@@ -49,16 +50,72 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
 
   const viewName = (id) => layers()?.views().find((view) => view.id === id)?.name ?? id;
 
+  const boxOf = (box) => (box ? { minLat: box.min_lat, minLon: box.min_lon, maxLat: box.max_lat, maxLon: box.max_lon } : null);
+  const showPicture = (picture) => layers()?.show(picture.layer, picture.date, boxOf(picture.box), { plain: Boolean(picture.plain) });
+  const picturesOf = (step) => (Array.isArray(step.pictures) && step.pictures.length >= 2 ? step.pictures : null);
+
   // Sets the app up for a step. Only runs when a step is entered, not on every repaint.
   function enter(step) {
     if (step.satellite) showSatellite(step.satellite);
     const panel = layers();
     if (panel) {
       if (typeof step.base === 'string') panel.setBase(step.base);
-      if (Array.isArray(step.compare) && step.compare.length === 2) panel.show(step.compare[0]);
+      if (picturesOf(step)) showPicture(step.pictures[0]);
+      else if (step.picture) showPicture(step.picture);
+      else if (Array.isArray(step.compare) && step.compare.length === 2) panel.show(step.compare[0]);
       else if (typeof step.view === 'string') panel.show(step.view);
     }
-    if (step.camera) face(step.camera.lat, step.camera.lon);
+    if (step.camera) face(step.camera.lat, step.camera.lon, step.camera.distance || null);
+  }
+
+  // Records are fetched when a chart is first shown, and kept for the session.
+  const records = new Map();
+  function record(chart) {
+    const key = chart.dataset === 'sea-ice' ? `sea-ice:${chart.hemisphere}:${chart.month}` : chart.dataset;
+    if (!records.has(key)) {
+      const pending = chart.dataset === 'sea-ice' ? api.seaIce(chart.hemisphere, chart.month) : api.seaLevel();
+      records.set(key, pending.catch((error) => {
+        records.delete(key);
+        throw error;
+      }));
+    }
+    return records.get(key);
+  }
+
+  // The chart's markup, or a message. Bars carry their numbers; records come from the provider.
+  async function chartMarkup(chart) {
+    if (chart.dataset === 'bars') return { markup: barChart({ title: chart.title, unit: chart.unit, bars: chart.bars.map((bar) => ({ label: bar.label, value: bar.value })) }) };
+    const feed = await record(chart);
+    if (chart.dataset === 'sea-ice') {
+      const points = (feed.data ?? []).map((row) => ({ x: row.year, y: row.extent_million_km2 }));
+      const highlight = (chart.highlight ?? []).map((year) => ({ x: year, label: String(year) }));
+      return { markup: lineChart({ title: chart.title, xLabel: 'Year', yLabel: `Extent (${chart.unit})`, points, highlight }), feed, note: 'Computed by Khonsu from NSIDC\'s monthly values.' };
+    }
+    const series = feed.data ?? {};
+    const points = yearlyAverages((series.points ?? []).map((point) => ({ x: point.year, y: point.level_mm })));
+    const last = (series.points ?? []).at(-1);
+    const through = last ? ` Data through ${Math.floor(last.year)}.` : '';
+    const trend = series.trend ? ` NOAA's stated trend: ${series.trend}.` : '';
+    return { markup: lineChart({ title: chart.title, xLabel: 'Year', yLabel: 'Sea level (mm)', points }), feed, note: `Yearly averages of NOAA's values, computed by Khonsu.${through}${trend}` };
+  }
+
+  function chartBlock(chart, token) {
+    const box = element('div', 'lesson-chart');
+    box.append(element('p', 'note', 'Loading the record…'));
+    chartMarkup(chart).then(({ markup, feed, note }) => {
+      if (token !== renders) return;
+      const drawing = element('div', 'learn-chart');
+      drawing.innerHTML = markup;
+      const parts = [element('p', 'lesson-chart-title', chart.title), drawing];
+      if (note) parts.push(element('p', 'note', note));
+      if (feed?.source?.credit) parts.push(element('p', 'note lesson-credit', feed.source.credit));
+      if (chart.source) parts.push(statementList([safe(chart.source)]));
+      box.replaceChildren(...parts);
+    }, (error) => {
+      if (token !== renders) return;
+      box.replaceChildren(element('p', 'note is-error', `Could not load this record: ${error.message}`));
+    });
+    return box;
   }
 
   function statementList(items) {
@@ -76,6 +133,22 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     node.type = 'button';
     node.addEventListener('click', onClick);
     return node;
+  }
+
+  function pictureRow(step) {
+    const row = element('div', 'lesson-compare');
+    row.setAttribute('role', 'group');
+    row.setAttribute('aria-label', 'Compare pictures');
+    row.append(...step.pictures.map((picture, index) => {
+      const node = button(picture.label || picture.date, 'text-button', () => {
+        current.compareOn = index;
+        showPicture(picture);
+        render();
+      });
+      node.setAttribute('aria-pressed', String(current.compareOn === index));
+      return node;
+    }));
+    return row;
   }
 
   function compareRow(step) {
@@ -121,25 +194,32 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     return box;
   }
 
+  // Bumped on every repaint, so a chart that loads late is not drawn into an old card.
+  let renders = 0;
+
   function render() {
+    renders += 1;
     if (!current) {
       card.hidden = true;
       card.replaceChildren();
       return;
     }
     const { lesson } = current;
+    card.classList?.toggle?.('is-story', Boolean(lesson.story));
     const step = lesson.steps[current.step];
     const total = lesson.steps.length;
     const nodes = [
-      element('p', 'eyebrow', `Lesson · step ${current.step + 1} of ${total}`),
+      element('p', 'eyebrow', `${lesson.story ? 'Story' : 'Lesson'} · step ${current.step + 1} of ${total}`),
       element('h2', 'lesson-title', lesson.title),
     ];
     const text = (step.text ?? []).map(safe).filter((item) => item.text);
     if (text.length) nodes.push(statementList(text));
-    if (Array.isArray(step.compare) && step.compare.length === 2) nodes.push(compareRow(step));
+    if (picturesOf(step)) nodes.push(pictureRow(step));
+    else if (Array.isArray(step.compare) && step.compare.length === 2) nodes.push(compareRow(step));
+    if (step.chart) nodes.push(chartBlock(step.chart, renders));
     if (step.hint) nodes.push(element('p', 'note lesson-hint', step.hint));
     if (step.question) nodes.push(questionBlock(step.question));
-    if (!layers()?.views().length && (step.view || step.compare || step.base)) {
+    if (!layers()?.views().length && (step.view || step.compare || step.base || step.picture || step.pictures)) {
       nodes.push(element('p', 'note', 'The pictures in this lesson need live data and WebGL, so the globe stays as it is.'));
     }
     const actions = element('div', 'lesson-actions');
@@ -151,6 +231,14 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     nodes.push(actions);
     card.replaceChildren(...nodes);
     card.hidden = false;
+  }
+
+  // The camera a step uses: its own, or the last one set before it.
+  function cameraFor(lesson, index) {
+    for (let i = index; i >= 0; i -= 1) {
+      if (lesson.steps[i]?.camera) return lesson.steps[i].camera;
+    }
+    return null;
   }
 
   function go(index) {
@@ -171,7 +259,7 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     const step = Math.max(0, Math.min(lesson.steps.length - 1, stepIndex));
     for (const earlier of lesson.steps.slice(0, step)) enter({ ...earlier, camera: null });
     current = { lesson, step, answer: null, compareOn: 0 };
-    enter(lesson.steps[step]);
+    enter({ ...lesson.steps[step], camera: cameraFor(lesson, step) });
     render();
     onChange();
     return true;
@@ -209,5 +297,7 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     stop,
     renderList,
     current: () => (current ? { id: current.lesson.id, step: current.step } : null),
+    // True while the lesson has placed the camera, so the app should not reframe it.
+    holdsCamera: () => Boolean(current && cameraFor(current.lesson, current.step)),
   };
 }

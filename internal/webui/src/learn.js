@@ -87,13 +87,14 @@ export function createLearnHub({ api, element, panel, layers, showSatellite, sta
   function kindCard(kind) {
     const card = element('details', 'learn-card');
     card.append(element('summary', 'learn-card-title', kind.name));
-    const conditions = element('ul', 'learn-conditions');
-    for (const condition of kind.conditions ?? []) {
-      const item = element('li', `learn-condition ${condition.value ? 'is-yes' : 'is-no'}`, condition.label);
-      conditions.append(item);
+    // Chips say at a glance whether it works at night or through cloud; the list below says why.
+    const conditions = (kind.conditions ?? []).filter((condition) => condition?.label);
+    if (conditions.length) {
+      const chips = element('ul', 'learn-conditions');
+      chips.append(...conditions.map((condition) => element('li', `learn-condition ${condition.value ? 'is-yes' : 'is-no'}`, condition.label)));
+      card.append(chips);
     }
-    if (conditions.children?.length || (kind.conditions ?? []).length) card.append(conditions);
-    card.append(sourcedList(safeItems(kind.statements)));
+    card.append(sourcedList(safeItems([...(kind.statements ?? []), ...conditions])));
     const uses = safeItems(kind.uses);
     if (uses.length) card.append(element('h4', 'learn-subtitle', 'Used today for'), sourcedList(uses));
     if ((kind.satellites ?? []).length) {
@@ -115,7 +116,14 @@ export function createLearnHub({ api, element, panel, layers, showSatellite, sta
     const rows = spectrumRows(data.instruments);
     if (rows.length && Array.isArray(data.regions) && data.regions.length) {
       nodes.push(element('h3', 'why-title', 'Where each instrument looks'));
-      nodes.push(chart(spectrumChart({ title: 'Spectral bands of instruments Khonsu describes, on a wavelength scale', regions: data.regions.map((r) => ({ label: r.label, from: r.from_um, to: r.to_um })), rows })));
+      // Light and radio waves are thousands of times apart, so each gets its own panel.
+      const regions = data.regions.map((r) => ({ label: r.label, from: r.from_um, to: r.to_um }));
+      for (const [title, min, max] of [['Light: visible and infrared', 0.3, 20], ['Radio: radar and microwave', 10000, 300000]]) {
+        const inRange = rows.map((row) => ({ ...row, bands: row.bands.filter((band) => band.to > min && band.from < max) })).filter((row) => row.bands.length);
+        if (!inRange.length) continue;
+        nodes.push(element('p', 'lesson-chart-title', title));
+        nodes.push(chart(spectrumChart({ title: `${title}: bands of instruments Khonsu describes`, regions: regions.filter((r) => r.to > min && r.from < max), rows: inRange, min, max })));
+      }
       if (data.regions_sources) nodes.push(sourcedList(safeItems(data.regions_sources)));
     }
     nodes.push(...(data.kinds ?? []).map(kindCard));

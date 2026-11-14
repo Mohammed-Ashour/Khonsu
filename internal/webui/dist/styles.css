@@ -347,3 +347,7 @@ ul { list-style: none; }
 .chart-table table { width: 100%; margin-top: 4px; border-collapse: collapse; }
 .chart-table caption { text-align: left; color: var(--muted); }
 .chart-table th, .chart-table td { padding: 2px 4px; border-bottom: 1px solid var(--line); text-align: left; }
+.lesson-card.is-story { width: min(440px, calc(100% - 28px)); }
+.lesson-chart { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+.lesson-chart-title { font-size: 12.5px; font-weight: 600; margin-bottom: 4px; }
+.lesson-credit { font-size: 11px; }

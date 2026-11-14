@@ -86,7 +86,12 @@ export function createGlobe(container, { onPick, onSelect }) {
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
   controls.enablePan = false;
-  controls.minDistance = 1.2;
+  controls.minDistance = 1.02;
+  // A place the camera stays over as the Earth turns. Dragging the globe lets it go.
+  let anchor = null;
+  controls.addEventListener('start', () => {
+    anchor = null;
+  });
   controls.maxDistance = 60;
 
   scene.add(stars());
@@ -185,8 +190,21 @@ export function createGlobe(container, { onPick, onSelect }) {
     return texture;
   }
 
+  // A picture of one area is draped on a piece of sphere with the same latitudes and
+  // longitudes. Three's sphere starts at phi 0 on longitude -180 and theta 0 at the north
+  // pole, matching an equirectangular picture. The piece sits just above the whole-Earth
+  // pictures, finely divided so its facets stay clear of theirs and below the coastlines.
+  const PATCH_RADIUS = 1.001;
+  function layerGeometry(box) {
+    if (!box) return new SphereGeometry(1, 96, 64);
+    const degrees = Math.PI / 180;
+    const across = Math.max(8, Math.ceil((box.maxLon - box.minLon) / 0.5));
+    const down = Math.max(8, Math.ceil((box.maxLat - box.minLat) / 0.5));
+    return new SphereGeometry(1, Math.min(256, across), Math.min(256, down), (box.minLon + 180) * degrees, (box.maxLon - box.minLon) * degrees, (90 - box.maxLat) * degrees, (box.maxLat - box.minLat) * degrees);
+  }
+
   function startLayer(layer, request) {
-    const entry = { id: layer.id, url: layer.url, transparent: layer.transparent, request, status: null, texture: null, mesh: null };
+    const entry = { id: layer.id, url: layer.url, transparent: layer.transparent, box: layer.box ?? null, request, status: null, texture: null, mesh: null };
     entry.status = layerTexture(layer.url, layer.transparent).then((texture) => {
       // A newer setLayers call that dropped this layer makes this load stale.
       if (entry.request !== layerRequest) {
@@ -195,9 +213,10 @@ export function createGlobe(container, { onPick, onSelect }) {
       }
       entry.texture = texture;
       entry.mesh = new Mesh(
-        new SphereGeometry(1, 96, 64),
+        layerGeometry(entry.box),
         new MeshPhongMaterial({ map: texture, transparent: layer.transparent, depthWrite: false, depthFunc: LessEqualDepth, specular: 0x111111, shininess: 6 }),
       );
+      if (entry.box) entry.mesh.scale.setScalar(PATCH_RADIUS);
       earth.add(entry.mesh);
       restackLayers();
       return 'ok';
@@ -221,7 +240,7 @@ export function createGlobe(container, { onPick, onSelect }) {
         kept.request = request;
         next.push(kept);
       } else {
-        next.push(startLayer({ id: layer.id, url: layer.url, transparent }, request));
+        next.push(startLayer({ id: layer.id, url: layer.url, transparent, box: layer.box }, request));
       }
     }
     for (const entry of previous) {
@@ -255,6 +274,7 @@ export function createGlobe(container, { onPick, onSelect }) {
 
   // Puts the camera on the side of Earth facing a direction, from a distance that keeps it in frame.
   function frameDirection(direction) {
+    anchor = null;
     // Include the orbit's height, so high satellites stay in frame.
     const distance = Math.max(3.6, Math.min(controls.maxDistance, direction.length() * 2.6));
     camera.position.copy(direction.normalize().add(new Vector3(0, 0.35, 0)).normalize().multiplyScalar(distance));
@@ -284,11 +304,20 @@ export function createGlobe(container, { onPick, onSelect }) {
     frameDirection(pointMarker.getWorldPosition(new Vector3()));
   }
 
-  // Turns to face a point on Earth at the current time, without marking it.
-  function face(lat, lon) {
+  // Turns to face a point on Earth at the current time, without marking it. A distance in
+  // Earth radii from the centre flies in close, such as 1.4 for a region a few hundred km wide.
+  function face(lat, lon, distance = null) {
     setFollowing(false);
     earth.updateMatrixWorld(true);
-    frameDirection(surfacePoint(lat, lon, 1).applyMatrix4(earth.matrixWorld));
+    const point = surfacePoint(lat, lon, 1).applyMatrix4(earth.matrixWorld);
+    if (!Number.isFinite(distance)) {
+      frameDirection(point);
+      return;
+    }
+    camera.position.copy(point.normalize().multiplyScalar(Math.max(controls.minDistance, Math.min(controls.maxDistance, distance))));
+    controls.target.set(0, 0, 0);
+    controls.update();
+    anchor = { lat, lon };
   }
 
   function clearPoint() {
@@ -345,6 +374,12 @@ export function createGlobe(container, { onPick, onSelect }) {
         body.line.geometry.setDrawRange(range.first, range.count);
         body.rangeAt = time;
       }
+    }
+    // A close view of a place turns with the Earth, so the place stays in front of the camera.
+    if (anchor) {
+      earth.updateMatrixWorld(true);
+      const point = surfacePoint(anchor.lat, anchor.lon, 1).applyMatrix4(earth.matrixWorld);
+      camera.position.copy(point.normalize().multiplyScalar(camera.position.length()));
     }
     if (following && bodies.has(selected)) {
       const target = bodies.get(selected).marker.position;

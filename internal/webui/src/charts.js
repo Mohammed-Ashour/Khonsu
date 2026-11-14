@@ -95,7 +95,16 @@ export function scatterChart({ title, xLabel, yLabel, points }) {
   const y = logScale(yMin, yMax, HEIGHT - PAD.bottom, PAD.top);
   const grid = logTicks(yMin, yMax).map((tick) => `<line class="chart-grid" x1="${PAD.left}" x2="${WIDTH - PAD.right}" y1="${y(tick).toFixed(1)}" y2="${y(tick).toFixed(1)}"/><text class="chart-tick" x="${PAD.left - 5}" y="${(y(tick) + 3).toFixed(1)}" text-anchor="end">${escapeText(format(tick))}</text>`).join('')
     + logTicks(xMin, xMax).map((tick) => `<text class="chart-tick" x="${x(tick).toFixed(1)}" y="${HEIGHT - PAD.bottom + 13}" text-anchor="middle">${escapeText(format(tick))}</text>`).join('');
-  const dots = clean.map((p) => `<g class="chart-point"><circle cx="${x(p.x).toFixed(1)}" cy="${y(p.y).toFixed(1)}" r="4"/><text class="chart-note" x="${(x(p.x) + 6).toFixed(1)}" y="${(y(p.y) + 3).toFixed(1)}">${escapeText(p.label)}</text></g>`).join('');
+  // Labels that would overlap the one before are moved down a line.
+  const placed = [];
+  const dots = clean.map((p) => {
+    const cx = x(p.x);
+    const cy = y(p.y);
+    let ly = cy + 3;
+    while (placed.some((other) => Math.abs(other.x - cx) < 34 && Math.abs(other.y - ly) < 9)) ly += 9;
+    placed.push({ x: cx, y: ly });
+    return `<g class="chart-point"><circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4"/><text class="chart-note" x="${(cx + 6).toFixed(1)}" y="${ly.toFixed(1)}">${escapeText(p.label)}</text></g>`;
+  }).join('');
   const svg = frame(title, `${grid}${dots}${axisLabels(xLabel, yLabel)}`);
   return svg + table(title, ['', xLabel, yLabel], clean.map((p) => [p.label, format(p.x), format(p.y)]));
 }
@@ -104,14 +113,14 @@ export function scatterChart({ title, xLabel, yLabel, points }) {
 // Wavelengths are in micrometres.
 export function spectrumChart({ title, regions, rows, min = 0.3, max = 300000 }) {
   const rowHeight = 18;
-  const top = 28;
+  const top = 36;
   const height = top + rows.length * rowHeight + 30;
   const x = logScale(min, max, PAD.left + 40, WIDTH - PAD.right);
   const shaded = regions.map((r, i) => {
     const x1 = x(Math.max(min, r.from));
     const x2 = x(Math.min(max, r.to));
     return `<rect class="chart-region chart-region-${i % 6}" x="${x1.toFixed(1)}" y="${top - 4}" width="${Math.max(1, x2 - x1).toFixed(1)}" height="${rows.length * rowHeight + 8}"/>`
-      + `<text class="chart-note" x="${((x1 + x2) / 2).toFixed(1)}" y="${top - 8}" text-anchor="middle">${escapeText(r.label)}</text>`;
+      + `<text class="chart-note" x="${((x1 + x2) / 2).toFixed(1)}" y="${top - 8 - (i % 2) * 9}" text-anchor="middle">${escapeText(r.label)}</text>`;
   }).join('');
   const bands = rows.map((row, i) => {
     const yRow = top + i * rowHeight;
@@ -123,8 +132,40 @@ export function spectrumChart({ title, regions, rows, min = 0.3, max = 300000 })
     }).join('');
     return label + bars;
   }).join('');
-  const ticks = logTicks(min, max).filter((_, i) => i % 2 === 0).map((tick) => `<text class="chart-tick" x="${x(tick).toFixed(1)}" y="${height - 14}" text-anchor="middle">${escapeText(tick >= 1000 ? `${format(tick / 10000)} cm` : `${format(tick)} µm`)}</text>`).join('');
+  const ticks = logTicks(min, max).map((tick) => `<text class="chart-tick" x="${x(tick).toFixed(1)}" y="${height - 14}" text-anchor="middle">${escapeText(tick >= 1000 ? `${format(tick / 10000)} cm` : `${format(tick)} µm`)}</text>`).join('');
   const svg = `<svg class="chart" viewBox="0 0 ${WIDTH} ${height}" role="img" aria-label="${escapeText(title)}" xmlns="http://www.w3.org/2000/svg">${shaded}${bands}${ticks}</svg>`;
   const tableRows = rows.flatMap((row) => row.bands.map((band) => [row.label, band.name, `${format(band.from)}–${format(band.to)} µm`]));
   return svg + table(title, ['Instrument', 'Band', 'Wavelength'], tableRows);
+}
+
+// Horizontal bars for a few labelled values, such as a percentage per city.
+export function barChart({ title, unit = '', bars }) {
+  const clean = bars.filter((bar) => Number.isFinite(bar.value));
+  if (!clean.length) return '';
+  const rowHeight = 22;
+  const height = clean.length * rowHeight + 16;
+  const maxValue = Math.max(...clean.map((bar) => bar.value), 0) || 1;
+  const x = linearScale(0, maxValue, 90, WIDTH - 40);
+  const rows = clean.map((bar, i) => {
+    const y = 8 + i * rowHeight;
+    return `<text class="chart-tick" x="84" y="${y + 13}" text-anchor="end">${escapeText(bar.label)}</text>`
+      + `<rect class="chart-band" x="90" y="${y + 3}" width="${Math.max(1, x(bar.value) - 90).toFixed(1)}" height="${rowHeight - 8}"/>`
+      + `<text class="chart-note" x="${(x(bar.value) + 4).toFixed(1)}" y="${y + 13}">${escapeText(`${format(bar.value)}${unit}`)}</text>`;
+  }).join('');
+  const svg = `<svg class="chart" viewBox="0 0 ${WIDTH} ${height}" role="img" aria-label="${escapeText(title)}" xmlns="http://www.w3.org/2000/svg">${rows}</svg>`;
+  return svg + table(title, ['', unit ? `Value (${unit})` : 'Value'], clean.map((bar) => [bar.label, format(bar.value)]));
+}
+
+// Averages points by whole year, for long records with many values a year.
+export function yearlyAverages(points) {
+  const years = new Map();
+  for (const point of points) {
+    if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) continue;
+    const year = Math.floor(point.x);
+    const entry = years.get(year) ?? { sum: 0, count: 0 };
+    entry.sum += point.y;
+    entry.count += 1;
+    years.set(year, entry);
+  }
+  return [...years.entries()].sort((a, b) => a[0] - b[0]).map(([year, { sum, count }]) => ({ x: year, y: Number((sum / count).toFixed(1)) }));
 }

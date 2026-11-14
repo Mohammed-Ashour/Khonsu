@@ -70,7 +70,10 @@ func StoryLayers() []gibs.Layer {
 	return storyLayers
 }
 
-var storyLayers = []gibs.Layer{}
+var storyLayers = []gibs.Layer{
+	gibs.StoryNightLights, gibs.StoryFires, gibs.StoryFalseColor, gibs.StoryTrueColor, gibs.StoryTrueColorNPP, gibs.StoryLandsat,
+	gibs.StoryRadarWater, gibs.StoryNO2, gibs.StorySeaHeight, gibs.StorySeaIce,
+}
 
 // FindLayer returns an imagery layer by ID, including story layers.
 func FindLayer(id string) (gibs.Layer, bool) {

@@ -44,6 +44,9 @@ To add a satellite, find its NORAD number on [CelesTrak SATCAT](https://celestra
 | Landsat 9 | 49260 | OLI, TIRS | Visible light, Near infrared, Shortwave infrared, Thermal infrared |
 | SMAP | 40376 | SMAP radiometer | Passive microwave |
 | SWOT | 54754 | SWOT radar interferometer | Altimetry |
+| Sentinel-6A | 46984 | Radar altimeter | Altimetry |
+| GCOM-W1 | 38337 | AMSR2 | Passive microwave |
+| Aura | 28376 | OMI | Gases in the air |
 
 ## Lessons
 

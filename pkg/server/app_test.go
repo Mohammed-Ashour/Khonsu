@@ -431,3 +431,21 @@ func TestImageryDateRules(t *testing.T) {
 		}
 	}
 }
+
+func TestImageryBoxIsForStoryLayersOnly(t *testing.T) {
+	story := gibs.NightLights.AsStory()
+	if box, err := imageryBox("17.6,-67.6,18.8,-65.2", story); err != nil || box != (gibs.Box{MinLat: 17.6, MinLon: -67.6, MaxLat: 18.8, MaxLon: -65.2}) {
+		t.Fatalf("box = %+v, err = %v", box, err)
+	}
+	if box, err := imageryBox("", gibs.NightLights); err != nil || box != gibs.World {
+		t.Fatalf("no bbox = %+v, %v", box, err)
+	}
+	for _, bad := range []string{"1,2,3", "a,b,c,d", "18,-65,17,-67", "-95,0,10,10"} {
+		if _, err := imageryBox(bad, story); err == nil {
+			t.Errorf("accepted %q", bad)
+		}
+	}
+	if _, err := imageryBox("17,-67,18,-65", gibs.NightLights); err == nil {
+		t.Error("a panel layer accepted an area")
+	}
+}

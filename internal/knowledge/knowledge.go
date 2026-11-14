@@ -9,8 +9,10 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
+	"time"
 )
 
 //go:embed knowledge.json
@@ -35,8 +37,32 @@ type Kind struct {
 	ID         string       `json:"id"`
 	Name       string       `json:"name"`
 	Statements []Statement  `json:"statements"`
+	Conditions []Condition  `json:"conditions"`
+	Uses       []Statement  `json:"uses"`
 	Layers     []string     `json:"layers"`
 	Lessons    []LessonLink `json:"lessons"`
+}
+
+// Condition says whether a kind of data works in some situation, such as at night or
+// through cloud, with the sentence and sources that support it.
+type Condition struct {
+	Label string `json:"label"`
+	Value bool   `json:"value"`
+	Statement
+}
+
+// Band is a wavelength range an instrument measures, in micrometres.
+type Band struct {
+	Name   string  `json:"name"`
+	FromUM float64 `json:"from_um"`
+	ToUM   float64 `json:"to_um"`
+}
+
+// Region is a named part of the spectrum, in micrometres.
+type Region struct {
+	Label  string  `json:"label"`
+	FromUM float64 `json:"from_um"`
+	ToUM   float64 `json:"to_um"`
 }
 
 // LessonLink names a lesson.
@@ -55,6 +81,48 @@ type Lesson struct {
 	Summary string   `json:"summary"`
 	Kinds   []string `json:"kinds"`
 	Steps   []Step   `json:"steps"`
+	// A story is a lesson about one real event; When and Where describe it.
+	Story bool   `json:"story,omitempty"`
+	When  string `json:"when,omitempty"`
+	Where string `json:"where,omitempty"`
+}
+
+// Picture is a story layer for one past day, over an area when Box is set.
+type Picture struct {
+	Layer string `json:"layer"`
+	Date  string `json:"date"`
+	Box   *Box   `json:"box,omitempty"`
+	Label string `json:"label,omitempty"`
+	// Plain leaves out the true-colour picture usually drawn under a see-through one,
+	// such as white sea ice that would vanish against white cloud.
+	Plain bool `json:"plain,omitempty"`
+}
+
+// Box is an area on the globe, in degrees.
+type Box struct {
+	MinLat float64 `json:"min_lat"`
+	MinLon float64 `json:"min_lon"`
+	MaxLat float64 `json:"max_lat"`
+	MaxLon float64 `json:"max_lon"`
+}
+
+// Chart draws a record that Khonsu fetches when it is shown (sea-ice or sea-level), or a
+// few sourced numbers given here (bars).
+type Chart struct {
+	Dataset    string     `json:"dataset"`
+	Title      string     `json:"title"`
+	Hemisphere string     `json:"hemisphere,omitempty"`
+	Month      int        `json:"month,omitempty"`
+	Highlight  []int      `json:"highlight,omitempty"`
+	Unit       string     `json:"unit,omitempty"`
+	Bars       []Bar      `json:"bars,omitempty"`
+	Source     *Statement `json:"source,omitempty"`
+}
+
+// Bar is one labelled value of a bar chart.
+type Bar struct {
+	Label string  `json:"label"`
+	Value float64 `json:"value"`
 }
 
 // Step is one card of a lesson. Empty fields leave that part of the app as it is,
@@ -64,6 +132,9 @@ type Step struct {
 	Base      *string     `json:"base,omitempty"`
 	View      *string     `json:"view,omitempty"`
 	Compare   []string    `json:"compare,omitempty"`
+	Picture   *Picture    `json:"picture,omitempty"`
+	Pictures  []Picture   `json:"pictures,omitempty"`
+	Chart     *Chart      `json:"chart,omitempty"`
 	Camera    *Camera     `json:"camera,omitempty"`
 	Text      []Statement `json:"text"`
 	Hint      string      `json:"hint,omitempty"`
@@ -74,6 +145,8 @@ type Step struct {
 type Camera struct {
 	Lat float64 `json:"lat"`
 	Lon float64 `json:"lon"`
+	// Distance from Earth's centre in Earth radii, for a close view of a region.
+	Distance float64 `json:"distance,omitempty"`
 }
 
 // Question asks the reader to predict before the answer is shown.
@@ -88,8 +161,14 @@ type Question struct {
 type Instrument struct {
 	ID         string      `json:"id"`
 	Name       string      `json:"name"`
+	Short      string      `json:"short,omitempty"`
 	Kinds      []string    `json:"kinds"`
 	Statements []Statement `json:"statements"`
+	// Bands, pixel size and time between looks, for the Learn charts; Specs sources them.
+	Bands       []Band     `json:"bands,omitempty"`
+	ResolutionM float64    `json:"resolution_m,omitempty"`
+	RevisitDays float64    `json:"revisit_days,omitempty"`
+	Specs       *Statement `json:"specs,omitempty"`
 }
 
 // Profile is what one satellite measures, with every instrument and kind it
@@ -113,15 +192,30 @@ type rawFile struct {
 		ID         string         `json:"id"`
 		Name       string         `json:"name"`
 		Statements []rawStatement `json:"statements"`
-		Layers     []string       `json:"layers"`
+		Conditions []struct {
+			Label   string   `json:"label"`
+			Value   bool     `json:"value"`
+			Text    string   `json:"text"`
+			Sources []string `json:"sources"`
+		} `json:"conditions"`
+		Uses   []rawStatement `json:"uses"`
+		Layers []string       `json:"layers"`
 	} `json:"kinds"`
 	Instruments []struct {
-		ID         string         `json:"id"`
-		Name       string         `json:"name"`
-		Kinds      []string       `json:"kinds"`
-		Statements []rawStatement `json:"statements"`
+		ID          string         `json:"id"`
+		Name        string         `json:"name"`
+		Short       string         `json:"short"`
+		Kinds       []string       `json:"kinds"`
+		Statements  []rawStatement `json:"statements"`
+		Bands       []Band         `json:"bands"`
+		ResolutionM float64        `json:"resolution_m"`
+		RevisitDays float64        `json:"revisit_days"`
+		Specs       *rawStatement  `json:"specs"`
 	} `json:"instruments"`
-	Satellites []struct {
+	Regions         []Region       `json:"regions"`
+	RegionsSources  []rawStatement `json:"regions_sources"`
+	SharpStatements []rawStatement `json:"sharp_statements"`
+	Satellites      []struct {
 		NoradID     string         `json:"norad_id"`
 		Name        string         `json:"name"`
 		Instruments []string       `json:"instruments"`
@@ -132,11 +226,17 @@ type rawFile struct {
 		Title   string   `json:"title"`
 		Summary string   `json:"summary"`
 		Kinds   []string `json:"kinds"`
+		Story   bool     `json:"story"`
+		When    string   `json:"when"`
+		Where   string   `json:"where"`
 		Steps   []struct {
 			Satellite string         `json:"satellite"`
 			Base      *string        `json:"base"`
 			View      *string        `json:"view"`
 			Compare   []string       `json:"compare"`
+			Picture   *Picture       `json:"picture"`
+			Pictures  []Picture      `json:"pictures"`
+			Chart     *rawChart      `json:"chart"`
 			Camera    *Camera        `json:"camera"`
 			Text      []rawStatement `json:"text"`
 			Hint      string         `json:"hint"`
@@ -150,15 +250,30 @@ type rawFile struct {
 	} `json:"lessons"`
 }
 
+type rawChart struct {
+	Dataset    string        `json:"dataset"`
+	Title      string        `json:"title"`
+	Hemisphere string        `json:"hemisphere"`
+	Month      int           `json:"month"`
+	Highlight  []int         `json:"highlight"`
+	Unit       string        `json:"unit"`
+	Bars       []Bar         `json:"bars"`
+	Source     *rawStatement `json:"source"`
+}
+
 // Base is the whole knowledge base, with source references resolved.
 type Base struct {
 	Kinds       []Kind
 	Instruments []Instrument
 	Lessons     []Lesson
-	satellites  map[string]rawSatellite
-	order       []string
-	kindByID    map[string]Kind
-	instByID    map[string]Instrument
+	// For the Learn charts: the spectrum's regions, and what the charts rest on.
+	Regions         []Region
+	RegionsSources  []Statement
+	SharpStatements []Statement
+	satellites      map[string]rawSatellite
+	order           []string
+	kindByID        map[string]Kind
+	instByID        map[string]Instrument
 }
 
 type rawSatellite struct {
@@ -215,7 +330,19 @@ func parse(body []byte) (*Base, error) {
 		if _, dup := base.kindByID[k.ID]; dup || k.ID == "" || k.Name == "" {
 			return nil, fmt.Errorf("kind %q is unnamed or repeated", k.ID)
 		}
-		kind := Kind{ID: k.ID, Name: k.Name, Statements: list, Layers: append([]string{}, k.Layers...)}
+		uses, err := statements("kind "+k.ID+" uses", k.Uses)
+		if err != nil {
+			return nil, err
+		}
+		conditions := []Condition{}
+		for _, c := range k.Conditions {
+			list, err := statements("kind "+k.ID+" condition", []rawStatement{{Text: c.Text, Sources: c.Sources}})
+			if err != nil || c.Label == "" {
+				return nil, fmt.Errorf("kind %s: every condition needs a label, text and a source", k.ID)
+			}
+			conditions = append(conditions, Condition{Label: c.Label, Value: c.Value, Statement: list[0]})
+		}
+		kind := Kind{ID: k.ID, Name: k.Name, Statements: list, Conditions: conditions, Uses: uses, Layers: append([]string{}, k.Layers...)}
 		base.Kinds = append(base.Kinds, kind)
 		base.kindByID[k.ID] = kind
 	}
@@ -232,7 +359,22 @@ func parse(body []byte) (*Base, error) {
 				return nil, fmt.Errorf("instrument %s: unknown kind %q", in.ID, kind)
 			}
 		}
-		instrument := Instrument{ID: in.ID, Name: in.Name, Kinds: in.Kinds, Statements: list}
+		instrument := Instrument{ID: in.ID, Name: in.Name, Short: in.Short, Kinds: in.Kinds, Statements: list, Bands: in.Bands, ResolutionM: in.ResolutionM, RevisitDays: in.RevisitDays}
+		if (len(in.Bands) > 0 || in.ResolutionM > 0 || in.RevisitDays > 0) && in.Specs == nil {
+			return nil, fmt.Errorf("instrument %s: bands and figures need a specs statement with sources", in.ID)
+		}
+		for _, band := range in.Bands {
+			if band.Name == "" || band.FromUM <= 0 || band.ToUM < band.FromUM {
+				return nil, fmt.Errorf("instrument %s: band %q is not a range", in.ID, band.Name)
+			}
+		}
+		if in.Specs != nil {
+			specs, err := statements("instrument "+in.ID+" specs", []rawStatement{*in.Specs})
+			if err != nil {
+				return nil, err
+			}
+			instrument.Specs = &specs[0]
+		}
 		base.Instruments = append(base.Instruments, instrument)
 		base.instByID[in.ID] = instrument
 	}
@@ -252,6 +394,17 @@ func parse(body []byte) (*Base, error) {
 		base.satellites[sat.NoradID] = rawSatellite{name: sat.Name, instruments: sat.Instruments, statements: list}
 		base.order = append(base.order, sat.NoradID)
 	}
+	var err error
+	if base.RegionsSources, err = statements("regions", raw.RegionsSources); err != nil {
+		return nil, err
+	}
+	if base.SharpStatements, err = statements("sharp", raw.SharpStatements); err != nil {
+		return nil, err
+	}
+	if len(raw.Regions) > 0 && len(base.RegionsSources) == 0 {
+		return nil, errors.New("spectrum regions need sources")
+	}
+	base.Regions = raw.Regions
 	for _, raw := range raw.Lessons {
 		owner := "lesson " + raw.ID
 		if raw.ID == "" || raw.Title == "" || raw.Summary == "" || len(raw.Steps) == 0 {
@@ -262,7 +415,7 @@ func parse(body []byte) (*Base, error) {
 				return nil, fmt.Errorf("%s is repeated", owner)
 			}
 		}
-		lesson := Lesson{ID: raw.ID, Title: raw.Title, Summary: raw.Summary, Kinds: raw.Kinds}
+		lesson := Lesson{ID: raw.ID, Title: raw.Title, Summary: raw.Summary, Kinds: raw.Kinds, Story: raw.Story, When: raw.When, Where: raw.Where}
 		for _, kind := range raw.Kinds {
 			if _, ok := base.kindByID[kind]; !ok {
 				return nil, fmt.Errorf("%s: unknown kind %q", owner, kind)
@@ -285,7 +438,29 @@ func parse(body []byte) (*Base, error) {
 			if rs.Camera != nil && (rs.Camera.Lat < -90 || rs.Camera.Lat > 90 || rs.Camera.Lon < -180 || rs.Camera.Lon > 180) {
 				return nil, fmt.Errorf("%s: camera is off the globe", where)
 			}
-			step := Step{Satellite: rs.Satellite, Base: rs.Base, View: rs.View, Compare: rs.Compare, Camera: rs.Camera, Text: text, Hint: rs.Hint}
+			if rs.Camera != nil && rs.Camera.Distance != 0 && (rs.Camera.Distance < 1.02 || rs.Camera.Distance > 60) {
+				return nil, fmt.Errorf("%s: camera distance must be 1.02 to 60 Earth radii", where)
+			}
+			pictures := rs.Pictures
+			if rs.Picture != nil {
+				pictures = append([]Picture{*rs.Picture}, pictures...)
+			}
+			if len(rs.Pictures) == 1 {
+				return nil, fmt.Errorf("%s: pictures compares two or more; use picture for one", where)
+			}
+			for _, picture := range pictures {
+				if err := checkPicture(picture); err != nil {
+					return nil, fmt.Errorf("%s: %w", where, err)
+				}
+			}
+			step := Step{Satellite: rs.Satellite, Base: rs.Base, View: rs.View, Compare: rs.Compare, Picture: rs.Picture, Pictures: rs.Pictures, Camera: rs.Camera, Text: text, Hint: rs.Hint}
+			if rs.Chart != nil {
+				chart, err := checkChart(where, rs.Chart, statements)
+				if err != nil {
+					return nil, err
+				}
+				step.Chart = chart
+			}
 			if rs.Question != nil {
 				q := rs.Question
 				if q.Prompt == "" || len(q.Choices) < 2 || q.Answer < 0 || q.Answer >= len(q.Choices) {
@@ -297,7 +472,7 @@ func parse(body []byte) (*Base, error) {
 				}
 				step.Question = &Question{Prompt: q.Prompt, Choices: q.Choices, Answer: q.Answer, Explain: explain[0]}
 			}
-			if len(step.Text) == 0 && step.Question == nil {
+			if len(step.Text) == 0 && step.Question == nil && step.Chart == nil {
 				return nil, fmt.Errorf("%s has nothing to say", where)
 			}
 			lesson.Steps = append(lesson.Steps, step)
@@ -317,6 +492,47 @@ func parse(body []byte) (*Base, error) {
 		base.kindByID[kind.ID] = kind
 	}
 	return base, nil
+}
+
+func checkPicture(p Picture) error {
+	if p.Layer == "" {
+		return errors.New("a picture needs a layer")
+	}
+	if _, err := time.Parse("2006-01-02", p.Date); err != nil {
+		return fmt.Errorf("picture %s: date must be YYYY-MM-DD", p.Layer)
+	}
+	if b := p.Box; b != nil && !(b.MinLat >= -90 && b.MaxLat <= 90 && b.MinLon >= -180 && b.MaxLon <= 180 && b.MaxLat > b.MinLat && b.MaxLon > b.MinLon) {
+		return fmt.Errorf("picture %s: the box is not a rectangle on the globe", p.Layer)
+	}
+	return nil
+}
+
+func checkChart(where string, raw *rawChart, statements func(string, []rawStatement) ([]Statement, error)) (*Chart, error) {
+	chart := &Chart{Dataset: raw.Dataset, Title: raw.Title, Hemisphere: raw.Hemisphere, Month: raw.Month, Highlight: raw.Highlight, Unit: raw.Unit, Bars: raw.Bars}
+	if raw.Title == "" {
+		return nil, fmt.Errorf("%s: a chart needs a title", where)
+	}
+	switch raw.Dataset {
+	case "sea-ice":
+		if (raw.Hemisphere != "north" && raw.Hemisphere != "south") || raw.Month < 1 || raw.Month > 12 {
+			return nil, fmt.Errorf("%s: a sea-ice chart needs a hemisphere and a month", where)
+		}
+	case "sea-level":
+	case "bars":
+		if len(raw.Bars) == 0 || raw.Source == nil {
+			return nil, fmt.Errorf("%s: a bar chart needs bars and a source for their numbers", where)
+		}
+	default:
+		return nil, fmt.Errorf("%s: unknown chart dataset %q", where, raw.Dataset)
+	}
+	if raw.Source != nil {
+		source, err := statements(where+" chart", []rawStatement{*raw.Source})
+		if err != nil {
+			return nil, err
+		}
+		chart.Source = &source[0]
+	}
+	return chart, nil
 }
 
 // Lesson returns a lesson by ID.

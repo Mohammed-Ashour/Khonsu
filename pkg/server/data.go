@@ -153,7 +153,16 @@ func learn(w http.ResponseWriter, _ *http.Request) {
 	for _, k := range base.Kinds {
 		kinds = append(kinds, kind{k, base.Carriers(k.ID)})
 	}
-	writeJSON(w, map[string]any{"kinds": kinds, "instruments": base.Instruments, "lessons": base.Lessons})
+	lessons, stories := []knowledge.Lesson{}, []knowledge.Lesson{}
+	for _, lesson := range base.Lessons {
+		if lesson.Story {
+			stories = append(stories, lesson)
+		} else {
+			lessons = append(lessons, lesson)
+		}
+	}
+	writeJSON(w, map[string]any{"kinds": kinds, "instruments": base.Instruments, "lessons": lessons, "stories": stories,
+		"regions": base.Regions, "regions_sources": base.RegionsSources, "sharp_statements": base.SharpStatements})
 }
 
 func coordinates(r *http.Request) (float64, float64, error) {
@@ -223,6 +232,33 @@ func imageryDate(value string, layer gibs.Layer, now time.Time) (time.Time, bool
 	return day, true, nil
 }
 
+// imageryBox reads an optional area, as minLat,minLon,maxLat,maxLon, for a story layer.
+func imageryBox(value string, layer gibs.Layer) (gibs.Box, error) {
+	if value == "" {
+		return gibs.World, nil
+	}
+	if !layer.Story {
+		return gibs.Box{}, badRequest("only story pictures take an area")
+	}
+	parts := strings.Split(value, ",")
+	if len(parts) != 4 {
+		return gibs.Box{}, badRequest("bbox must be minLat,minLon,maxLat,maxLon")
+	}
+	numbers := make([]float64, 4)
+	for i, part := range parts {
+		number, err := strconv.ParseFloat(strings.TrimSpace(part), 64)
+		if err != nil {
+			return gibs.Box{}, badRequest("bbox must be minLat,minLon,maxLat,maxLon")
+		}
+		numbers[i] = number
+	}
+	box := gibs.Box{MinLat: numbers[0], MinLon: numbers[1], MaxLat: numbers[2], MaxLon: numbers[3]}
+	if !box.Valid() {
+		return gibs.Box{}, badRequest("bbox must be a rectangle on the globe")
+	}
+	return box, nil
+}
+
 func (d dataAPI) imagery(w http.ResponseWriter, r *http.Request) {
 	layer, found := sources.FindLayer(r.URL.Query().Get("layer"))
 	if !found {
@@ -238,12 +274,17 @@ func (d dataAPI) imagery(w http.ResponseWriter, r *http.Request) {
 		writeFailure(w, err)
 		return
 	}
+	box, err := imageryBox(r.URL.Query().Get("bbox"), layer)
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
 	ctx, cancel := context.WithTimeout(r.Context(), slowTimeout)
 	defer cancel()
 	var image []byte
 	var meta feed.Meta
 	if dated {
-		image, meta, err = d.client.GIBS.ImageOn(ctx, layer, day)
+		image, meta, err = d.client.GIBS.ImageOn(ctx, layer, day, box)
 	} else {
 		image, meta, err = d.client.GIBS.Image(ctx, layer)
 	}

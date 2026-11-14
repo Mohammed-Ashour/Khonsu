@@ -4,6 +4,12 @@
 
 const STORAGE_KEY = 'khonsu.layers';
 const TRUE_COLOR = 'true-color';
+// Drawn under see-through story pictures of one area.
+// Drawn under see-through story pictures of one area: Suomi NPP from 2012, whose wide swath
+// leaves no gaps at the equator, and Terra before that.
+const STORY_UNDER = 'story-true-color';
+const STORY_UNDER_NPP = 'story-true-color-npp';
+const NPP_FROM = '2012-02-01';
 const LOADING = 'Loading…';
 const GLOBE_OFF = 'The globe is unavailable, so layers are turned off.';
 const LIVE_OFF = 'Live data is off while serving a local file, so pictures and the aurora are unavailable.';
@@ -15,7 +21,7 @@ const AURORA_CREDIT = 'Aurora estimated from NOAA SWPC Kp';
 export function createLayers({ element, panel, credit, catalog, storage, globe, fetchHead = (url) => fetch(url, { method: 'HEAD' }), dataAge, now = Date.now }) {
   // The saved choices. `live` is NOAA's Kp; `tried` is a slider value kept in memory only.
   // `viewDate` is a past day for a dated view, set only by lessons and stories, never saved.
-  const state = { base: '', overlays: [], view: '', viewDate: '', aurora: false, live: null, tried: null };
+  const state = { base: '', overlays: [], view: '', viewDate: '', viewBox: null, viewPlain: false, aurora: false, live: null, tried: null };
   const freshness = new Map();
   const warnings = new Map();
   const baseInputs = new Map();
@@ -28,7 +34,8 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
   // Bumped on every setLayers call, so a result for an older stack is dropped.
   let calls = 0;
 
-  const imageryUrl = (id, date = '') => '/api/v1/imagery?layer=' + encodeURIComponent(id) + (date ? '&date=' + encodeURIComponent(date) : '');
+  const boxText = (box) => [box.minLat, box.minLon, box.maxLat, box.maxLon].join(',');
+  const imageryUrl = (id, date = '', box = null) => '/api/v1/imagery?layer=' + encodeURIComponent(id) + (date ? '&date=' + encodeURIComponent(date) : '') + (box ? '&bbox=' + encodeURIComponent(boxText(box)) : '');
   // Layers with a topic are the "what satellites measure" views, kept out of the everyday groups.
   // Story layers appear only in lessons and stories, for a chosen date.
   const everyday = () => layers.filter((layer) => !layer.topic && !layer.story);
@@ -44,10 +51,19 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
   function stackLayers() {
     const view = state.view ? byId.get(state.view) : null;
     let ids = [...(state.base ? [state.base] : []), ...state.overlays];
-    if (view) ids = view.transparent === true ? [...(state.base ? [state.base] : []), view.id] : [view.id];
+    // A picture of one area leaves the rest of the globe as it is, so the base stays under it.
+    if (view) ids = view.transparent === true || state.viewBox ? [...(state.base ? [state.base] : []), view.id] : [view.id];
+    // A see-through story picture of one area gets a true-colour picture of the same day and
+    // area beneath it, so it is not shown over today's blurry whole-Earth picture.
+    const under = state.viewDate >= NPP_FROM ? STORY_UNDER_NPP : STORY_UNDER;
+    if (view && view.story && view.transparent === true && state.viewBox && !state.viewPlain && byId.has(under)) ids.splice(ids.indexOf(view.id), 0, under);
     return ids
       .filter((id) => byId.has(id))
-      .map((id) => ({ id, url: imageryUrl(id, id === state.view ? state.viewDate : ''), transparent: byId.get(id).transparent === true }));
+      .map((id) => {
+        const isView = id === state.view || ((id === STORY_UNDER || id === STORY_UNDER_NPP) && Boolean(state.viewBox));
+        const box = isView ? state.viewBox : null;
+        return { id, url: imageryUrl(id, isView ? state.viewDate : '', box), transparent: byId.get(id).transparent === true, ...(box ? { box } : {}) };
+      });
   }
 
   function persist() {
@@ -199,18 +215,21 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
       state.overlays = cloudIds();
       state.view = '';
       state.viewDate = '';
+      state.viewBox = null;
     }],
     ["Yesterday's Earth", () => {
       state.base = trueColor();
       state.overlays = [];
       state.view = '';
       state.viewDate = '';
+      state.viewBox = null;
     }],
     ['Plain', () => {
       state.base = '';
       state.overlays = [];
       state.view = '';
       state.viewDate = '';
+      state.viewBox = null;
       state.aurora = false;
       state.tried = null;
     }],
@@ -264,6 +283,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
       if (!noView.input.checked) return;
       state.view = '';
       state.viewDate = '';
+      state.viewBox = null;
       commit();
     });
     viewInputs.set('', noView.input);
@@ -274,6 +294,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
         if (!row.input.checked) return;
         state.view = layer.id;
         state.viewDate = '';
+        state.viewBox = null;
         commit();
       });
       viewInputs.set(layer.id, row.input);
@@ -389,12 +410,16 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
 
   // Shows one "what satellites measure" view, or none for ''. The Data tab and lessons call this.
   // A transparent view goes over true colour when there is no base yet, so it has a backdrop.
-  function show(id, date = '') {
+  // Shows one view, or none for ''. Lessons and stories may give a past date, and an area
+  // { minLat, minLon, maxLat, maxLon } for a sharp picture of one region.
+  function show(id, date = '', box = null, { plain = false } = {}) {
     if (!active || (id !== '' && !isViewId(id))) return false;
     if (id && byId.get(id).story && !date) return false;
     state.view = id;
     state.viewDate = id ? date : '';
-    if (id && byId.get(id).transparent === true && !state.base) state.base = trueColor();
+    state.viewBox = id && box ? box : null;
+    state.viewPlain = Boolean(plain);
+    if (id && (byId.get(id).transparent === true || box) && !state.base) state.base = trueColor();
     commit();
     return true;
   }

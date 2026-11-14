@@ -146,7 +146,7 @@ async function loadTrack(entry) {
     globe?.select(state.selected);
     if (entry.framePending) {
       entry.framePending = false;
-      if (entry.id === state.selected) globe?.home(entry.id);
+      if (entry.id === state.selected && !lessonPlayer?.holdsCamera()) globe?.home(entry.id);
     }
   } catch (error) {
     if (isAbort(error)) return;
@@ -205,7 +205,7 @@ function select(id) {
     state.planFor = null;
     state.planError = null;
     state.activePass = null;
-    if (id && state.tracked.get(id)?.track) globe?.home(id);
+    if (id && state.tracked.get(id)?.track && !lessonPlayer?.holdsCamera()) globe?.home(id);
   }
   syncUrl();
   renderTracked();
@@ -1106,9 +1106,9 @@ function showSatellite(id) {
   addSatellite(id, undefined, { frame: false });
 }
 
-function faceGlobe(lat, lon) {
+function faceGlobe(lat, lon, distance = null) {
   if (!globe) return;
-  globe.face(lat, lon);
+  globe.face(lat, lon, distance);
   setFollow(false);
 }
 
@@ -1442,7 +1442,8 @@ async function start() {
     select(initial.selected);
   }
   await groupsLoaded;
-  if (!initial.ids.length && !state.tracked.size) {
+  // A shared lesson link chooses its own satellites.
+  if (!initial.ids.length && !state.tracked.size && !initialLesson) {
     const first = state.items.find((item) => canonicalId(item.norad_id) === DEFAULT_ID) ?? state.items[0];
     if (first) addSatellite(first.norad_id, first.name);
   }

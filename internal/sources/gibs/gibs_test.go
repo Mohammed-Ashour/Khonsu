@@ -3,6 +3,10 @@ package gibs
 import (
 	"bytes"
 	"context"
+	"errors"
+	"image"
+	"image/color"
+	"image/jpeg"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -129,14 +133,63 @@ func TestImageOnAsksForThatDayAndKeepsIt(t *testing.T) {
 	c := NewAt(feed.NewClient(t.TempDir()), server.URL)
 	day := time.Date(2017, 9, 20, 0, 0, 0, 0, time.UTC)
 	for range 2 {
-		if _, _, err := c.ImageOn(context.Background(), NightLights, day); err != nil {
+		if _, _, err := c.ImageOn(context.Background(), NightLights, day, World); err != nil {
 			t.Fatal(err)
 		}
 	}
 	if strings.Join(queries, ",") != "2017-09-20" {
 		t.Fatalf("queries = %v; want one request for that day", queries)
 	}
-	if _, _, err := c.ImageOn(context.Background(), NewLayer("live", "Live", Info, "", "L", true, false), day); err == nil {
+	if _, _, err := c.ImageOn(context.Background(), NewLayer("live", "Live", Info, "", "L", true, false), day, World); err == nil {
 		t.Fatal("a live layer accepted a date")
 	}
+}
+
+func TestStoryPicturesOverAnAreaAreSizedAndCheckedForFlatColour(t *testing.T) {
+	if w, h := (Box{17.6, -67.6, 18.8, -65.2}).pixels(); w != 2048 || h != 1024 {
+		t.Errorf("Puerto Rico box = %dx%d", w, h)
+	}
+	if w, h := (Box{60, -10, 90, 0}).pixels(); w != 683 || h != 2048 {
+		t.Errorf("tall box = %dx%d", w, h)
+	}
+	flat := encodeJPEG(t, func(x, y int) color.Color { return color.Gray{0} })
+	busy := encodeJPEG(t, func(x, y int) color.Color { return color.Gray{uint8(x * 4)} })
+	opaque := NewLayer("s", "S", Info, "", "S", false, true).AsStory()
+	if err := validateImage(opaque)(flat); !errors.Is(err, feed.ErrNoData) {
+		t.Errorf("flat picture: %v", err)
+	}
+	if err := validateImage(opaque)(busy); err != nil {
+		t.Errorf("real picture rejected: %v", err)
+	}
+	var query string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		query = r.URL.RawQuery
+		w.Write(busy)
+	}))
+	defer server.Close()
+	c := NewAt(feed.NewClient(t.TempDir()), server.URL)
+	if _, _, err := c.ImageOn(context.Background(), opaque, time.Date(2017, 9, 27, 0, 0, 0, 0, time.UTC), Box{17.6, -67.6, 18.8, -65.2}); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(query, "BBOX=17.6%2C-67.6%2C18.8%2C-65.2") || !strings.Contains(query, "HEIGHT=1024") {
+		t.Errorf("query = %s", query)
+	}
+	if _, _, err := c.ImageOn(context.Background(), opaque, time.Now(), Box{10, 10, 5, 20}); err == nil {
+		t.Error("an inside-out box was accepted")
+	}
+}
+
+func encodeJPEG(t *testing.T, pixel func(x, y int) color.Color) []byte {
+	t.Helper()
+	img := image.NewGray(image.Rect(0, 0, 64, 32))
+	for y := 0; y < 32; y++ {
+		for x := 0; x < 64; x++ {
+			img.Set(x, y, pixel(x, y))
+		}
+	}
+	var out bytes.Buffer
+	if err := jpeg.Encode(&out, img, nil); err != nil {
+		t.Fatal(err)
+	}
+	return out.Bytes()
 }

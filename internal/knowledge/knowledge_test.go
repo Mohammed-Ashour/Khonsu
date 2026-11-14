@@ -242,3 +242,31 @@ func TestCarriersListSatellitesForAKind(t *testing.T) {
 		t.Fatalf("radar carriers = %v", names)
 	}
 }
+
+func TestStoryPicturesUseStoryLayers(t *testing.T) {
+	base := load(t)
+	stories := 0
+	for _, lesson := range base.Lessons {
+		if lesson.Story {
+			stories++
+			if lesson.When == "" || lesson.Where == "" {
+				t.Errorf("story %s needs when and where", lesson.ID)
+			}
+		}
+		for i, step := range lesson.Steps {
+			pictures := step.Pictures
+			if step.Picture != nil {
+				pictures = append(pictures, *step.Picture)
+			}
+			for _, picture := range pictures {
+				layer, ok := sources.FindLayer(picture.Layer)
+				if !ok || !layer.Story {
+					t.Errorf("lesson %s step %d: %q is not a story layer", lesson.ID, i+1, picture.Layer)
+				}
+			}
+		}
+	}
+	if stories < 7 {
+		t.Fatalf("%d stories", stories)
+	}
+}
