@@ -27,6 +27,7 @@ khonsu web --file satellites.tle            # Local elements, no provider reques
 - **Data:** what the satellite measures: its instruments, the kinds of data they collect, such as visible light, thermal infrared or radar, and what that data is used for. Every sentence links to its source. Kinds that have a view offer *Show on the globe*. The descriptions are written by hand and built into Khonsu, so opening the tab sends nothing to any provider, and satellites without one say so. [What satellites measure](what-satellites-measure.md) lists them. For Sentinel-2 and Landsat, *Scene locations* lists recent scenes from Earth Search. Choose one to mark its centre on the globe. It shows where the scene was taken, not the picture itself.
 - **Chips:** the top bar shows the latest Kp index and the time to the next launch. Select a chip to see the space weather details or the next launches.
 - **Time:** *Live* follows the clock. The slider and playback speeds cover about 25 hours, starting an hour ago. Times can be local or UTC.
+- **Panels:** drag the edge of the satellite list or the details panel to resize it, or focus the edge and use the arrow keys (Shift for bigger steps). Double-click resets it. Widths are saved in this browser, and the globe always keeps at least 360 px.
 - **Share:** the URL holds the tracked satellites and the selection, so you can bookmark or send it.
 
 ## Privacy and security

@@ -9,6 +9,7 @@ import { sampleAt } from '../../../pkg/templates/viewer-state.js';
 import { renderSky } from './sky.js';
 import { createDossier } from './dossier.js';
 import { appendSources, createDataTab } from './datatab.js';
+import { createResizers } from './resize.js';
 import { createSkyBar } from './skybar.js';
 
 const LIST_LIMIT = 200;
@@ -1266,6 +1267,8 @@ async function start() {
       if (event.target.open) dossier.open(section);
     });
   }
+  const resizers = createResizers({ root: document.querySelector('.app'), handles: { catalog: byId('resize-catalog'), inspector: byId('resize-inspector') }, storage });
+  window.addEventListener('resize', () => resizers.fit());
   dataTab = createDataTab({ api, element, panel: byId('data-measures'), selectedEntry, dataFailure, layers: () => layersPanel });
   try {
     globe = createGlobe(byId('scene'), {
