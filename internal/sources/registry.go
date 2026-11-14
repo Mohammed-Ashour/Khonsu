@@ -61,9 +61,16 @@ func Layers() []gibs.Layer {
 	}
 }
 
-// FindLayer returns an imagery layer by ID.
+// StoryLayers are pictures that lessons and stories show for chosen past dates.
+func StoryLayers() []gibs.Layer {
+	return storyLayers
+}
+
+var storyLayers = []gibs.Layer{}
+
+// FindLayer returns an imagery layer by ID, including story layers.
 func FindLayer(id string) (gibs.Layer, bool) {
-	for _, layer := range Layers() {
+	for _, layer := range append(Layers(), StoryLayers()...) {
 		if layer.ID == id {
 			return layer, true
 		}

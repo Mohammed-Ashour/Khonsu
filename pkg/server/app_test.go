@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/gibs"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/goes"
 	"io/fs"
 	"net"
 	"net/http"
@@ -13,6 +15,7 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"github.com/Mohammed-Ashour/khonsu/internal/catalog"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources"
@@ -399,5 +402,32 @@ func TestLessonsAreServedWithoutLiveData(t *testing.T) {
 	}
 	if body.Lessons[0].ID != "light-and-heat" || body.Lessons[0].Steps[0].Text[0].Sources[0].URL == "" {
 		t.Fatalf("first lesson = %+v", body.Lessons[0])
+	}
+}
+
+func TestImageryDateRules(t *testing.T) {
+	now := time.Date(2026, 11, 14, 12, 0, 0, 0, time.UTC)
+	daily := gibs.NightLights
+	story := gibs.NightLights.AsStory()
+	live := goes.EastInfrared
+	for _, tc := range []struct {
+		value string
+		layer gibs.Layer
+		dated bool
+		fails bool
+	}{
+		{"", daily, false, false},
+		{"2017-09-20", daily, true, false},
+		{"2017-09-20", story, true, false},
+		{"", story, false, true},
+		{"2026-11-14", daily, false, true},
+		{"1999-12-31", daily, false, true},
+		{"20170920", daily, false, true},
+		{"2017-09-20", live, false, true},
+	} {
+		_, dated, err := imageryDate(tc.value, tc.layer, now)
+		if dated != tc.dated || (err != nil) != tc.fails {
+			t.Errorf("%q %s: dated=%v err=%v", tc.value, tc.layer.ID, dated, err)
+		}
 	}
 }

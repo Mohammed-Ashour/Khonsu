@@ -63,6 +63,10 @@ Sat 14 Nov  visible for 2m 25s
 
 In the web app, set your location and open **Sky**. You get a countdown to the next viewing window, a sky plot of where to look, and a *Window* badge on each pass that is sunlit in a dark sky. Brightness, weather and obstructions may still prevent a sighting. **Check clouds near me** adds the forecast cloud cover for each one. `khonsu passes` does the same for any satellite.
 
+### Find any satellite
+
+Pick a group from the searchable group list, then filter it by name or type a NORAD number. *Search all groups* looks through every group at once. Each group's list is kept for the session, so switching back is instant. You can follow up to eight satellites, and drag the edges of the side panels to make room for the globe.
+
 ### Understand why a satellite flies where it does
 
 Select a satellite and open **Orbit**. *Why is it up there?* explains its orbit in plain words: how high and how fast it flies, how far north and south it reaches, and patterns like sun-synchronous or Molniya. It also gives the local time it crosses the equator and how often its path repeats. Each sentence links to its source, and best guesses are tagged *estimate*.

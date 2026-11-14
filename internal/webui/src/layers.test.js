@@ -82,6 +82,7 @@ const LAYERS = [
   { id: 'himawari', name: 'Himawari clouds', source_id: 'jma', credit: 'JMA', description: 'Near live', transparent: true },
   { id: 'night-lights', name: 'Earth at night', source_id: 'nasa', credit: 'NASA GIBS', description: 'Daily', transparent: false, topic: 'night_lights' },
   { id: 'goes-east-infrared', name: 'GOES East infrared', source_id: 'noaa', credit: 'NOAA', description: 'Near live', transparent: true, topic: 'thermal_infrared' },
+  { id: 'snpp-night', name: 'Suomi NPP night lights', source_id: 'nasa', credit: 'NASA GIBS', description: 'Dated', transparent: false, topic: 'night_lights', story: true },
 ];
 
 const okAll = (stack) => Object.fromEntries(stack.map((layer) => [layer.id, 'ok']));
@@ -444,4 +445,21 @@ test('a saved view is restored, and an unknown one dropped', async () => {
 test('show() does nothing before the panel starts', () => {
   const { layers } = setup();
   assert.equal(layers.show('night-lights'), false);
+});
+
+test('story layers stay out of the panel and need a date; dated views are not saved', async () => {
+  const { layers, panel, store, globe, credit } = setup();
+  await layers.start();
+  await flush();
+  assert.equal(view(panel, 'snpp-night'), null);
+  assert.equal(layers.views().some((item) => item.id === 'snpp-night'), false);
+  assert.equal(layers.show('snpp-night'), false, 'a story layer needs a date');
+  assert.equal(layers.show('snpp-night', '2017-09-20'), true);
+  await flush();
+  assert.equal(globe.calls.stacks.at(-1)[0].url, '/api/v1/imagery?layer=snpp-night&date=2017-09-20');
+  assert.match(credit.children.map((line) => line.textContent).join('\n'), /picture from 2017-09-20/);
+  assert.equal(JSON.parse(store.data.get('khonsu.layers')).view, '');
+  layers.show('night-lights');
+  await flush();
+  assert.equal(globe.calls.stacks.at(-1)[0].url, '/api/v1/imagery?layer=night-lights');
 });

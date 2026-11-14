@@ -17,6 +17,7 @@ import (
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/earthsearch"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/feed"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/gcat"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/gibs"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/launchlibrary"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/openmeteo"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/satnogs"
@@ -87,7 +88,7 @@ func (d dataAPI) catalog(w http.ResponseWriter, _ *http.Request) {
 	if d.client != nil {
 		groups = d.client.Catalog()
 	}
-	writeJSON(w, map[string]any{"live_data": d.client != nil, "categories": groups, "imagery_layers": sources.Layers(), "imaging_satellites": earthsearch.ImagingIDs()})
+	writeJSON(w, map[string]any{"live_data": d.client != nil, "categories": groups, "imagery_layers": append(sources.Layers(), sources.StoryLayers()...), "imaging_satellites": earthsearch.ImagingIDs()})
 }
 
 // satelliteData says what a satellite measures, from Khonsu's own curated notes, so
@@ -171,6 +172,24 @@ func feedError(err error) error {
 	return requestError{http.StatusBadGateway, fmt.Errorf("could not get data from this source: %w", err)}
 }
 
+// imageryDate reads an optional past date for a daily or story layer. A story layer needs one.
+func imageryDate(value string, layer gibs.Layer, now time.Time) (time.Time, bool, error) {
+	if value == "" {
+		if layer.Story {
+			return time.Time{}, false, badRequest("this picture needs a date")
+		}
+		return time.Time{}, false, nil
+	}
+	if !layer.Daily {
+		return time.Time{}, false, badRequest("this picture has no dated versions")
+	}
+	day, err := time.Parse("2006-01-02", value)
+	if err != nil || day.Year() < 2000 || !day.Before(now.UTC().Truncate(24*time.Hour)) {
+		return time.Time{}, false, badRequest("date must be a past day, as YYYY-MM-DD, from 2000 on")
+	}
+	return day, true, nil
+}
+
 func (d dataAPI) imagery(w http.ResponseWriter, r *http.Request) {
 	layer, found := sources.FindLayer(r.URL.Query().Get("layer"))
 	if !found {
@@ -181,9 +200,20 @@ func (d dataAPI) imagery(w http.ResponseWriter, r *http.Request) {
 		writeFailure(w, errLiveDataOff)
 		return
 	}
+	day, dated, err := imageryDate(r.URL.Query().Get("date"), layer, time.Now())
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
 	ctx, cancel := context.WithTimeout(r.Context(), slowTimeout)
 	defer cancel()
-	image, meta, err := d.client.GIBS.Image(ctx, layer)
+	var image []byte
+	var meta feed.Meta
+	if dated {
+		image, meta, err = d.client.GIBS.ImageOn(ctx, layer, day)
+	} else {
+		image, meta, err = d.client.GIBS.Image(ctx, layer)
+	}
 	if err != nil {
 		writeFailure(w, feedError(err))
 		return

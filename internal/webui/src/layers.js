@@ -14,7 +14,8 @@ const AURORA_CREDIT = 'Aurora estimated from NOAA SWPC Kp';
 
 export function createLayers({ element, panel, credit, catalog, storage, globe, fetchHead = (url) => fetch(url, { method: 'HEAD' }), dataAge, now = Date.now }) {
   // The saved choices. `live` is NOAA's Kp; `tried` is a slider value kept in memory only.
-  const state = { base: '', overlays: [], view: '', aurora: false, live: null, tried: null };
+  // `viewDate` is a past day for a dated view, set only by lessons and stories, never saved.
+  const state = { base: '', overlays: [], view: '', viewDate: '', aurora: false, live: null, tried: null };
   const freshness = new Map();
   const warnings = new Map();
   const baseInputs = new Map();
@@ -27,13 +28,14 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
   // Bumped on every setLayers call, so a result for an older stack is dropped.
   let calls = 0;
 
-  const imageryUrl = (id) => '/api/v1/imagery?layer=' + encodeURIComponent(id);
+  const imageryUrl = (id, date = '') => '/api/v1/imagery?layer=' + encodeURIComponent(id) + (date ? '&date=' + encodeURIComponent(date) : '');
   // Layers with a topic are the "what satellites measure" views, kept out of the everyday groups.
-  const everyday = () => layers.filter((layer) => !layer.topic);
-  const views = () => layers.filter((layer) => layer.topic);
+  // Story layers appear only in lessons and stories, for a chosen date.
+  const everyday = () => layers.filter((layer) => !layer.topic && !layer.story);
+  const views = () => layers.filter((layer) => layer.topic && !layer.story);
   const cloudIds = () => everyday().filter((layer) => layer.transparent === true).map((layer) => layer.id);
   const isBaseId = (id) => byId.has(id) && !byId.get(id).topic && byId.get(id).transparent !== true;
-  const isViewId = (id) => byId.has(id) && Boolean(byId.get(id).topic);
+  const isViewId = (id) => byId.has(id) && Boolean(byId.get(id).topic || byId.get(id).story);
   const trueColor = () => (isBaseId(TRUE_COLOR) ? TRUE_COLOR : '');
   const auroraKp = () => state.tried ?? state.live;
 
@@ -45,12 +47,14 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     if (view) ids = view.transparent === true ? [...(state.base ? [state.base] : []), view.id] : [view.id];
     return ids
       .filter((id) => byId.has(id))
-      .map((id) => ({ id, url: imageryUrl(id), transparent: byId.get(id).transparent === true }));
+      .map((id) => ({ id, url: imageryUrl(id, id === state.view ? state.viewDate : ''), transparent: byId.get(id).transparent === true }));
   }
 
   function persist() {
     try {
-      storage.setItem(STORAGE_KEY, JSON.stringify({ base: state.base, overlays: state.overlays, view: state.view, aurora: state.aurora }));
+      // A dated or story view belongs to a lesson, so the panel reopens without it.
+      const view = state.viewDate ? '' : state.view;
+      storage.setItem(STORAGE_KEY, JSON.stringify({ base: state.base, overlays: state.overlays, view, aurora: state.aurora }));
     } catch {
       // A blocked or full store must not stop the layers from working.
     }
@@ -67,7 +71,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     state.base = typeof saved.base === 'string' && (saved.base === '' || isBaseId(saved.base)) ? saved.base : '';
     const wanted = new Set(Array.isArray(saved.overlays) ? saved.overlays : []);
     state.overlays = cloudIds().filter((id) => wanted.has(id));
-    state.view = typeof saved.view === 'string' && isViewId(saved.view) ? saved.view : '';
+    state.view = typeof saved.view === 'string' && isViewId(saved.view) && !byId.get(saved.view).story ? saved.view : '';
     state.aurora = saved.aurora === true;
   }
 
@@ -84,7 +88,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
   }
 
   function renderCredit(shown) {
-    const lines = shown.map((layer) => [layer.name, layer.credit, freshness.get(layer.id)].filter(Boolean).join(' · '));
+    const lines = shown.map((layer) => [layer.name, layer.id === state.view && state.viewDate ? `picture from ${state.viewDate}` : '', layer.credit, layer.id === state.view && state.viewDate ? '' : freshness.get(layer.id)].filter(Boolean).join(' · '));
     if (state.aurora) lines.push(AURORA_CREDIT);
     showCredit(lines);
   }
@@ -194,16 +198,19 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
       state.base = trueColor();
       state.overlays = cloudIds();
       state.view = '';
+      state.viewDate = '';
     }],
     ["Yesterday's Earth", () => {
       state.base = trueColor();
       state.overlays = [];
       state.view = '';
+      state.viewDate = '';
     }],
     ['Plain', () => {
       state.base = '';
       state.overlays = [];
       state.view = '';
+      state.viewDate = '';
       state.aurora = false;
       state.tried = null;
     }],
@@ -256,6 +263,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     noView.input.addEventListener('change', () => {
       if (!noView.input.checked) return;
       state.view = '';
+      state.viewDate = '';
       commit();
     });
     viewInputs.set('', noView.input);
@@ -265,6 +273,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
       row.input.addEventListener('change', () => {
         if (!row.input.checked) return;
         state.view = layer.id;
+        state.viewDate = '';
         commit();
       });
       viewInputs.set(layer.id, row.input);
@@ -380,9 +389,11 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
 
   // Shows one "what satellites measure" view, or none for ''. The Data tab and lessons call this.
   // A transparent view goes over true colour when there is no base yet, so it has a backdrop.
-  function show(id) {
+  function show(id, date = '') {
     if (!active || (id !== '' && !isViewId(id))) return false;
+    if (id && byId.get(id).story && !date) return false;
     state.view = id;
+    state.viewDate = id ? date : '';
     if (id && byId.get(id).transparent === true && !state.base) state.base = trueColor();
     commit();
     return true;

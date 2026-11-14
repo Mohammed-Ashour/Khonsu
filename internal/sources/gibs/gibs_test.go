@@ -118,3 +118,25 @@ func TestImageAcceptsFullPictureAndRejectsErrorDocument(t *testing.T) {
 		t.Fatalf("len = %d, err = %v", len(image), err)
 	}
 }
+
+func TestImageOnAsksForThatDayAndKeepsIt(t *testing.T) {
+	var queries []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		queries = append(queries, r.URL.Query().Get("TIME"))
+		w.Write(append([]byte{0xFF, 0xD8, 0xFF}, bytes.Repeat([]byte{1}, minImageBytes)...))
+	}))
+	defer server.Close()
+	c := NewAt(feed.NewClient(t.TempDir()), server.URL)
+	day := time.Date(2017, 9, 20, 0, 0, 0, 0, time.UTC)
+	for range 2 {
+		if _, _, err := c.ImageOn(context.Background(), NightLights, day); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if strings.Join(queries, ",") != "2017-09-20" {
+		t.Fatalf("queries = %v; want one request for that day", queries)
+	}
+	if _, _, err := c.ImageOn(context.Background(), NewLayer("live", "Live", Info, "", "L", true, false), day); err == nil {
+		t.Fatal("a live layer accepted a date")
+	}
+}

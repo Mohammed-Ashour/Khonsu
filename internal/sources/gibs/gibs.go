@@ -21,6 +21,8 @@ const (
 	liveImageTTL  = 30 * time.Minute
 	maxImageBytes = 16 << 20
 	minImageBytes = 100_000
+	// A past day's picture does not change.
+	pastImageTTL = 30 * 24 * time.Hour
 	// How many days back a daily layer looks for a picture that is ready.
 	dailyFallbackDays = 3
 )
@@ -65,6 +67,9 @@ type Layer struct {
 	// with a topic are the "what satellites measure" views, kept apart from the
 	// everyday base and cloud pictures.
 	Topic string `json:"topic,omitempty"`
+	// Story layers are shown only by lessons and stories, for a chosen past date, and
+	// are left out of the Layers panel.
+	Story bool `json:"story,omitempty"`
 
 	GIBSName string `json:"-"`
 	Daily    bool   `json:"-"`
@@ -127,6 +132,27 @@ func (c *Client) Image(ctx context.Context, layer Layer) ([]byte, feed.Meta, err
 		}
 	}
 	return image, meta, err
+}
+
+// ImageOn returns a daily or story layer for one past day. A day that has passed does
+// not change, so its picture is kept for a long time.
+func (c *Client) ImageOn(ctx context.Context, layer Layer, day time.Time) ([]byte, feed.Meta, error) {
+	if !layer.Daily {
+		return nil, feed.Meta{}, errors.New("this layer has no dated pictures")
+	}
+	query := url.Values{"SERVICE": {"WMS"}, "REQUEST": {"GetMap"}, "VERSION": {"1.3.0"}, "STYLES": {""}, "CRS": {"EPSG:4326"}, "BBOX": {"-90,-180,90,180"}, "WIDTH": {"2048"}, "HEIGHT": {"1024"}, "LAYERS": {layer.GIBSName}, "FORMAT": {layer.ContentType()}, "TIME": {day.Format("2006-01-02")}}
+	ext := "jpg"
+	if layer.Transparent {
+		query.Set("TRANSPARENT", "TRUE")
+		ext = "png"
+	}
+	return c.feed.Fetch(ctx, feed.Request{Source: ID, Key: layer.ID + "-" + day.Format("2006-01-02"), Ext: ext, URL: c.base + "?" + query.Encode(), TTL: pastImageTTL, MaxBytes: maxImageBytes, Timeout: time.Minute, Validate: validateImage(layer)})
+}
+
+// Story marks a layer for lessons and stories only.
+func (l Layer) AsStory() Layer {
+	l.Story = true
+	return l
 }
 
 // NewLayer describes a GIBS layer for one source. Transparent layers are partial
