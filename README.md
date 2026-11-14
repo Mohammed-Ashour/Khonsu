@@ -105,6 +105,18 @@ Open **Data** to see what a satellite measures: its instruments, the kinds of da
 
 [What satellites measure](docs/what-satellites-measure.md) lists the satellites Khonsu describes and every source it uses.
 
+### Learn by looking
+
+Press **Learn** for short lessons on the globe:
+
+- **Light or heat?** compares GOES East's visible and infrared views.
+- **Colours you can't see** uses NOAA-20's false colour to find plants and ice.
+- **The orbit decides the data** explains why GOES watches one side of Earth every 10 minutes while Terra maps all of it every day or two.
+
+Each step sets up the satellite, picture and camera for you. It asks you to predict what you'll see, then explains the answer with a source.
+
+![The "Colours you can't see" lesson: Antarctica's ice shows bright blue in NOAA-20's shortwave infrared false colour, and the lesson confirms the prediction with a NASA source](assets/web-lesson.jpg)
+
 On **Overview**, *Who runs it* combines Wikidata, GCAT and, with your own account, Space-Track. *Radio* lists what the satellite transmits and on which frequencies. For Sentinel-2 and Landsat, *Scene locations* lists the latest scenes they captured and turns the globe to the centre of each one.
 
 ### Watch the planet and the sky above it

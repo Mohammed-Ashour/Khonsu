@@ -377,3 +377,27 @@ func TestSatelliteDataDescribesKnownSatellitesWithoutLiveData(t *testing.T) {
 		t.Fatalf("invalid ID status = %d", code)
 	}
 }
+
+func TestLessonsAreServedWithoutLiveData(t *testing.T) {
+	handler := newAppHandler(fileSource{nil}, nil, fstest.MapFS{"index.html": {Data: []byte("app")}})
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/api/v1/lessons", nil))
+	var body struct {
+		Lessons []struct {
+			ID    string `json:"id"`
+			Steps []struct {
+				Text []struct {
+					Sources []struct {
+						URL string `json:"url"`
+					} `json:"sources"`
+				} `json:"text"`
+			} `json:"steps"`
+		} `json:"lessons"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &body); err != nil || recorder.Code != http.StatusOK || len(body.Lessons) == 0 {
+		t.Fatalf("status %d, err %v, body %s", recorder.Code, err, recorder.Body.String())
+	}
+	if body.Lessons[0].ID != "light-and-heat" || body.Lessons[0].Steps[0].Text[0].Sources[0].URL == "" {
+		t.Fatalf("first lesson = %+v", body.Lessons[0])
+	}
+}

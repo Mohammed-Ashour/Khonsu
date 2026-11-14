@@ -45,6 +45,7 @@ func registerDataRoutes(mux *http.ServeMux, client *sources.Hub) {
 	mux.HandleFunc("/api/v1/sources", d.catalog)
 	mux.HandleFunc("/api/v1/imagery", d.imagery)
 	mux.HandleFunc("/api/v1/satellite-data", satelliteData)
+	mux.HandleFunc("/api/v1/lessons", lessons)
 	mux.Handle("/api/v1/space-weather", feedRoute(d, swpc.ID, dataTimeout, func(ctx context.Context, _ *http.Request) (swpc.Conditions, feed.Meta, error) {
 		return c.SWPC.Conditions(ctx)
 	}))
@@ -109,6 +110,16 @@ func satelliteData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, map[string]any{"described": true, "profile": profile})
+}
+
+// lessons lists the guided lessons, also from Khonsu's own notes.
+func lessons(w http.ResponseWriter, _ *http.Request) {
+	base, err := knowledge.Load()
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
+	writeJSON(w, map[string]any{"lessons": base.Lessons})
 }
 
 func coordinates(r *http.Request) (float64, float64, error) {

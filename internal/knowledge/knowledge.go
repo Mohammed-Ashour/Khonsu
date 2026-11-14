@@ -30,12 +30,58 @@ type Statement struct {
 }
 
 // Kind is a kind of data, such as visible light or thermal infrared. Layers are
-// the globe images that show it.
+// the globe images that show it, and Lessons the lessons about it.
 type Kind struct {
-	ID         string      `json:"id"`
-	Name       string      `json:"name"`
-	Statements []Statement `json:"statements"`
-	Layers     []string    `json:"layers"`
+	ID         string       `json:"id"`
+	Name       string       `json:"name"`
+	Statements []Statement  `json:"statements"`
+	Layers     []string     `json:"layers"`
+	Lessons    []LessonLink `json:"lessons"`
+}
+
+// LessonLink names a lesson.
+type LessonLink struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+}
+
+// Lesson is a short guided tour on the globe. Each step may select a satellite,
+// set the base picture and view, offer two views to compare, and turn the camera,
+// then shows sourced sentences, an optional unsourced hint (a direction such as
+// "switch between the views", never a fact) and an optional question.
+type Lesson struct {
+	ID      string   `json:"id"`
+	Title   string   `json:"title"`
+	Summary string   `json:"summary"`
+	Kinds   []string `json:"kinds"`
+	Steps   []Step   `json:"steps"`
+}
+
+// Step is one card of a lesson. Empty fields leave that part of the app as it is,
+// except View, which is null to keep the view and "" to clear it.
+type Step struct {
+	Satellite string      `json:"satellite,omitempty"`
+	Base      *string     `json:"base,omitempty"`
+	View      *string     `json:"view,omitempty"`
+	Compare   []string    `json:"compare,omitempty"`
+	Camera    *Camera     `json:"camera,omitempty"`
+	Text      []Statement `json:"text"`
+	Hint      string      `json:"hint,omitempty"`
+	Question  *Question   `json:"question,omitempty"`
+}
+
+// Camera turns the globe to face a point.
+type Camera struct {
+	Lat float64 `json:"lat"`
+	Lon float64 `json:"lon"`
+}
+
+// Question asks the reader to predict before the answer is shown.
+type Question struct {
+	Prompt  string    `json:"prompt"`
+	Choices []string  `json:"choices"`
+	Answer  int       `json:"answer"`
+	Explain Statement `json:"explain"`
 }
 
 // Instrument is a sensor and the kinds of data it collects.
@@ -81,12 +127,34 @@ type rawFile struct {
 		Instruments []string       `json:"instruments"`
 		Statements  []rawStatement `json:"statements"`
 	} `json:"satellites"`
+	Lessons []struct {
+		ID      string   `json:"id"`
+		Title   string   `json:"title"`
+		Summary string   `json:"summary"`
+		Kinds   []string `json:"kinds"`
+		Steps   []struct {
+			Satellite string         `json:"satellite"`
+			Base      *string        `json:"base"`
+			View      *string        `json:"view"`
+			Compare   []string       `json:"compare"`
+			Camera    *Camera        `json:"camera"`
+			Text      []rawStatement `json:"text"`
+			Hint      string         `json:"hint"`
+			Question  *struct {
+				Prompt  string       `json:"prompt"`
+				Choices []string     `json:"choices"`
+				Answer  int          `json:"answer"`
+				Explain rawStatement `json:"explain"`
+			} `json:"question"`
+		} `json:"steps"`
+	} `json:"lessons"`
 }
 
 // Base is the whole knowledge base, with source references resolved.
 type Base struct {
 	Kinds       []Kind
 	Instruments []Instrument
+	Lessons     []Lesson
 	satellites  map[string]rawSatellite
 	order       []string
 	kindByID    map[string]Kind
@@ -184,7 +252,81 @@ func parse(body []byte) (*Base, error) {
 		base.satellites[sat.NoradID] = rawSatellite{name: sat.Name, instruments: sat.Instruments, statements: list}
 		base.order = append(base.order, sat.NoradID)
 	}
+	for _, raw := range raw.Lessons {
+		owner := "lesson " + raw.ID
+		if raw.ID == "" || raw.Title == "" || raw.Summary == "" || len(raw.Steps) == 0 {
+			return nil, fmt.Errorf("%s needs an id, a title, a summary and steps", owner)
+		}
+		for _, l := range base.Lessons {
+			if l.ID == raw.ID {
+				return nil, fmt.Errorf("%s is repeated", owner)
+			}
+		}
+		lesson := Lesson{ID: raw.ID, Title: raw.Title, Summary: raw.Summary, Kinds: raw.Kinds}
+		for _, kind := range raw.Kinds {
+			if _, ok := base.kindByID[kind]; !ok {
+				return nil, fmt.Errorf("%s: unknown kind %q", owner, kind)
+			}
+		}
+		for i, rs := range raw.Steps {
+			where := fmt.Sprintf("%s step %d", owner, i+1)
+			text, err := statements(where, rs.Text)
+			if err != nil {
+				return nil, err
+			}
+			if rs.Satellite != "" {
+				if _, ok := base.satellites[rs.Satellite]; !ok {
+					return nil, fmt.Errorf("%s: satellite %q is not described", where, rs.Satellite)
+				}
+			}
+			if len(rs.Compare) != 0 && len(rs.Compare) != 2 {
+				return nil, fmt.Errorf("%s: compare needs two views", where)
+			}
+			if rs.Camera != nil && (rs.Camera.Lat < -90 || rs.Camera.Lat > 90 || rs.Camera.Lon < -180 || rs.Camera.Lon > 180) {
+				return nil, fmt.Errorf("%s: camera is off the globe", where)
+			}
+			step := Step{Satellite: rs.Satellite, Base: rs.Base, View: rs.View, Compare: rs.Compare, Camera: rs.Camera, Text: text, Hint: rs.Hint}
+			if rs.Question != nil {
+				q := rs.Question
+				if q.Prompt == "" || len(q.Choices) < 2 || q.Answer < 0 || q.Answer >= len(q.Choices) {
+					return nil, fmt.Errorf("%s: a question needs a prompt, two or more choices and a valid answer", where)
+				}
+				explain, err := statements(where+" answer", []rawStatement{q.Explain})
+				if err != nil {
+					return nil, err
+				}
+				step.Question = &Question{Prompt: q.Prompt, Choices: q.Choices, Answer: q.Answer, Explain: explain[0]}
+			}
+			if len(step.Text) == 0 && step.Question == nil {
+				return nil, fmt.Errorf("%s has nothing to say", where)
+			}
+			lesson.Steps = append(lesson.Steps, step)
+		}
+		base.Lessons = append(base.Lessons, lesson)
+	}
+	for i, kind := range base.Kinds {
+		kind.Lessons = []LessonLink{}
+		for _, lesson := range base.Lessons {
+			for _, id := range lesson.Kinds {
+				if id == kind.ID {
+					kind.Lessons = append(kind.Lessons, LessonLink{lesson.ID, lesson.Title})
+				}
+			}
+		}
+		base.Kinds[i] = kind
+		base.kindByID[kind.ID] = kind
+	}
 	return base, nil
+}
+
+// Lesson returns a lesson by ID.
+func (b *Base) Lesson(id string) (Lesson, bool) {
+	for _, lesson := range b.Lessons {
+		if lesson.ID == id {
+			return lesson, true
+		}
+	}
+	return Lesson{}, false
 }
 
 // ForSatellite returns what a satellite measures, or false when it is not described.

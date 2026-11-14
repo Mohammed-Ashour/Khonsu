@@ -45,6 +45,20 @@ To add a satellite, find its NORAD number on [CelesTrak SATCAT](https://celestra
 | SMAP | 40376 | SMAP radiometer | Passive microwave |
 | SWOT | 54754 | SWOT radar interferometer | Altimetry |
 
+## Lessons
+
+The notes also hold short lessons, in the same file. They follow the same rules:
+
+- **Sentences need sources.** Every sentence and every answer has a source.
+- **Hints are only directions.** A step's *hint* tells the reader what to do, such as "switch between the two views". It never states a fact.
+- **Tests check every lesson.** Each lesson must start by choosing a described satellite, use real views, and link from the kinds of data it teaches.
+
+| Lesson | Satellites | What it shows |
+|---|---|---|
+| Light or heat? | GOES 19 | Visible band 2 against infrared band 13, and why infrared works at night |
+| Colours you can't see | NOAA 20 | True colour against shortwave infrared false colour: plants, burns, ice |
+| The orbit decides the data | GOES 19, Terra | A geostationary view every 10 minutes against polar strips every day or two |
+
 ## Globe views
 
 | View | Kind | From |

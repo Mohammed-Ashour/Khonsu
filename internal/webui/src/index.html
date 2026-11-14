@@ -15,6 +15,7 @@
       <p id="data-status" class="data-status" role="status"></p>
       <div class="topbar-actions">
         <div id="sky-chips" class="sky-chips"></div>
+        <button id="learn-open" class="text-button" type="button">Learn</button>
         <button id="data-open" class="text-button" type="button">Data</button>
         <button id="zone-toggle" class="text-button" type="button" aria-pressed="false" title="Switch between local time and UTC">Local time</button>
         <button id="observer-open" class="text-button observer-button" type="button"><span class="observer-dot" aria-hidden="true"></span><span id="observer-label">Set location</span></button>
@@ -25,7 +26,14 @@
       <h2 class="eyebrow">Tracking</h2>
       <ul id="tracked-list" class="tracked-list"></ul>
       <h2 class="eyebrow catalog-heading">Add satellites</h2>
-      <label class="field"><span>Group</span><select id="group-select"></select></label>
+      <div class="field group-field">
+        <span id="group-label">Group</span>
+        <button id="group-button" class="group-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="group-label group-button" disabled>Loading groups…</button>
+        <div id="group-popover" class="group-popover" hidden>
+          <input id="group-search" type="search" role="combobox" aria-expanded="true" aria-controls="group-options" aria-autocomplete="list" aria-label="Search groups" placeholder="Search groups, e.g. weather" autocomplete="off" spellcheck="false">
+          <ul id="group-options" class="group-options" role="listbox" aria-label="Satellite groups"></ul>
+        </div>
+      </div>
       <label class="field"><span>Filter or NORAD ID</span><input id="filter-input" type="search" placeholder="ISS, 25544" autocomplete="off" spellcheck="false"></label>
       <div id="catalog-actions" class="catalog-actions"></div>
       <p id="catalog-status" class="note" role="status"></p>
@@ -36,6 +44,7 @@
       <div id="scene" class="scene"></div>
       <div id="sat-label" class="sat-label" hidden></div>
       <section id="headline" class="headline" aria-live="polite"></section>
+      <section id="lesson-card" class="lesson-card" aria-label="Lesson" aria-live="polite" hidden></section>
       <p id="pick-hint" class="pick-hint" role="status" hidden>Click your location on the globe, or press Escape to cancel.</p>
       <div id="scene-error" class="scene-error" role="alert" hidden></div>
       <section id="layers-panel" class="layers-panel panel" aria-label="Globe layers" hidden></section>
@@ -120,6 +129,15 @@
     <p class="note">Your copy of Khonsu fetches this data, keeps a local copy to limit requests and credits each source. Khonsu doesn't redistribute it. Space weather and launch times are requested when the app opens and send nothing about you or your satellites. Opening <i>Who runs it</i> or <i>Radio</i> sends the selected satellite's NORAD ID to Wikidata and SatNOGS, and to Space-Track if you've connected an account. GCAT is downloaded as one whole table, so it never learns which satellite you chose. For Sentinel-2 and Landsat satellites, opening <i>Scene locations</i> sends the platform name to Earth Search. The Data tab's descriptions come from Khonsu itself. Your location is only sent if you ask for cloud cover, and is rounded to about 10 km first.</p>
     <p id="data-status-note" class="note"></p>
     <div id="data-categories"></div>
+  </dialog>
+
+  <dialog id="learn-dialog" class="dialog learn-dialog" aria-labelledby="learn-title">
+    <div class="data-header">
+      <h2 id="learn-title">Lessons</h2>
+      <button id="learn-close" class="text-button" type="button">Close</button>
+    </div>
+    <p class="note">Short tours on the globe. Each one picks a satellite and a picture of its data, asks you to predict what you'll see, then explains it, with a source for every fact.</p>
+    <div id="learn-list" class="learn-list"></div>
   </dialog>
 
   <dialog id="observer-dialog" class="dialog" aria-labelledby="observer-title">
