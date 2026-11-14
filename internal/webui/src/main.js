@@ -10,6 +10,7 @@ import { renderSky } from './sky.js';
 import { createDossier } from './dossier.js';
 import { appendSources, createDataTab } from './datatab.js';
 import { createResizers } from './resize.js';
+import { createGroupPicker } from './grouppicker.js';
 import { createLessonPlayer, lessonFromUrl, withLesson } from './lesson.js';
 import { createSkyBar } from './skybar.js';
 
@@ -37,6 +38,7 @@ const state = {
   groups: [],
   items: [],
   isSearchResult: false,
+  catalogLoading: false,
   tab: 'now',
   report: null,
   plan: null,
@@ -62,6 +64,12 @@ let layersCatalog = null;
 let dossier = null;
 let dataTab = null;
 let lessonPlayer = null;
+let groupPicker = null;
+// Each group's satellites, kept for the session so switching back is instant.
+const groupCache = new Map();
+// What the catalog list last showed, so an unchanged list is not rebuilt.
+let catalogKey = '';
+let catalogItems = null;
 // Read before the first syncUrl, which rewrites the address.
 const initialLesson = lessonFromUrl(location.search);
 let layersPanel = null;
@@ -248,37 +256,44 @@ async function loadGroups() {
     if (!isAbort(error)) setCatalogStatus(`Could not load satellite groups: ${providerMessage(error.message)}`, 'is-error');
     return;
   }
-  const select = byId('group-select');
-  select.replaceChildren(...state.groups.map((name) => {
-    const option = element('option', '', name);
-    option.value = name;
-    return option;
-  }));
+  groupPicker.setGroups(state.groups);
   const preferred = state.groups.find((name) => name === 'Space Stations') ?? state.groups[0];
   if (preferred) {
-    select.value = preferred;
+    groupPicker.setCurrent(preferred);
     await loadGroup(preferred);
   }
 }
 
 async function loadGroup(name) {
-  state.items = [];
   state.isSearchResult = false;
+  if (groupCache.has(name)) {
+    state.items = groupCache.get(name);
+    state.catalogLoading = false;
+    setCatalogStatus('');
+    renderCatalog();
+    return;
+  }
+  state.items = [];
+  state.catalogLoading = true;
   renderCatalog();
-  setCatalogStatus(`Loading ${name}…`);
+  setCatalogStatus(`Loading ${name}… The first time can take a few seconds.`);
   try {
-    state.items = await api.satellites(name);
+    const items = await api.satellites(name);
+    state.items = Array.isArray(items) ? items : [];
+    groupCache.set(name, state.items);
     setCatalogStatus('');
   } catch (error) {
     if (isAbort(error)) return;
     setCatalogStatus(`Could not load ${name}: ${providerMessage(error.message)}`, 'is-error');
   }
+  state.catalogLoading = false;
   renderCatalog();
 }
 
 async function searchAllGroups(query) {
   state.items = [];
   state.isSearchResult = true;
+  state.catalogLoading = true;
   renderCatalog();
   setCatalogStatus('Searching every group. The first search can take up to a minute.');
   try {
@@ -293,14 +308,29 @@ async function searchAllGroups(query) {
     if (isAbort(error)) return;
     setCatalogStatus(`Search failed: ${providerMessage(error.message)}`, 'is-error');
   }
+  state.catalogLoading = false;
   renderCatalog();
 }
 
 function renderCatalog() {
   const query = byId('filter-input').value;
+  const full = state.tracked.size >= MAX_TRACKED;
+  // Tracks load in the background and call this often. The rows only change with these,
+  // so an unchanged list is left alone instead of being rebuilt under the pointer.
+  const key = [state.items.length, state.items[0]?.norad_id, state.isSearchResult, state.catalogLoading, query, trackedIds().join(',')].join('|');
+  if (key === catalogKey && catalogItems === state.items) return;
+  catalogKey = key;
+  catalogItems = state.items;
   const matches = state.isSearchResult ? state.items : filterSatellites(state.items, query);
   const list = byId('catalog-list');
-  const full = state.tracked.size >= MAX_TRACKED;
+  if (state.catalogLoading && !state.items.length) {
+    // Placeholder rows hold the list's place, so it does not jump when the answer arrives.
+    list.replaceChildren(...Array.from({ length: 12 }, () => element('li', 'catalog-skeleton')));
+    list.setAttribute('aria-busy', 'true');
+    renderCatalogActions(query);
+    return;
+  }
+  list.removeAttribute('aria-busy');
   keepFocus(list, () => {
   list.replaceChildren(...matches.slice(0, LIST_LIMIT).map((item) => {
     const id = canonicalId(item.norad_id);
@@ -324,6 +354,10 @@ function renderCatalog() {
   }
   if (full) list.prepend(element('li', 'note', `You can track up to ${MAX_TRACKED} satellites. Remove one to add another.`));
   }, byId('filter-input'));
+  renderCatalogActions(query);
+}
+
+function renderCatalogActions(query) {
   const actions = byId('catalog-actions');
   actions.replaceChildren();
   const trimmed = query.trim();
@@ -1215,13 +1249,20 @@ function wireControls() {
     // Scene times are the only dossier text that depends on the zone. This reuses the saved response.
     if (openSections().includes('sees')) dossier.open('sees');
   });
-  byId('group-select').addEventListener('change', (event) => {
-    byId('filter-input').value = '';
-    loadGroup(event.target.value);
+  groupPicker = createGroupPicker({
+    element,
+    button: byId('group-button'),
+    popover: byId('group-popover'),
+    input: byId('group-search'),
+    list: byId('group-options'),
+    onChoose(name) {
+      byId('filter-input').value = '';
+      loadGroup(name);
+    },
   });
   byId('filter-input').addEventListener('input', () => {
     if (state.isSearchResult) {
-      loadGroup(byId('group-select').value);
+      loadGroup(groupPicker.current());
       return;
     }
     renderCatalog();

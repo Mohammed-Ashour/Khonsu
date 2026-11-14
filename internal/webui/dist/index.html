@@ -26,7 +26,14 @@
       <h2 class="eyebrow">Tracking</h2>
       <ul id="tracked-list" class="tracked-list"></ul>
       <h2 class="eyebrow catalog-heading">Add satellites</h2>
-      <label class="field"><span>Group</span><select id="group-select"></select></label>
+      <div class="field group-field">
+        <span id="group-label">Group</span>
+        <button id="group-button" class="group-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="group-label group-button" disabled>Loading groups…</button>
+        <div id="group-popover" class="group-popover" hidden>
+          <input id="group-search" type="search" role="combobox" aria-expanded="true" aria-controls="group-options" aria-autocomplete="list" aria-label="Search groups" placeholder="Search groups, e.g. weather" autocomplete="off" spellcheck="false">
+          <ul id="group-options" class="group-options" role="listbox" aria-label="Satellite groups"></ul>
+        </div>
+      </div>
       <label class="field"><span>Filter or NORAD ID</span><input id="filter-input" type="search" placeholder="ISS, 25544" autocomplete="off" spellcheck="false"></label>
       <div id="catalog-actions" class="catalog-actions"></div>
       <p id="catalog-status" class="note" role="status"></p>

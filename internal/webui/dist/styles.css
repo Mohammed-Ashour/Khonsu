@@ -297,3 +297,16 @@ ul { list-style: none; }
   /* The globe stays visible above the card. */
   .lesson-card { top: auto; bottom: 8px; left: 8px; width: calc(100% - 16px); max-height: 52%; }
 }
+.group-field { position: relative; }
+.group-button { width: 100%; min-height: 34px; padding: 0 28px 0 9px; border: 1px solid rgba(186, 197, 230, .36); border-radius: 4px; background: var(--raised) no-repeat right 10px center / 10px 6px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238f98b3' stroke-width='1.5'/%3E%3C/svg%3E"); color: var(--ink); font-size: 13px; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.group-button:disabled { color: var(--muted); cursor: default; }
+.group-popover { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 6; padding: 6px; border: 1px solid rgba(186, 197, 230, .36); border-radius: 6px; background: var(--raised); box-shadow: 0 10px 28px rgba(0, 0, 0, .45); }
+.group-popover input { width: 100%; min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 13px; }
+.group-options { max-height: 300px; margin: 6px 0 0; overflow-y: auto; scrollbar-width: thin; }
+.group-option { padding: 6px 8px; border-radius: 4px; color: var(--soft); font-size: 13px; cursor: pointer; }
+.group-option:hover, .group-option.is-active { background: rgba(170, 184, 222, .12); color: var(--ink); }
+.group-option[aria-selected="true"] { color: var(--accent); }
+.group-empty { padding: 6px 8px; }
+.catalog-skeleton { height: 22px; margin: 4px 6px 8px; border-radius: 4px; background: linear-gradient(90deg, rgba(170, 184, 222, .06), rgba(170, 184, 222, .12), rgba(170, 184, 222, .06)); background-size: 200% 100%; animation: skeleton 1.4s ease-in-out infinite; }
+@keyframes skeleton { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .catalog-skeleton { animation: none; } }

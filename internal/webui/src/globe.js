@@ -1,5 +1,5 @@
 // The 3D scene. It knows TEME positions and times, not the rest of the app.
-import { AmbientLight, BufferAttribute, BufferGeometry, CanvasTexture, DirectionalLight, Float32BufferAttribute, Group, Line, LineBasicMaterial, LineDashedMaterial, LineSegments, Mesh, MeshBasicMaterial, MeshPhongMaterial, PerspectiveCamera, Points, PointsMaterial, Raycaster, Scene, SphereGeometry, SRGBColorSpace, Texture, Vector2, Vector3, WebGLRenderer, BackSide } from 'three';
+import { LessEqualDepth, AmbientLight, BufferAttribute, BufferGeometry, CanvasTexture, DirectionalLight, Float32BufferAttribute, Group, Line, LineBasicMaterial, LineDashedMaterial, LineSegments, Mesh, MeshBasicMaterial, MeshPhongMaterial, PerspectiveCamera, Points, PointsMaterial, Raycaster, Scene, SphereGeometry, SRGBColorSpace, Texture, Vector2, Vector3, WebGLRenderer, BackSide } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import land from '../../../pkg/templates/earth-land.json';
 import { gmstAt, sampleAt } from '../../../pkg/templates/viewer-state.js';
@@ -27,6 +27,9 @@ function segments(paths, color, opacity) {
   geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
   return new LineSegments(geometry, new LineBasicMaterial({ color, transparent: true, opacity }));
 }
+
+// Pictures draw after the Earth's sphere, which writes the depth they are tested against.
+const LAYER_ORDER = 1;
 
 function earthGroup() {
   const group = new Group();
@@ -121,16 +124,13 @@ export function createGlobe(container, { onPick, onSelect }) {
   let imageryStack = [];
   let layerRequest = 0;
 
-  // Layers sit above the Earth and below the coastlines (1.002). The cap keeps them there.
-  const LAYER_BASE_RADIUS = 1.001;
-  const LAYER_STEP = 0.0001;
-  const LAYER_TOP_RADIUS = 1.0019;
-
+  // Every picture uses the same sphere as the Earth, so its depth matches the Earth's exactly,
+  // and stacks by draw order instead of radius. Spheres a hair apart z-fight: their flat facets
+  // sag about 0.0005 between vertices, more than any gap small enough to stay under the
+  // coastlines, so the pictures and lines broke through each other in patches.
   function restackLayers() {
     imageryStack.forEach((entry, index) => {
-      if (!entry.mesh) return;
-      entry.mesh.scale.setScalar(Math.min(LAYER_TOP_RADIUS, LAYER_BASE_RADIUS + LAYER_STEP * (index + 1)));
-      entry.mesh.renderOrder = index;
+      if (entry.mesh) entry.mesh.renderOrder = LAYER_ORDER + index;
     });
   }
 
@@ -196,7 +196,7 @@ export function createGlobe(container, { onPick, onSelect }) {
       entry.texture = texture;
       entry.mesh = new Mesh(
         new SphereGeometry(1, 96, 64),
-        new MeshPhongMaterial({ map: texture, transparent: layer.transparent, depthWrite: !layer.transparent, specular: 0x111111, shininess: 6 }),
+        new MeshPhongMaterial({ map: texture, transparent: layer.transparent, depthWrite: false, depthFunc: LessEqualDepth, specular: 0x111111, shininess: 6 }),
       );
       earth.add(entry.mesh);
       restackLayers();
