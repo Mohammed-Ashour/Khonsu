@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   annotatePasses, planWarnings, activeTransmitters, buildUrlState, canonicalId, cloudAtTime, compassPoint, elementAgeDays, filterSatellites, formatClock, formatCountdown, formatDay, formatDuration,
-  dataAge, describeKp, explanationView, formatFrequency, groupScenes, latestKp, launchLabel, nextLaunch, sameObjectName, summarizeHistory, lookAt, MAX_TRACKED, migrateStorage, needsNewWindow, nextColor, PALETTE, parseObserver, parseUrlState, passesOverlap, providerMessage, readStoredObserver, safeStorage, shortCoordinate, sunlitAt, trailRange, validId, windowFrom,
+  dataAge, describeKp, explanationView, measuresView, formatFrequency, groupScenes, latestKp, launchLabel, nextLaunch, sameObjectName, summarizeHistory, lookAt, MAX_TRACKED, migrateStorage, needsNewWindow, nextColor, PALETTE, parseObserver, parseUrlState, passesOverlap, providerMessage, readStoredObserver, safeStorage, shortCoordinate, sunlitAt, trailRange, validId, windowFrom,
 } from './logic.js';
 
 test('compass points cover the circle and wrap', () => {
@@ -413,4 +413,34 @@ test('planWarnings keeps element warnings once and drops the routine ones', () =
   ]);
   assert.deepEqual(warnings, [stale, distant]);
   assert.deepEqual(planWarnings([]), []);
+});
+
+test('measuresView resolves kinds, keeps https sources and lists only views on offer', () => {
+  const src = (url) => ({ label: 'NASA', title: 'Page', url });
+  const response = {
+    described: true,
+    profile: {
+      name: 'Landsat 8',
+      statements: [{ text: 'Carries OLI and TIRS.', sources: [src('https://usgs.gov/x'), src('javascript:alert(1)')] }],
+      instruments: [
+        { name: 'OLI', kinds: ['visible', 'near_infrared'], statements: [{ text: 'Sees light.', sources: [src('https://nasa.gov/y')] }] },
+        { name: 'TIRS', kinds: ['thermal_infrared', 'unknown'], statements: [] },
+      ],
+      kinds: [
+        { id: 'visible', name: 'Visible light', statements: [{ text: 'Eyes see it.', sources: [] }], layers: ['true-color', 'goes-east-visible'] },
+        { id: 'near_infrared', name: 'Near infrared', statements: [], layers: [] },
+        { id: 'thermal_infrared', name: 'Thermal infrared', statements: [{ text: '', sources: [] }], layers: ['land-temperature'] },
+      ],
+    },
+  };
+  const view = measuresView(response, [{ id: 'goes-east-visible', name: 'GOES East visible' }, { id: 'land-temperature', name: 'Land temperature' }]);
+  assert.equal(view.name, 'Landsat 8');
+  assert.deepEqual(view.chips, ['Visible light', 'Near infrared', 'Thermal infrared']);
+  assert.deepEqual(view.items, [{ text: 'Carries OLI and TIRS.', sources: [{ label: 'NASA', title: 'Page', url: 'https://usgs.gov/x' }] }]);
+  assert.deepEqual(view.instruments.map((i) => [i.name, i.kinds]), [['OLI', ['Visible light', 'Near infrared']], ['TIRS', ['Thermal infrared']]]);
+  assert.deepEqual(view.kinds[0].views, [{ id: 'goes-east-visible', name: 'GOES East visible' }], 'true-color is not a view');
+  assert.deepEqual(view.kinds[2].items, [], 'empty sentences are dropped');
+  assert.equal(measuresView({ described: false, profile: null }), null);
+  assert.equal(measuresView(null), null);
+  assert.equal(measuresView({ described: true, profile: { instruments: [] } }), null);
 });

@@ -1,7 +1,7 @@
 import { activeTransmitters, formatFrequency, groupScenes, sameObjectName } from './logic.js';
 
-// The Identity, Radio and Scenes tabs. Each source is requested only when its tab is first
-// opened for a satellite, so a provider hears about a satellite only when the user asks.
+// The Who runs it, Radio and Scene locations sections. Each source is requested only when its
+// section is first opened for a satellite, so a provider hears about a satellite only when the user asks.
 const TABS = ['identity', 'radio', 'sees'];
 const MAX_TRANSMITTERS = 8;
 const NO_SELECTION = 'Add a satellite to see its details here.';
@@ -251,11 +251,12 @@ export function createDossier({ api, element, feedCredit, dataFailure, dataTime,
     return showFeed(panel, current, 'recentScenes', entry, renderSees);
   }
 
-  function selectionChanged(activeTab) {
+  // Reloads the sections that are open for the new selection; the others wait until opened.
+  function selectionChanged(openSections = []) {
     for (const tab of TABS) tokens[tab] += 1;
     clearScene();
-    if (TABS.includes(activeTab)) return open(activeTab);
-    return undefined;
+    const wanted = [].concat(openSections).filter((tab) => TABS.includes(tab));
+    return Promise.all(wanted.map((tab) => open(tab)));
   }
 
   async function hasSees() {

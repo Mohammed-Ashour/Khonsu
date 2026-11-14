@@ -1,0 +1,313 @@
+{
+  "sources": {
+    "earthdata-spectrum": {"label": "NASA Earthdata", "title": "Electromagnetic Spectrum", "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/electromagnetic-spectrum"},
+    "earthdata-active": {"label": "NASA Earthdata", "title": "Active Instruments", "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing/active-instruments"},
+    "earthdata-passive": {"label": "NASA Earthdata", "title": "Passive Instruments", "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing/passive-instruments"},
+    "earthdata-resolution": {"label": "NASA Earthdata", "title": "Remote Sensing Resolution", "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing-resolution"},
+    "earthdata-sar": {"label": "NASA Earthdata", "title": "What is Synthetic Aperture Radar?", "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar"},
+    "eo-false-color": {"label": "NASA Earth Observatory", "title": "How to Interpret a False-Color Satellite Image", "url": "https://science.nasa.gov/earth/earth-observatory/how-to-interpret-a-false-color-satellite-image"},
+    "nesdis-abi": {"label": "NOAA NESDIS", "title": "Advanced Baseline Imager (ABI)", "url": "https://www.nesdis.noaa.gov/our-satellites/currently-flying/goes-east-west/advanced-baseline-imager-abi"},
+    "nesdis-abi-channels": {"label": "NOAA NESDIS", "title": "ABI Scan Mode Information and Channel Summary", "url": "https://www.nesdis.noaa.gov/our-satellites/currently-flying/goes-east-west/abi-scan-mode-information-and-channel-summary"},
+    "nesdis-geo": {"label": "NOAA NESDIS", "title": "Geostationary Satellites", "url": "https://www.nesdis.noaa.gov/our-satellites/currently-flying/geostationary-satellites"},
+    "jma-ahi": {"label": "JMA Meteorological Satellite Center", "title": "Advanced Himawari Imager (AHI)", "url": "https://www.data.jma.go.jp/mscweb/en/himawari89/space_segment/spsg_ahi.html"},
+    "jma-satellites": {"label": "Japan Meteorological Agency", "title": "Meteorological Satellites", "url": "https://www.jma.go.jp/jma/jma-eng/satellite/"},
+    "earthdata-viirs": {"label": "NASA Earthdata", "title": "VIIRS", "url": "https://www.earthdata.nasa.gov/data/instruments/viirs"},
+    "earthdata-viirs-bands": {"label": "NASA Earthdata", "title": "VIIRS Spectral Bands", "url": "https://www.earthdata.nasa.gov/data/instruments/viirs/spectral-bands"},
+    "black-marble": {"label": "NASA", "title": "Black Marble", "url": "https://blackmarble.gsfc.nasa.gov/"},
+    "earthdata-modis": {"label": "NASA Earthdata", "title": "MODIS", "url": "https://www.earthdata.nasa.gov/data/instruments/modis"},
+    "aqua-modis": {"label": "NASA Science", "title": "Aqua: MODIS", "url": "https://science.nasa.gov/mission/aqua/modis"},
+    "terra": {"label": "NASA", "title": "Terra", "url": "https://terra.nasa.gov/"},
+    "mod11": {"label": "NASA Earthdata", "title": "MODIS/Terra Land Surface Temperature/Emissivity Daily (MOD11A1)", "url": "https://www.earthdata.nasa.gov/data/catalog/lpcloud-mod11a1-061"},
+    "mur": {"label": "NASA Earthdata", "title": "GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1)", "url": "https://www.earthdata.nasa.gov/data/catalog/pocloud-mur-jpl-l4-glob-v4.1-4.1"},
+    "s1": {"label": "Copernicus SentiWiki", "title": "Sentinel-1 Mission", "url": "https://sentiwiki.copernicus.eu/web/s1-mission"},
+    "s2": {"label": "Copernicus SentiWiki", "title": "Sentinel-2 Mission", "url": "https://sentiwiki.copernicus.eu/web/s2-mission"},
+    "s3": {"label": "Copernicus SentiWiki", "title": "Sentinel-3 Mission", "url": "https://sentiwiki.copernicus.eu/web/s3-mission"},
+    "s5p": {"label": "Copernicus SentiWiki", "title": "Sentinel-5P Mission", "url": "https://sentiwiki.copernicus.eu/web/s5p-mission"},
+    "usgs-landsat-bands": {"label": "USGS", "title": "What are the band designations for the Landsat satellites?", "url": "https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites"},
+    "landsat9": {"label": "NASA Science", "title": "Landsat 9", "url": "https://science.nasa.gov/mission/landsat-9"},
+    "smap": {"label": "NASA JPL", "title": "SMAP Mission Description", "url": "https://smap.jpl.nasa.gov/mission/description/"},
+    "swot": {"label": "NASA JPL", "title": "SWOT Mission Overview", "url": "https://swot.jpl.nasa.gov/mission/overview/"},
+    "iss": {"label": "NASA", "title": "International Space Station", "url": "https://www.nasa.gov/international-space-station/"},
+    "ecostress": {"label": "NASA JPL", "title": "ECOSTRESS", "url": "https://ecostress.jpl.nasa.gov/"},
+    "gedi": {"label": "University of Maryland", "title": "GEDI", "url": "https://gedi.umd.edu/"},
+    "emit": {"label": "NASA JPL", "title": "EMIT", "url": "https://earth.jpl.nasa.gov/emit/"}
+  },
+  "kinds": [
+    {
+      "id": "visible", "name": "Visible light",
+      "statements": [
+        {"text": "Visible light is the small part of the spectrum our eyes can see, so visible images show Earth much as we would see it.", "sources": ["earthdata-spectrum"]},
+        {"text": "Weather satellites use visible channels to track clouds, fog, haze, dust, snow cover and volcanic ash.", "sources": ["nesdis-abi"]}
+      ],
+      "layers": ["goes-east-visible", "true-color"]
+    },
+    {
+      "id": "near_infrared", "name": "Near infrared",
+      "statements": [
+        {"text": "Plants reflect near-infrared light very strongly, so images that use it make vegetated land stand out.", "sources": ["eo-false-color"]}
+      ],
+      "layers": ["false-color"]
+    },
+    {
+      "id": "shortwave_infrared", "name": "Shortwave infrared",
+      "statements": [
+        {"text": "Newly burned land reflects strongly in shortwave infrared, which makes it valuable for mapping fire damage.", "sources": ["eo-false-color"]},
+        {"text": "In a common shortwave infrared, near infrared and green combination, water looks black, plants bright green, newly burned land red, and snow and ice bright blue.", "sources": ["eo-false-color"]},
+        {"text": "A shortwave infrared band at 3.9 µm is sensitive to the hottest part of a fire, so GOES often detects fires before they are spotted on the ground.", "sources": ["nesdis-abi"]}
+      ],
+      "layers": ["false-color"]
+    },
+    {
+      "id": "thermal_infrared", "name": "Thermal infrared",
+      "statements": [
+        {"text": "Warm surfaces give off infrared radiation: energy absorbed by the ocean, for example, is re-emitted as infrared.", "sources": ["earthdata-spectrum"]},
+        {"text": "NOAA likens its infrared channels to night-vision goggles, because they see by day and by night.", "sources": ["nesdis-abi"]},
+        {"text": "Forecasters use cloud-top temperatures as predictors of rainfall intensity and flash flooding.", "sources": ["nesdis-abi"]},
+        {"text": "Most passive sensors cannot see through dense cloud, which is why maps of land temperature have gaps.", "sources": ["earthdata-passive"]}
+      ],
+      "layers": ["goes-east-infrared", "land-temperature", "sea-temperature"]
+    },
+    {
+      "id": "water_vapour", "name": "Water vapour",
+      "statements": [
+        {"text": "GOES has three infrared bands, at 6.2, 6.9 and 7.3 µm, that track water vapour in the upper, middle and lower atmosphere.", "sources": ["nesdis-abi-channels"]}
+      ],
+      "layers": []
+    },
+    {
+      "id": "night_lights", "name": "Light at night",
+      "statements": [
+        {"text": "The VIIRS Day/Night Band is a single wide band, sensitive to visible and near-infrared light, that records Earth's lights at night.", "sources": ["black-marble"]},
+        {"text": "Its signal includes city lights, lightning, fishing fleet lights, gas flares, lava flows and even auroras.", "sources": ["black-marble"]},
+        {"text": "Moonlight reflected off ice, snow and other bright surfaces shows up too.", "sources": ["black-marble"]}
+      ],
+      "layers": ["night-lights"]
+    },
+    {
+      "id": "passive_microwave", "name": "Passive microwave",
+      "statements": [
+        {"text": "Microwave energy can pass through clouds, which many weather instruments make use of.", "sources": ["earthdata-spectrum"]},
+        {"text": "SMAP measures the amount of water in the surface soil everywhere on Earth, every 2–3 days.", "sources": ["smap"]}
+      ],
+      "layers": []
+    },
+    {
+      "id": "radar", "name": "Imaging radar",
+      "statements": [
+        {"text": "Radar is an active instrument: it sends out pulses of energy and measures what is reflected back.", "sources": ["earthdata-active"]},
+        {"text": "Synthetic aperture radar makes high-resolution images night or day, regardless of the weather.", "sources": ["earthdata-sar"]},
+        {"text": "How far radar reaches into a forest depends on its wavelength: a C-band signal only gets into the top layers of the canopy.", "sources": ["earthdata-sar"]}
+      ],
+      "layers": []
+    },
+    {
+      "id": "altimetry", "name": "Altimetry",
+      "statements": [
+        {"text": "Altimeters are active instruments: they send pulses down to the surface and use the reflections to measure its height.", "sources": ["earthdata-active"]},
+        {"text": "Satellite altimeters measure sea surface height over the oceans and coasts.", "sources": ["s3"]}
+      ],
+      "layers": []
+    },
+    {
+      "id": "atmospheric_composition", "name": "Gases in the air",
+      "statements": [
+        {"text": "Sentinel-5P measures the atmosphere for air quality, ozone and UV radiation, and climate monitoring and forecasting.", "sources": ["s5p"]}
+      ],
+      "layers": []
+    },
+    {
+      "id": "laser_ranging", "name": "Laser ranging",
+      "statements": [
+        {"text": "Laser altimeters are active instruments: they send out pulses of light and measure what is reflected back.", "sources": ["earthdata-active"]},
+        {"text": "GEDI uses laser ranging to measure Earth's forests and topography in high resolution.", "sources": ["gedi"]}
+      ],
+      "layers": []
+    },
+    {
+      "id": "imaging_spectroscopy", "name": "Imaging spectroscopy",
+      "statements": [
+        {"text": "Spectral resolution is an instrument's ability to tell finer wavelengths apart, with more and narrower bands.", "sources": ["earthdata-resolution"]},
+        {"text": "EMIT uses this to map the minerals on Earth's surface in the regions that produce dust.", "sources": ["emit"]}
+      ],
+      "layers": []
+    }
+  ],
+  "instruments": [
+    {
+      "id": "abi", "name": "Advanced Baseline Imager (ABI)", "kinds": ["visible", "shortwave_infrared", "water_vapour", "thermal_infrared"],
+      "statements": [
+        {"text": "ABI detects visible and infrared light in 16 spectral bands.", "sources": ["nesdis-abi"]},
+        {"text": "It can capture a full-disk image every 10 minutes, the US mainland every five minutes, and smaller areas every 30 to 60 seconds.", "sources": ["nesdis-abi"]},
+        {"text": "Band 2 sees red visible light at 0.64 µm, and band 13, the clean longwave window, sees infrared at 10.3 µm.", "sources": ["nesdis-abi-channels"]}
+      ]
+    },
+    {
+      "id": "ahi", "name": "Advanced Himawari Imager (AHI)", "kinds": ["visible", "thermal_infrared"],
+      "statements": [
+        {"text": "AHI has 16 bands and scans the full disk every 10 minutes.", "sources": ["jma-ahi"]}
+      ]
+    },
+    {
+      "id": "viirs", "name": "Visible Infrared Imaging Radiometer Suite (VIIRS)", "kinds": ["visible", "near_infrared", "shortwave_infrared", "thermal_infrared", "night_lights"],
+      "statements": [
+        {"text": "VIIRS measures 22 spectral bands from 0.402 to 12.49 µm, with pixels of 375 m and 750 m.", "sources": ["earthdata-viirs"]},
+        {"text": "Its false-colour view combines shortwave infrared (band M11, 2.23–2.28 µm), near infrared (I2, 0.85–0.88 µm) and red light (I1, 0.6–0.68 µm).", "sources": ["earthdata-viirs-bands"]},
+        {"text": "It flies on Suomi NPP, NOAA-20 and NOAA-21.", "sources": ["earthdata-viirs"]}
+      ]
+    },
+    {
+      "id": "modis", "name": "Moderate Resolution Imaging Spectroradiometer (MODIS)", "kinds": ["visible", "near_infrared", "shortwave_infrared", "thermal_infrared"],
+      "statements": [
+        {"text": "MODIS sees every point on Earth every 1 to 2 days, in 36 spectral bands from 0.4 to 14.4 µm.", "sources": ["earthdata-modis"]},
+        {"text": "Its daily land surface temperature product has pixels 1 km across.", "sources": ["mod11"]}
+      ]
+    },
+    {
+      "id": "msi", "name": "MultiSpectral Instrument (MSI)", "kinds": ["visible", "near_infrared", "shortwave_infrared"],
+      "statements": [
+        {"text": "MSI samples 13 spectral bands, from visible and near infrared to shortwave infrared: four at 10 m, six at 20 m and three at 60 m.", "sources": ["s2"]},
+        {"text": "Its images serve land management, agriculture, forestry, disaster control and humanitarian relief.", "sources": ["s2"]}
+      ]
+    },
+    {
+      "id": "oli", "name": "Operational Land Imager (OLI)", "kinds": ["visible", "near_infrared", "shortwave_infrared"],
+      "statements": [
+        {"text": "OLI captures Earth's surface in visible, near infrared and shortwave infrared light.", "sources": ["landsat9"]}
+      ]
+    },
+    {
+      "id": "tirs", "name": "Thermal Infrared Sensor (TIRS)", "kinds": ["thermal_infrared"],
+      "statements": [
+        {"text": "TIRS measures two thermal infrared bands, 10.6–11.19 µm and 11.50–12.51 µm, with 100 m pixels.", "sources": ["usgs-landsat-bands"]}
+      ]
+    },
+    {
+      "id": "c_sar", "name": "C-band Synthetic Aperture Radar (C-SAR)", "kinds": ["radar"],
+      "statements": [
+        {"text": "It works at 5.405 GHz, a wavelength of about 5.55 cm, and images Earth day and night, regardless of the weather.", "sources": ["s1"]},
+        {"text": "Its images are used to identify sea ice, detect oil spills and measure ground movement from earthquakes, volcanoes and landslides.", "sources": ["s1"]}
+      ]
+    },
+    {
+      "id": "tropomi", "name": "TROPOspheric Monitoring Instrument (TROPOMI)", "kinds": ["atmospheric_composition"],
+      "statements": [
+        {"text": "TROPOMI looks across a swath about 2,600 km wide.", "sources": ["s5p"]},
+        {"text": "Its products include nitrogen dioxide and methane.", "sources": ["s5p"]}
+      ]
+    },
+    {
+      "id": "smap_radiometer", "name": "SMAP radiometer", "kinds": ["passive_microwave"],
+      "statements": [
+        {"text": "SMAP launched with a radar and a radiometer. The radar stopped in early 2015 when its power supply failed, and the radiometer carries on.", "sources": ["smap"]}
+      ]
+    },
+    {
+      "id": "olci", "name": "Ocean and Land Colour Instrument (OLCI)", "kinds": ["visible"],
+      "statements": [
+        {"text": "OLCI measures the colour of the ocean and land in 21 bands, with 300 m pixels.", "sources": ["s3"]}
+      ]
+    },
+    {
+      "id": "slstr", "name": "Sea and Land Surface Temperature Radiometer (SLSTR)", "kinds": ["thermal_infrared"],
+      "statements": [
+        {"text": "SLSTR measures global sea surface temperature to better than 0.3 K.", "sources": ["s3"]},
+        {"text": "Sentinel-3 also makes fire monitoring products, such as fire radiated power and burned area.", "sources": ["s3"]}
+      ]
+    },
+    {
+      "id": "sral", "name": "SAR Radar Altimeter (SRAL)", "kinds": ["altimetry"],
+      "statements": [
+        {"text": "SRAL is a dual-frequency Ku- and C-band radar altimeter that measures sea surface height for oceans and coasts.", "sources": ["s3"]}
+      ]
+    },
+    {
+      "id": "swot_interferometer", "name": "SWOT radar interferometer", "kinds": ["altimetry"],
+      "statements": [
+        {"text": "SWOT is making the first global survey of Earth's surface water and measuring how water bodies change over time.", "sources": ["swot"]},
+        {"text": "Its 120 km wide swath gives overlapping measurements over most of the globe, revisiting on average every 11 days.", "sources": ["swot"]}
+      ]
+    },
+    {
+      "id": "ecostress", "name": "ECOSTRESS", "kinds": ["thermal_infrared"],
+      "statements": [
+        {"text": "ECOSTRESS makes high-resolution images of the temperature of Earth's surface, to learn how much water plants use and when they become stressed.", "sources": ["ecostress"]}
+      ]
+    },
+    {
+      "id": "gedi", "name": "Global Ecosystem Dynamics Investigation (GEDI)", "kinds": ["laser_ranging"],
+      "statements": [
+        {"text": "GEDI measures Earth's forests and topography with high-resolution laser ranging from the ISS.", "sources": ["gedi"]}
+      ]
+    },
+    {
+      "id": "emit", "name": "Earth Surface Mineral Dust Source Investigation (EMIT)", "kinds": ["imaging_spectroscopy"],
+      "statements": [
+        {"text": "EMIT is an imaging spectrometer that maps the composition of minerals on Earth's surface where dust comes from.", "sources": ["emit"]}
+      ]
+    }
+  ],
+  "satellites": [
+    {"norad_id": "25544", "name": "ISS", "instruments": ["ecostress", "gedi", "emit"], "statements": [
+      {"text": "The ISS is an orbiting laboratory. 2 November 2025 marked 25 years of continuous human presence aboard it.", "sources": ["iss"]},
+      {"text": "Earth-observing instruments mounted on the station include ECOSTRESS, GEDI and EMIT.", "sources": ["ecostress", "gedi", "emit"]}
+    ]},
+    {"norad_id": "25994", "name": "Terra", "instruments": ["modis"], "statements": [
+      {"text": "The first MODIS was launched on Terra in December 1999.", "sources": ["aqua-modis"]},
+      {"text": "Since 2020, Terra has been drifting to an earlier equator crossing time, with no manoeuvres planned to hold it.", "sources": ["terra"]}
+    ]},
+    {"norad_id": "27424", "name": "Aqua", "instruments": ["modis"], "statements": [
+      {"text": "The second MODIS was launched on Aqua in May 2002.", "sources": ["aqua-modis"]}
+    ]},
+    {"norad_id": "43013", "name": "NOAA 20", "instruments": ["viirs"], "statements": [
+      {"text": "NOAA-20 is part of NOAA's Joint Polar Satellite System.", "sources": ["earthdata-viirs"]}
+    ]},
+    {"norad_id": "54234", "name": "NOAA 21", "instruments": ["viirs"], "statements": [
+      {"text": "NOAA-21 is part of NOAA's Joint Polar Satellite System.", "sources": ["earthdata-viirs"]}
+    ]},
+    {"norad_id": "37849", "name": "Suomi NPP", "instruments": ["viirs"], "statements": [
+      {"text": "Suomi NPP is no longer delivering new data. Its VIIRS record runs from 28 October 2011 to 2 November 2026.", "sources": ["earthdata-viirs"]}
+    ]},
+    {"norad_id": "60133", "name": "GOES 19", "instruments": ["abi"], "statements": [
+      {"text": "GOES-19 operates as NOAA's GOES East satellite.", "sources": ["nesdis-geo"]}
+    ]},
+    {"norad_id": "51850", "name": "GOES 18", "instruments": ["abi"], "statements": [
+      {"text": "GOES-18 is NOAA's operational GOES West satellite.", "sources": ["nesdis-geo"]}
+    ]},
+    {"norad_id": "41866", "name": "GOES 16", "instruments": ["abi"], "statements": [
+      {"text": "GOES-16 now serves as an on-orbit backup.", "sources": ["nesdis-geo"]}
+    ]},
+    {"norad_id": "41836", "name": "Himawari-9", "instruments": ["ahi"], "statements": [
+      {"text": "Himawari-9 took over the main operational role on 13 December 2022, about 35,800 km above the equator near 140.7°E.", "sources": ["jma-satellites"]}
+    ]},
+    {"norad_id": "40267", "name": "Himawari-8", "instruments": ["ahi"], "statements": [
+      {"text": "Himawari-8 has been Himawari-9's backup since 13 December 2022.", "sources": ["jma-satellites"]}
+    ]},
+    {"norad_id": "39634", "name": "Sentinel-1A", "instruments": ["c_sar"], "statements": []},
+    {"norad_id": "62261", "name": "Sentinel-1C", "instruments": ["c_sar"], "statements": []},
+    {"norad_id": "66315", "name": "Sentinel-1D", "instruments": ["c_sar"], "statements": []},
+    {"norad_id": "40697", "name": "Sentinel-2A", "instruments": ["msi"], "statements": [
+      {"text": "Together, the Sentinel-2 satellites revisit the equator every 5 days.", "sources": ["s2"]}
+    ]},
+    {"norad_id": "42063", "name": "Sentinel-2B", "instruments": ["msi"], "statements": [
+      {"text": "Together, the Sentinel-2 satellites revisit the equator every 5 days.", "sources": ["s2"]}
+    ]},
+    {"norad_id": "60989", "name": "Sentinel-2C", "instruments": ["msi"], "statements": [
+      {"text": "Together, the Sentinel-2 satellites revisit the equator every 5 days.", "sources": ["s2"]}
+    ]},
+    {"norad_id": "41335", "name": "Sentinel-3A", "instruments": ["olci", "slstr", "sral"], "statements": [
+      {"text": "Sentinel-3 measures sea surface height, sea and land surface temperature, and the colour of the ocean and land.", "sources": ["s3"]}
+    ]},
+    {"norad_id": "43437", "name": "Sentinel-3B", "instruments": ["olci", "slstr", "sral"], "statements": [
+      {"text": "Sentinel-3 measures sea surface height, sea and land surface temperature, and the colour of the ocean and land.", "sources": ["s3"]}
+    ]},
+    {"norad_id": "42969", "name": "Sentinel-5P", "instruments": ["tropomi"], "statements": []},
+    {"norad_id": "39084", "name": "Landsat 8", "instruments": ["oli", "tirs"], "statements": [
+      {"text": "Landsat 8 and Landsat 9 each carry two sensors, OLI and TIRS.", "sources": ["usgs-landsat-bands"]}
+    ]},
+    {"norad_id": "49260", "name": "Landsat 9", "instruments": ["oli", "tirs"], "statements": [
+      {"text": "Landsat 8 and Landsat 9 each carry two sensors, OLI and TIRS.", "sources": ["usgs-landsat-bands"]}
+    ]},
+    {"norad_id": "40376", "name": "SMAP", "instruments": ["smap_radiometer"], "statements": []},
+    {"norad_id": "54754", "name": "SWOT", "instruments": ["swot_interferometer"], "statements": []}
+  ]
+}

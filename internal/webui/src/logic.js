@@ -391,6 +391,46 @@ const PATTERN_LABELS = {
 
 // Turns the report's orbit explanation into what the Orbit tab shows. Unknown
 // pattern IDs are skipped, so a newer server can add patterns safely.
+// Only https links are shown, so a bad server value can't become a script URL.
+function safeSources(list) {
+  return (Array.isArray(list) ? list : [])
+    .filter((src) => typeof src?.url === 'string' && /^https:\/\//.test(src.url))
+    .map((src) => ({ label: String(src.label || 'Source'), title: String(src.title || src.label || 'Source'), url: src.url }));
+}
+
+function sourcedItems(statements) {
+  return (Array.isArray(statements) ? statements : [])
+    .filter((s) => typeof s?.text === 'string' && s.text.trim())
+    .map((s) => ({ text: s.text, sources: safeSources(s.sources) }));
+}
+
+// Shapes an /api/v1/satellite-data answer for the Data tab. Returns null for a satellite
+// Khonsu does not describe. `views` are the globe views on offer, so each kind lists only
+// the ones that can be shown.
+export function measuresView(response, views = []) {
+  const profile = response?.described ? response.profile : null;
+  if (!profile || !Array.isArray(profile.instruments) || profile.instruments.length === 0) return null;
+  const viewById = new Map(views.map((view) => [view.id, view]));
+  const kinds = (Array.isArray(profile.kinds) ? profile.kinds : []).filter((kind) => kind?.id && kind?.name);
+  const kindName = new Map(kinds.map((kind) => [kind.id, kind.name]));
+  return {
+    name: String(profile.name || ''),
+    chips: kinds.map((kind) => kind.name),
+    items: sourcedItems(profile.statements),
+    instruments: profile.instruments.map((instrument) => ({
+      name: String(instrument.name || ''),
+      kinds: (instrument.kinds ?? []).map((id) => kindName.get(id)).filter(Boolean),
+      items: sourcedItems(instrument.statements),
+    })),
+    kinds: kinds.map((kind) => ({
+      id: kind.id,
+      name: kind.name,
+      items: sourcedItems(kind.statements),
+      views: (kind.layers ?? []).filter((id) => viewById.has(id)).map((id) => ({ id, name: viewById.get(id).name })),
+    })),
+  };
+}
+
 export function explanationView(explanation) {
   if (!explanation || !Array.isArray(explanation.statements) || explanation.statements.length === 0) return null;
   const chips = [explanation.regime_name || explanation.regime, ...(explanation.patterns ?? []).map((id) => PATTERN_LABELS[id])].filter(Boolean);

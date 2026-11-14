@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"time"
 
@@ -20,6 +21,8 @@ const (
 	liveImageTTL  = 30 * time.Minute
 	maxImageBytes = 16 << 20
 	minImageBytes = 100_000
+	// How many days back a daily layer looks for a picture that is ready.
+	dailyFallbackDays = 3
 )
 
 // Info describes and credits this source.
@@ -58,6 +61,10 @@ type Layer struct {
 	Credit      string `json:"credit"`
 	Description string `json:"description"`
 	Transparent bool   `json:"transparent"`
+	// Topic names the kind of data a layer shows, such as thermal_infrared. Layers
+	// with a topic are the "what satellites measure" views, kept apart from the
+	// everyday base and cloud pictures.
+	Topic string `json:"topic,omitempty"`
 
 	GIBSName string `json:"-"`
 	Daily    bool   `json:"-"`
@@ -82,7 +89,7 @@ func validateImage(layer Layer) func([]byte) error {
 			return errors.New("not the expected image format")
 		}
 		if len(body) < layer.MinBytes {
-			return errors.New("the image is empty")
+			return fmt.Errorf("the image is empty: %w", feed.ErrNoData)
 		}
 		return nil
 	}
@@ -96,15 +103,30 @@ func (c *Client) Image(ctx context.Context, layer Layer) ([]byte, feed.Meta, err
 		query.Set("TRANSPARENT", "TRUE")
 		ext = "png"
 	}
-	if layer.Daily {
-		// A saved picture expires at the next UTC midnight, so yesterday's view is never
-		// served after the day changes.
-		now := c.feed.Now().UTC()
-		midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-		ttl = min(dailyImageTTL, now.Sub(midnight))
-		query.Set("TIME", now.AddDate(0, 0, -1).Format("2006-01-02"))
+	request := func() ([]byte, feed.Meta, error) {
+		return c.feed.Fetch(ctx, feed.Request{Source: ID, Key: layer.ID, Ext: ext, URL: c.base + "?" + query.Encode(), TTL: ttl, MaxBytes: maxImageBytes, Timeout: time.Minute, Validate: validateImage(layer)})
 	}
-	return c.feed.Fetch(ctx, feed.Request{Source: ID, Key: layer.ID, Ext: ext, URL: c.base + "?" + query.Encode(), TTL: ttl, MaxBytes: maxImageBytes, Timeout: time.Minute, Validate: validateImage(layer)})
+	if !layer.Daily {
+		return request()
+	}
+	// A saved picture expires at the next UTC midnight, so yesterday's view is never
+	// served after the day changes. Some daily products arrive a day or two late, so
+	// an empty day falls back to the one before it.
+	now := c.feed.Now().UTC()
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+	ttl = min(dailyImageTTL, now.Sub(midnight))
+	var (
+		image []byte
+		meta  feed.Meta
+		err   error
+	)
+	for back := 1; back <= dailyFallbackDays; back++ {
+		query.Set("TIME", now.AddDate(0, 0, -back).Format("2006-01-02"))
+		if image, meta, err = request(); !errors.Is(err, feed.ErrNoData) {
+			break
+		}
+	}
+	return image, meta, err
 }
 
 // NewLayer describes a GIBS layer for one source. Transparent layers are partial
@@ -113,6 +135,21 @@ func NewLayer(id, name string, info feed.Info, description, gibsName string, tra
 	return Layer{ID: id, Name: name, SourceID: info.ID, Credit: info.Credit, Description: description, Transparent: transparent, GIBSName: gibsName, Daily: daily, MinBytes: minImageBytes}
 }
 
+// About marks a layer as a view of one kind of data, such as thermal_infrared.
+func (l Layer) About(topic string) Layer {
+	l.Topic = topic
+	return l
+}
+
 // TrueColor is yesterday's worldwide view. It uses NOAA-20 because Suomi NPP's
 // layer has had long outages.
 var TrueColor = NewLayer("true-color", "True color (daily)", Info, "Yesterday's whole-Earth view from NOAA-20's VIIRS instrument.", "VIIRS_NOAA20_CorrectedReflectance_TrueColor", false, true)
+
+// The daily "what satellites measure" views. Each falls back to an earlier day
+// when the newest one is not ready yet.
+var (
+	FalseColor      = NewLayer("false-color", "Shortwave infrared false colour (daily)", Info, "NOAA-20 VIIRS shows shortwave infrared as red, near infrared as green and red light as blue: plants look green, fresh burns red, and snow and ice blue.", "VIIRS_NOAA20_CorrectedReflectance_BandsM11-I2-I1", false, true).About("shortwave_infrared")
+	NightLights     = NewLayer("night-lights", "Earth at night (daily)", Info, "NOAA-20's VIIRS Day/Night Band: city lights, gas flares, fishing boats and aurora.", "VIIRS_NOAA20_DayNightBand", false, true).About("night_lights")
+	LandTemperature = NewLayer("land-temperature", "Land surface temperature (daily)", Info, "Daytime land temperature from Terra's MODIS. Clouds leave gaps, because the heat of the ground can't be seen through them.", "MODIS_Terra_Land_Surface_Temp_Day", false, true).About("thermal_infrared")
+	SeaTemperature  = NewLayer("sea-temperature", "Sea surface temperature (daily)", Info, "A daily analysis that blends several satellite instruments with buoy data (GHRSST MUR).", "GHRSST_L4_MUR_Sea_Surface_Temperature", false, true).About("thermal_infrared")
+)

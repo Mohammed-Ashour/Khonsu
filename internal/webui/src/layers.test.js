@@ -80,6 +80,8 @@ const LAYERS = [
   { id: 'goes-east', name: 'GOES East clouds', source_id: 'noaa', credit: 'NOAA', description: 'Near live', transparent: true },
   { id: 'goes-west', name: 'GOES West clouds', source_id: 'noaa', credit: 'NOAA', description: 'Near live', transparent: true },
   { id: 'himawari', name: 'Himawari clouds', source_id: 'jma', credit: 'JMA', description: 'Near live', transparent: true },
+  { id: 'night-lights', name: 'Earth at night', source_id: 'nasa', credit: 'NASA GIBS', description: 'Daily', transparent: false, topic: 'night_lights' },
+  { id: 'goes-east-infrared', name: 'GOES East infrared', source_id: 'noaa', credit: 'NOAA', description: 'Near live', transparent: true, topic: 'thermal_infrared' },
 ];
 
 const okAll = (stack) => Object.fromEntries(stack.map((layer) => [layer.id, 'ok']));
@@ -152,7 +154,7 @@ test('the default makes no image request', async () => {
   assert.deepEqual(head.urls, []);
   assert.equal(credit.hidden, true);
   assert.equal(panel.children[0].textContent, 'Layers');
-  assert.deepEqual(layers.selection(), { base: '', overlays: [], aurora: false });
+  assert.deepEqual(layers.selection(), { base: '', overlays: [], view: '', aurora: false });
 });
 
 test('a saved selection drops unknown ids and restores the stack', async () => {
@@ -160,7 +162,7 @@ test('a saved selection drops unknown ids and restores the stack', async () => {
   const { layers, globe } = setup({ saved });
   await layers.start();
   await flush();
-  assert.deepEqual(layers.selection(), { base: '', overlays: ['goes-east', 'himawari'], aurora: true });
+  assert.deepEqual(layers.selection(), { base: '', overlays: ['goes-east', 'himawari'], view: '', aurora: true });
   assert.deepEqual(globe.calls.layers, [['goes-east', 'himawari']]);
   assert.deepEqual(globe.calls.stacks[0][0], { id: 'goes-east', url: '/api/v1/imagery?layer=goes-east', transparent: true });
   assert.deepEqual(globe.calls.aurora, [null]);
@@ -173,21 +175,21 @@ test('presets set the expected stacks and save them', async () => {
 
   dispatch(button(panel, 'Clouds now'), 'click');
   await flush();
-  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: ['goes-east', 'goes-west', 'himawari'], aurora: false });
+  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: ['goes-east', 'goes-west', 'himawari'], view: '', aurora: false });
   assert.deepEqual(globe.calls.layers.at(-1), ['true-color', 'goes-east', 'goes-west', 'himawari']);
   assert.equal(radio(panel, 'true-color').checked, true);
   assert.equal(overlay(panel, 'goes-west').checked, true);
-  assert.deepEqual(JSON.parse(store.data.get('khonsu.layers')), { base: 'true-color', overlays: ['goes-east', 'goes-west', 'himawari'], aurora: false });
+  assert.deepEqual(JSON.parse(store.data.get('khonsu.layers')), { base: 'true-color', overlays: ['goes-east', 'goes-west', 'himawari'], view: '', aurora: false });
 
   dispatch(button(panel, "Yesterday's Earth"), 'click');
   await flush();
-  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: [], aurora: false });
+  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: [], view: '', aurora: false });
   assert.deepEqual(globe.calls.layers.at(-1), ['true-color']);
   assert.equal(overlay(panel, 'goes-east').checked, false);
 
   dispatch(button(panel, 'Plain'), 'click');
   await flush();
-  assert.deepEqual(layers.selection(), { base: '', overlays: [], aurora: false });
+  assert.deepEqual(layers.selection(), { base: '', overlays: [], view: '', aurora: false });
   assert.deepEqual(globe.calls.layers.at(-1), []);
   assert.equal(radio(panel, '').checked, true);
 });
@@ -356,7 +358,7 @@ test('no globe shows only the note', async () => {
   assert.equal(panel.children[0].textContent, 'The globe is unavailable, so layers are turned off.');
   assert.equal(credit.hidden, true);
   layers.setKp(3);
-  assert.deepEqual(layers.selection(), { base: '', overlays: [], aurora: false });
+  assert.deepEqual(layers.selection(), { base: '', overlays: [], view: '', aurora: false });
 });
 
 test('storage that throws does not break the panel', async () => {
@@ -374,5 +376,72 @@ test('storage that throws does not break the panel', async () => {
   toggle(overlay(panel, 'goes-east'), true);
   await flush();
   assert.deepEqual(globe.calls.layers.at(-1), ['goes-east']);
-  assert.deepEqual(layers.selection(), { base: '', overlays: ['goes-east'], aurora: false });
+  assert.deepEqual(layers.selection(), { base: '', overlays: ['goes-east'], view: '', aurora: false });
+});
+
+const view = (panel, value) => find(panel, (node) => node.attributes.name === 'layer-view' && node.value === value);
+
+test('views have their own group and stay out of the everyday choices', async () => {
+  const started = setup();
+  await started.layers.start();
+  await flush();
+  assert.equal(radio(started.panel, 'night-lights'), null);
+  assert.equal(overlay(started.panel, 'goes-east-infrared'), null);
+  assert.ok(view(started.panel, 'night-lights'));
+  assert.ok(view(started.panel, ''));
+  assert.ok(find(started.panel, (node) => node.tagName === 'legend' && node.textContent === 'What satellites measure'));
+});
+
+test('show() replaces the clouds with one view, and presets clear it', async () => {
+  const { layers, panel, store, globe } = setup();
+  await layers.start();
+  await flush();
+  dispatch(button(panel, 'Clouds now'), 'click');
+  await flush();
+
+  assert.equal(layers.show('night-lights'), true);
+  await flush();
+  assert.deepEqual(globe.calls.layers.at(-1), ['night-lights']);
+  assert.equal(view(panel, 'night-lights').checked, true);
+  assert.equal(JSON.parse(store.data.get('khonsu.layers')).view, 'night-lights');
+
+  // A transparent view keeps the base picture under it, and the clouds stay off.
+  layers.show('goes-east-infrared');
+  await flush();
+  assert.deepEqual(globe.calls.layers.at(-1), ['true-color', 'goes-east-infrared']);
+  assert.equal(layers.viewOn(), 'goes-east-infrared');
+
+  dispatch(button(panel, 'Clouds now'), 'click');
+  await flush();
+  assert.equal(layers.viewOn(), '');
+  assert.deepEqual(globe.calls.layers.at(-1), ['true-color', 'goes-east', 'goes-west', 'himawari']);
+
+  assert.equal(layers.show('goes-east'), false, 'an everyday layer is not a view');
+  assert.equal(layers.show('nope'), false);
+});
+
+test('a transparent view on a plain globe gets true colour beneath it', async () => {
+  const { layers, globe } = setup();
+  await layers.start();
+  await flush();
+  layers.show('goes-east-infrared');
+  await flush();
+  assert.deepEqual(globe.calls.layers.at(-1), ['true-color', 'goes-east-infrared']);
+  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: [], view: 'goes-east-infrared', aurora: false });
+});
+
+test('a saved view is restored, and an unknown one dropped', async () => {
+  const restored = setup({ saved: { base: '', overlays: ['goes-east'], view: 'night-lights', aurora: false } });
+  await restored.layers.start();
+  await flush();
+  assert.deepEqual(restored.globe.calls.layers, [['night-lights']]);
+  const dropped = setup({ saved: { base: '', overlays: [], view: 'goes-east', aurora: false } });
+  await dropped.layers.start();
+  await flush();
+  assert.equal(dropped.layers.viewOn(), '');
+});
+
+test('show() does nothing before the panel starts', () => {
+  const { layers } = setup();
+  assert.equal(layers.show('night-lights'), false);
 });
