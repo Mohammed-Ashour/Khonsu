@@ -146,15 +146,6 @@ func TestParseRejectsBrokenReferences(t *testing.T) {
 	}
 }
 
-func contains(list []string, value string) bool {
-	for _, item := range list {
-		if item == value {
-			return true
-		}
-	}
-	return false
-}
-
 // docs/what-satellites-measure.md lists the described satellites; it must not fall behind.
 func TestDocsListEveryDescribedSatellite(t *testing.T) {
 	doc, err := os.ReadFile("../../docs/what-satellites-measure.md")
@@ -238,5 +229,16 @@ func TestParseRejectsBrokenLessons(t *testing.T) {
 	good := `{"id":"l","title":"L","summary":"S","kinds":["k"],"steps":[{"satellite":"1","text":[{"text":"x.","sources":["s"]}]}]}`
 	if _, err := parse([]byte(head + good + "]}")); err != nil {
 		t.Errorf("a valid lesson was rejected: %v", err)
+	}
+}
+
+func TestCarriersListSatellitesForAKind(t *testing.T) {
+	base := load(t)
+	names := map[string]bool{}
+	for _, link := range base.Carriers("radar") {
+		names[link.Name] = true
+	}
+	if !names["Sentinel-1A"] || names["GOES 19"] {
+		t.Fatalf("radar carriers = %v", names)
 	}
 }

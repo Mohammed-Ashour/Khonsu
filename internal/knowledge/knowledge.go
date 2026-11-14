@@ -353,5 +353,35 @@ func (b *Base) ForSatellite(noradID string) (Profile, bool) {
 	return profile, true
 }
 
+// SatelliteLink names a described satellite.
+type SatelliteLink struct {
+	NoradID string `json:"norad_id"`
+	Name    string `json:"name"`
+}
+
+// Carriers lists the described satellites with an instrument that collects a kind of data.
+func (b *Base) Carriers(kind string) []SatelliteLink {
+	links := []SatelliteLink{}
+	for _, id := range b.order {
+		sat := b.satellites[id]
+		for _, instrument := range sat.instruments {
+			if contains(b.instByID[instrument].Kinds, kind) {
+				links = append(links, SatelliteLink{id, sat.name})
+				break
+			}
+		}
+	}
+	return links
+}
+
+func contains(list []string, value string) bool {
+	for _, item := range list {
+		if item == value {
+			return true
+		}
+	}
+	return false
+}
+
 // NoradIDs lists the described satellites in file order.
 func (b *Base) NoradIDs() []string { return append([]string{}, b.order...) }

@@ -17,6 +17,8 @@ import (
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/goes"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/himawari"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/launchlibrary"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/noaalsa"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/nsidc"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/openmeteo"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/satnogs"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/spacetrack"
@@ -41,6 +43,7 @@ var categories = []feed.Category{
 	{ID: feed.CategorySkyConditions, Title: "Sky conditions", Description: "Whether clouds will let you see a pass."},
 	{ID: feed.CategoryRadio, Title: "Radio", Description: "What satellites transmit, and on which frequencies."},
 	{ID: feed.CategoryLaunches, Title: "Launches", Description: "What is about to reach orbit."},
+	{ID: feed.CategoryRecords, Title: "Long records", Description: "What satellites have measured over decades, shown in lessons."},
 }
 
 var all = []feed.Info{
@@ -51,6 +54,7 @@ var all = []feed.Info{
 	openmeteo.Info,
 	satnogs.Info,
 	launchlibrary.Info,
+	nsidc.Info, noaalsa.Info,
 }
 
 // Layers lists the images that can be draped on the globe, in display order.
@@ -117,6 +121,8 @@ type Hub struct {
 	GIBS          *gibs.Client
 	EarthSearch   *earthsearch.Client
 	OpenMeteo     *openmeteo.Client
+	SeaIce        *nsidc.Client
+	SeaLevel      *noaalsa.Client
 }
 
 // NewHub creates the provider clients. An empty cacheDir uses the user cache.
@@ -125,6 +131,7 @@ func NewHub(cacheDir string) *Hub {
 	return &Hub{
 		SWPC: swpc.New(f), SpaceHistory: celestraksw.New(f), DONKI: donki.New(f), Wikidata: wikidata.New(f), GCAT: gcat.New(f),
 		SatNOGS: satnogs.New(f), LaunchLibrary: launchlibrary.New(f), SpaceTrack: spacetrack.New(f), GIBS: gibs.New(f), EarthSearch: earthsearch.New(f), OpenMeteo: openmeteo.New(f),
+		SeaIce: nsidc.New(f), SeaLevel: noaalsa.New(f),
 	}
 }
 

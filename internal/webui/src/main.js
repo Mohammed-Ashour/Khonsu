@@ -12,6 +12,7 @@ import { appendSources, createDataTab } from './datatab.js';
 import { createResizers } from './resize.js';
 import { createGroupPicker } from './grouppicker.js';
 import { createLessonPlayer, lessonFromUrl, withLesson } from './lesson.js';
+import { createLearnHub } from './learn.js';
 import { createSkyBar } from './skybar.js';
 
 const LIST_LIMIT = 200;
@@ -65,6 +66,7 @@ let dossier = null;
 let dataTab = null;
 let lessonPlayer = null;
 let groupPicker = null;
+let learnHub = null;
 // Each group's satellites, kept for the session so switching back is instant.
 const groupCache = new Map();
 // What the catalog list last showed, so an unchanged list is not rebuilt.
@@ -1110,13 +1112,16 @@ function faceGlobe(lat, lon) {
   setFollow(false);
 }
 
+// Learn takes the satellite list's column while it is open; the globe stays in view.
+function setLearnOpen(open) {
+  byId('learn-panel').hidden = !open;
+  document.querySelector('.catalog').hidden = open;
+  byId('learn-open').setAttribute('aria-pressed', String(open));
+  if (open) learnHub.render();
+}
+
 function wireLearn() {
-  const dialog = byId('learn-dialog');
-  byId('learn-open').addEventListener('click', () => {
-    dialog.showModal();
-    lessonPlayer.renderList(() => dialog.close());
-  });
-  byId('learn-close').addEventListener('click', () => dialog.close());
+  byId('learn-open').addEventListener('click', () => setLearnOpen(byId('learn-panel').hidden));
 }
 
 function wireDataDialog() {
@@ -1338,13 +1343,26 @@ async function start() {
     api,
     element,
     card: byId('lesson-card'),
-    list: byId('learn-list'),
+    list: element('div'),
     layers: () => layersPanel,
     showSatellite,
     face: faceGlobe,
     onChange() {
       byId('headline').hidden = Boolean(lessonPlayer.current());
       syncUrl();
+    },
+  });
+  learnHub = createLearnHub({
+    api,
+    element,
+    panel: byId('learn-panel'),
+    layers: () => layersPanel,
+    showSatellite: (id) => addSatellite(id),
+    startLesson: (id) => lessonPlayer.start(id),
+    startStory: (id) => lessonPlayer.start(id),
+    onClose: () => {
+      setLearnOpen(false);
+      byId('learn-open').focus();
     },
   });
   dataTab = createDataTab({ api, element, panel: byId('data-measures'), selectedEntry, dataFailure, layers: () => layersPanel, startLesson: (id) => lessonPlayer.start(id) });

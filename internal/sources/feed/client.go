@@ -54,7 +54,11 @@ type gate struct {
 
 // NewClient stores responses under cacheDir, or the user cache when it is empty.
 func NewClient(cacheDir string) *Client {
-	client := &Client{http: &http.Client{}, Clock: time.Now, gates: map[string]*gate{}}
+	// Some providers, such as NOAA's altimetry server, take close to ten seconds to finish a
+	// TLS handshake, which is the default limit. Each request still has its own timeout.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSHandshakeTimeout = 30 * time.Second
+	client := &Client{http: &http.Client{Transport: transport}, Clock: time.Now, gates: map[string]*gate{}}
 	if cacheDir == "" {
 		cacheDir, client.dirErr = catalog.DefaultCacheDir()
 	}

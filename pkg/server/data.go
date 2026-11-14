@@ -19,6 +19,8 @@ import (
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/gcat"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/gibs"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/launchlibrary"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/noaalsa"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/nsidc"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/openmeteo"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/satnogs"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/spacetrack"
@@ -47,6 +49,7 @@ func registerDataRoutes(mux *http.ServeMux, client *sources.Hub) {
 	mux.HandleFunc("/api/v1/imagery", d.imagery)
 	mux.HandleFunc("/api/v1/satellite-data", satelliteData)
 	mux.HandleFunc("/api/v1/lessons", lessons)
+	mux.HandleFunc("/api/v1/learn", learn)
 	mux.Handle("/api/v1/space-weather", feedRoute(d, swpc.ID, dataTimeout, func(ctx context.Context, _ *http.Request) (swpc.Conditions, feed.Meta, error) {
 		return c.SWPC.Conditions(ctx)
 	}))
@@ -65,6 +68,17 @@ func registerDataRoutes(mux *http.ServeMux, client *sources.Hub) {
 			return nil, feed.Meta{}, err
 		}
 		return c.OpenMeteo.Clouds(ctx, lat, lon)
+	}))
+	mux.Handle("/api/v1/sea-ice", feedRoute(d, nsidc.ID, dataTimeout, func(ctx context.Context, r *http.Request) ([]nsidc.Year, feed.Meta, error) {
+		month, err := strconv.Atoi(r.URL.Query().Get("month"))
+		hemisphere := r.URL.Query().Get("hemisphere")
+		if err != nil || month < 1 || month > 12 || (hemisphere != "north" && hemisphere != "south") {
+			return nil, feed.Meta{}, badRequest("provide hemisphere north or south and month 1 to 12")
+		}
+		return c.SeaIce.Monthly(ctx, hemisphere == "north", month)
+	}))
+	mux.Handle("/api/v1/sea-level", feedRoute(d, noaalsa.ID, dataTimeout, func(ctx context.Context, _ *http.Request) (noaalsa.Series, feed.Meta, error) {
+		return c.SeaLevel.SeaLevel(ctx)
 	}))
 	mux.Handle("/api/v1/satellite-details", perSatellite(d, wikidata.ID, dataTimeout, func(ctx context.Context, id string) ([]wikidata.Entry, feed.Meta, error) {
 		return c.Wikidata.Lookup(ctx, id)
@@ -121,6 +135,25 @@ func lessons(w http.ResponseWriter, _ *http.Request) {
 		return
 	}
 	writeJSON(w, map[string]any{"lessons": base.Lessons})
+}
+
+// learn gathers what the Learn panel shows: the kinds of data with the satellites that
+// collect them, the instruments, and the lessons. It also comes from Khonsu's notes.
+func learn(w http.ResponseWriter, _ *http.Request) {
+	base, err := knowledge.Load()
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
+	type kind struct {
+		knowledge.Kind
+		Satellites []knowledge.SatelliteLink `json:"satellites"`
+	}
+	kinds := make([]kind, 0, len(base.Kinds))
+	for _, k := range base.Kinds {
+		kinds = append(kinds, kind{k, base.Carriers(k.ID)})
+	}
+	writeJSON(w, map[string]any{"kinds": kinds, "instruments": base.Instruments, "lessons": base.Lessons})
 }
 
 func coordinates(r *http.Request) (float64, float64, error) {
