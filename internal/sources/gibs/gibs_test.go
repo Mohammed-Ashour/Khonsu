@@ -15,24 +15,55 @@ import (
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/feed"
 )
 
-func TestImageRequestsYesterdayAndRejectsEmptyPicture(t *testing.T) {
-	var size int
-	var query string
+func TestDailyImageFallsBackToEarlierDaysAndRejectsEmptyPictures(t *testing.T) {
+	var times []string
+	ready := map[string]bool{}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		query = r.URL.RawQuery
+		day := r.URL.Query().Get("TIME")
+		times = append(times, day)
+		size := 12_000 // A day that is not ready yet returns a valid but blank worldwide image.
+		if ready[day] {
+			size = minImageBytes
+		}
 		w.Write(append([]byte{0xFF, 0xD8, 0xFF}, bytes.Repeat([]byte{1}, size)...))
 	}))
 	defer server.Close()
-	f := feed.NewClient(t.TempDir())
-	f.Clock = func() time.Time { return time.Date(2026, 11, 9, 1, 0, 0, 0, time.UTC) }
-	c := NewAt(f, server.URL)
+	clock := func() time.Time { return time.Date(2026, 11, 9, 1, 0, 0, 0, time.UTC) }
 
-	size = 12_000 // A sensor outage returns a valid but blank worldwide image.
-	if _, _, err := c.Image(context.Background(), TrueColor); err == nil {
+	f := feed.NewClient(t.TempDir())
+	f.Clock = clock
+	if _, _, err := NewAt(f, server.URL).Image(context.Background(), TrueColor); err == nil {
 		t.Fatal("Image accepted a blank picture")
 	}
-	if !strings.Contains(query, "TIME=2026-11-08") || !strings.Contains(query, "VIIRS_NOAA20") {
-		t.Fatalf("query = %s", query)
+	if strings.Join(times, ",") != "2026-11-08,2026-11-07,2026-11-06" {
+		t.Fatalf("days asked = %v, want yesterday and then two earlier days", times)
+	}
+
+	times, ready["2026-11-07"] = nil, true
+	f = feed.NewClient(t.TempDir())
+	f.Clock = clock
+	image, _, err := NewAt(f, server.URL).Image(context.Background(), TrueColor)
+	if err != nil || len(image) < minImageBytes || strings.Join(times, ",") != "2026-11-08,2026-11-07" {
+		t.Fatalf("days asked = %v, err = %v; want the day before yesterday after an empty yesterday", times, err)
+	}
+}
+
+func TestEmptyPictureDoesNotPauseTheProvider(t *testing.T) {
+	var hits atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits.Add(1)
+		w.Write(append([]byte{0x89, 'P', 'N', 'G'}, bytes.Repeat([]byte{1}, 10)...))
+	}))
+	defer server.Close()
+	c := NewAt(feed.NewClient(t.TempDir()), server.URL)
+	layer := NewLayer("live", "Live", Info, "", "Layer", true, false)
+	for range 2 {
+		if _, _, err := c.Image(context.Background(), layer); err == nil {
+			t.Fatal("Image accepted an empty picture")
+		}
+	}
+	if hits.Load() != 2 {
+		t.Fatalf("hits = %d; an empty picture must not pause later requests", hits.Load())
 	}
 }
 

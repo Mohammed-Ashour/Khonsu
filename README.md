@@ -23,7 +23,7 @@
 Satellites cross your sky every night, but most trackers only give you numbers. Khonsu turns those numbers into answers:
 
 - **A moment to look up.** It tells you when a satellite will pass over you, whether you'll be able to see it, and whether clouds will be in the way.
-- **An understanding of what you see.** It explains in plain words why each orbit is the way it is, and links every sentence to a source.
+- **An understanding of what you see.** It explains in plain words why each orbit is the way it is and what each satellite measures, and links every sentence to a source.
 - **A view of the planet they watch.** See today's clouds, yesterday's Earth and the aurora estimate, and find where Sentinel-2 and Landsat recently captured scenes.
 - **Tools you own.** Khonsu is one program that runs on your computer, with a web app, a terminal app and a command line. It needs no account.
 
@@ -61,7 +61,7 @@ Sat 14 Nov  visible for 2m 25s
   fades    18:23:46  32° above S
 ```
 
-In the web app, set your location and open **Passes**. You get a countdown to the next viewing window, a sky plot of where to look, and a *Window* badge on each pass that is sunlit in a dark sky. Brightness, weather and obstructions may still prevent a sighting. **Check clouds near me** adds the forecast cloud cover for each one. `khonsu passes` does the same for any satellite.
+In the web app, set your location and open **Sky**. You get a countdown to the next viewing window, a sky plot of where to look, and a *Window* badge on each pass that is sunlit in a dark sky. Brightness, weather and obstructions may still prevent a sighting. **Check clouds near me** adds the forecast cloud cover for each one. `khonsu passes` does the same for any satellite.
 
 ### Understand why a satellite flies where it does
 
@@ -92,20 +92,20 @@ Why It's Up There (Low Earth orbit):
 ...
 ```
 
-### Meet the satellite, and find its scenes
+### Learn what a satellite measures
 
-**Identity** shows who runs a satellite, when it launched and what it's for. **Radio** lists what it transmits and on which frequencies. For Sentinel-2 and Landsat, **Scenes** lists the latest scenes they captured and turns the globe to the centre of each one. It shows where a scene was taken, not the picture itself.
+Open **Data** to see what a satellite measures: its instruments, the kinds of data they collect, such as visible light, thermal infrared or radar, and what that data is used for. Every sentence links to its source. *Show on the globe* puts a matching picture over the globe:
 
-<table>
-  <tr>
-    <td width="50%"><img src="assets/web-identity.jpg" alt="The Identity tab for Sentinel-2A, with details from Wikidata, GCAT and Space-Track"></td>
-    <td width="50%"><img src="assets/web-sees.jpg" alt="The Scenes tab marking where Sentinel-2A's latest image of Earth was taken, with the globe turned to face it"></td>
-  </tr>
-  <tr>
-    <td>Identity combines Wikidata, GCAT and, with your own account, Space-Track.</td>
-    <td>Pick a recent scene, and the globe turns to where it was captured.</td>
-  </tr>
-</table>
+- GOES East's 10.3 µm infrared band, which shows clouds by day and by night;
+- NOAA-20's shortwave infrared false colour, which picks out plants, burn scars and snow;
+- city lights at night;
+- land and sea temperature.
+
+![GOES 19's Data tab explaining thermal infrared, with GOES East's infrared view of the Americas draped over the globe](assets/web-data.jpg)
+
+[What satellites measure](docs/what-satellites-measure.md) lists the satellites Khonsu describes and every source it uses.
+
+On **Overview**, *Who runs it* combines Wikidata, GCAT and, with your own account, Space-Track. *Radio* lists what the satellite transmits and on which frequencies. For Sentinel-2 and Landsat, *Scene locations* lists the latest scenes they captured and turns the globe to the centre of each one.
 
 ### Watch the planet and the sky above it
 
@@ -151,13 +151,13 @@ The calendar is an [extension](docs/extensions.md), a small program any language
 | Space weather | [NOAA SWPC](https://www.swpc.noaa.gov/), [CelesTrak](https://celestrak.org/SpaceData/) and [NASA DONKI](https://ccmc.gsfc.nasa.gov/tools/DONKI/) |
 | Earth imagery | [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/) with GOES and Himawari, and [Element 84 Earth Search](https://element84.com/earth-search/) |
 | Sky, radio and launches | [Open-Meteo](https://open-meteo.com/), [SatNOGS DB](https://db.satnogs.org/) and [The Space Devs](https://thespacedevs.com/) |
-| Orbit explanations | ESA, NASA, CelesTrak, GPS.gov and others, linked from each sentence |
+| Orbit explanations and what satellites measure | ESA, NASA, NOAA, Copernicus, JMA, USGS, CelesTrak and others, linked from each sentence |
 
 Your copy of Khonsu fetches this data at runtime and credits it on screen, under the **Data** button. Khonsu doesn't bundle or redistribute it.
 
 ## Limits
 
-- Passes are geometric estimates found at one-minute steps, so a very short pass can be missed. Brightness isn't considered. See [visibility estimates](docs/visibility.md).
+- Viewing windows are geometric estimates found at one-minute steps, so a very short pass can be missed. Brightness isn't considered. See [visibility estimates](docs/visibility.md).
 - Predictions drift as orbital elements age, so Khonsu shows when they were last updated.
 - Orbit explanations are estimates from the elements. Their tolerances are documented in [orbit estimates](docs/orbit-estimates.md#why-its-up-there).
 - Newer objects have catalog numbers too long for TLE text. Khonsu uses GP JSON throughout, and only `khonsu tle` is limited.

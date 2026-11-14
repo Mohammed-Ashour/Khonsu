@@ -355,3 +355,25 @@ func TestDataRoutesRejectBadInputBeforeReachingAProvider(t *testing.T) {
 		}
 	}
 }
+
+func TestSatelliteDataDescribesKnownSatellitesWithoutLiveData(t *testing.T) {
+	handler := newAppHandler(fileSource{nil}, nil, fstest.MapFS{"index.html": {Data: []byte("app")}})
+	get := func(id string) (int, map[string]any) {
+		recorder := httptest.NewRecorder()
+		handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/api/v1/satellite-data?norad_id="+id, nil))
+		var body map[string]any
+		_ = json.Unmarshal(recorder.Body.Bytes(), &body)
+		return recorder.Code, body
+	}
+	code, body := get("0040697")
+	profile, _ := body["profile"].(map[string]any)
+	if code != http.StatusOK || body["described"] != true || profile["name"] != "Sentinel-2A" || len(profile["kinds"].([]any)) == 0 {
+		t.Fatalf("Sentinel-2A = %d %v", code, body)
+	}
+	if code, body = get("99999"); code != http.StatusOK || body["described"] != false || body["profile"] != nil {
+		t.Fatalf("undescribed = %d %v", code, body)
+	}
+	if code, _ = get("abc"); code != http.StatusBadRequest {
+		t.Fatalf("invalid ID status = %d", code)
+	}
+}

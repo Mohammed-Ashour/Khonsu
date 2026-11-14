@@ -55,19 +55,22 @@
         <div><h1 id="selected-name">No satellite</h1><p id="selected-id" class="note"></p></div>
       </div>
       <div class="tabs" role="tablist" aria-label="Satellite details">
-        <button id="tab-now" class="tab" role="tab" type="button" aria-selected="true" aria-controls="panel-now">Now</button>
-        <button id="tab-passes" class="tab" role="tab" type="button" aria-selected="false" aria-controls="panel-passes" tabindex="-1">Passes</button>
+        <button id="tab-now" class="tab" role="tab" type="button" aria-selected="true" aria-controls="panel-now">Overview</button>
         <button id="tab-orbit" class="tab" role="tab" type="button" aria-selected="false" aria-controls="panel-orbit" tabindex="-1">Orbit</button>
-        <button id="tab-identity" class="tab" role="tab" type="button" aria-selected="false" aria-controls="panel-identity" tabindex="-1">Identity</button>
-        <button id="tab-radio" class="tab" role="tab" type="button" aria-selected="false" aria-controls="panel-radio" tabindex="-1">Radio</button>
-        <button id="tab-sees" class="tab" role="tab" type="button" aria-selected="false" aria-controls="panel-sees" tabindex="-1" hidden>Scenes</button>
+        <button id="tab-data" class="tab" role="tab" type="button" aria-selected="false" aria-controls="panel-data" tabindex="-1">Data</button>
+        <button id="tab-passes" class="tab" role="tab" type="button" aria-selected="false" aria-controls="panel-passes" tabindex="-1">Sky</button>
       </div>
       <section id="panel-now" class="tab-panel" role="tabpanel" aria-labelledby="tab-now">
         <dl id="now-readouts" class="readouts"></dl>
         <p id="now-note" class="note"></p>
-      </section>
-      <section id="panel-passes" class="tab-panel" role="tabpanel" aria-labelledby="tab-passes" hidden>
-        <div id="passes-content"></div>
+        <details id="section-identity" class="dossier-section">
+          <summary>Who runs it</summary>
+          <section id="panel-identity" aria-label="Who runs it"></section>
+        </details>
+        <details id="section-radio" class="dossier-section">
+          <summary>Radio</summary>
+          <section id="panel-radio" aria-label="Radio"></section>
+        </details>
       </section>
       <section id="panel-orbit" class="tab-panel" role="tabpanel" aria-labelledby="tab-orbit" hidden>
         <section id="orbit-why" class="why" aria-labelledby="orbit-why-title" hidden>
@@ -80,9 +83,16 @@
         <p id="orbit-note" class="note"></p>
         <div id="orbit-links" class="link-row"></div>
       </section>
-      <section id="panel-identity" class="tab-panel" role="tabpanel" aria-labelledby="tab-identity" hidden></section>
-      <section id="panel-radio" class="tab-panel" role="tabpanel" aria-labelledby="tab-radio" hidden></section>
-      <section id="panel-sees" class="tab-panel" role="tabpanel" aria-labelledby="tab-sees" hidden></section>
+      <section id="panel-data" class="tab-panel" role="tabpanel" aria-labelledby="tab-data" hidden>
+        <div id="data-measures" class="why"></div>
+        <details id="section-sees" class="dossier-section" hidden>
+          <summary>Scene locations</summary>
+          <section id="panel-sees" aria-label="Scene locations"></section>
+        </details>
+      </section>
+      <section id="panel-passes" class="tab-panel" role="tabpanel" aria-labelledby="tab-passes" hidden>
+        <div id="passes-content"></div>
+      </section>
     </aside>
 
     <footer class="timeline" aria-label="Timeline">
@@ -104,7 +114,7 @@
       <h2 id="data-title">Data sources</h2>
       <button id="data-close" class="text-button" type="button">Close</button>
     </div>
-    <p class="note">Your copy of Khonsu fetches this data, keeps a local copy to limit requests and credits each source. Khonsu doesn't redistribute it. Space weather and launch times are requested when the app opens and send nothing about you or your satellites. The Identity and Radio tabs send the selected satellite's NORAD ID to Wikidata and SatNOGS, and to Space-Track if you've connected an account. GCAT is downloaded as one whole table, so it never learns which satellite you chose. For Sentinel-2 and Landsat satellites, the Scenes tab sends the platform name to Earth Search. Your location is only sent if you ask for cloud cover, and is rounded to about 10 km first.</p>
+    <p class="note">Your copy of Khonsu fetches this data, keeps a local copy to limit requests and credits each source. Khonsu doesn't redistribute it. Space weather and launch times are requested when the app opens and send nothing about you or your satellites. Opening <i>Who runs it</i> or <i>Radio</i> sends the selected satellite's NORAD ID to Wikidata and SatNOGS, and to Space-Track if you've connected an account. GCAT is downloaded as one whole table, so it never learns which satellite you chose. For Sentinel-2 and Landsat satellites, opening <i>Scene locations</i> sends the platform name to Earth Search. The Data tab's descriptions come from Khonsu itself. Your location is only sent if you ask for cloud cover, and is rounded to about 10 km first.</p>
     <p id="data-status-note" class="note"></p>
     <div id="data-categories"></div>
   </dialog>

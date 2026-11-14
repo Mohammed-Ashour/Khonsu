@@ -1,5 +1,6 @@
-// The Layers panel: one base picture, any number of near-live cloud layers and an aurora estimate.
-// Choices are saved in storage and sent to the globe; the credit line names what is showing.
+// The Layers panel: one base picture, any number of near-live cloud layers and an aurora estimate,
+// or one "what satellites measure" view, which replaces the clouds while it is on. Choices are
+// saved in storage and sent to the globe; the credit line names what is showing.
 
 const STORAGE_KEY = 'khonsu.layers';
 const TRUE_COLOR = 'true-color';
@@ -13,11 +14,12 @@ const AURORA_CREDIT = 'Aurora estimated from NOAA SWPC Kp';
 
 export function createLayers({ element, panel, credit, catalog, storage, globe, fetchHead = (url) => fetch(url, { method: 'HEAD' }), dataAge, now = Date.now }) {
   // The saved choices. `live` is NOAA's Kp; `tried` is a slider value kept in memory only.
-  const state = { base: '', overlays: [], aurora: false, live: null, tried: null };
+  const state = { base: '', overlays: [], view: '', aurora: false, live: null, tried: null };
   const freshness = new Map();
   const warnings = new Map();
   const baseInputs = new Map();
   const overlayInputs = new Map();
+  const viewInputs = new Map();
   const ui = {};
   let layers = [];
   let byId = new Map();
@@ -26,14 +28,21 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
   let calls = 0;
 
   const imageryUrl = (id) => '/api/v1/imagery?layer=' + encodeURIComponent(id);
-  const cloudIds = () => layers.filter((layer) => layer.transparent === true).map((layer) => layer.id);
-  const isBaseId = (id) => byId.has(id) && byId.get(id).transparent !== true;
+  // Layers with a topic are the "what satellites measure" views, kept out of the everyday groups.
+  const everyday = () => layers.filter((layer) => !layer.topic);
+  const views = () => layers.filter((layer) => layer.topic);
+  const cloudIds = () => everyday().filter((layer) => layer.transparent === true).map((layer) => layer.id);
+  const isBaseId = (id) => byId.has(id) && !byId.get(id).topic && byId.get(id).transparent !== true;
+  const isViewId = (id) => byId.has(id) && Boolean(byId.get(id).topic);
   const trueColor = () => (isBaseId(TRUE_COLOR) ? TRUE_COLOR : '');
   const auroraKp = () => state.tried ?? state.live;
 
-  // Stack order: the base picture first, then overlays in catalog order.
+  // Stack order: the base picture first, then overlays in catalog order. A view replaces the
+  // overlays, and an opaque view covers the base, so only what it shows is requested.
   function stackLayers() {
-    const ids = [...(state.base ? [state.base] : []), ...state.overlays];
+    const view = state.view ? byId.get(state.view) : null;
+    let ids = [...(state.base ? [state.base] : []), ...state.overlays];
+    if (view) ids = view.transparent === true ? [...(state.base ? [state.base] : []), view.id] : [view.id];
     return ids
       .filter((id) => byId.has(id))
       .map((id) => ({ id, url: imageryUrl(id), transparent: byId.get(id).transparent === true }));
@@ -41,7 +50,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
 
   function persist() {
     try {
-      storage.setItem(STORAGE_KEY, JSON.stringify({ base: state.base, overlays: state.overlays, aurora: state.aurora }));
+      storage.setItem(STORAGE_KEY, JSON.stringify({ base: state.base, overlays: state.overlays, view: state.view, aurora: state.aurora }));
     } catch {
       // A blocked or full store must not stop the layers from working.
     }
@@ -58,6 +67,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     state.base = typeof saved.base === 'string' && (saved.base === '' || isBaseId(saved.base)) ? saved.base : '';
     const wanted = new Set(Array.isArray(saved.overlays) ? saved.overlays : []);
     state.overlays = cloudIds().filter((id) => wanted.has(id));
+    state.view = typeof saved.view === 'string' && isViewId(saved.view) ? saved.view : '';
     state.aurora = saved.aurora === true;
   }
 
@@ -154,6 +164,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     if (!active) return;
     for (const [id, input] of baseInputs) input.checked = id === state.base;
     for (const [id, input] of overlayInputs) input.checked = state.overlays.includes(id);
+    for (const [id, input] of viewInputs) input.checked = id === state.view;
     ui.aurora.checked = state.aurora;
     ui.controls.hidden = !state.aurora;
     ui.slider.value = String(auroraKp() ?? 0);
@@ -182,14 +193,17 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     ['Clouds now', () => {
       state.base = trueColor();
       state.overlays = cloudIds();
+      state.view = '';
     }],
     ["Yesterday's Earth", () => {
       state.base = trueColor();
       state.overlays = [];
+      state.view = '';
     }],
     ['Plain', () => {
       state.base = '';
       state.overlays = [];
+      state.view = '';
       state.aurora = false;
       state.tried = null;
     }],
@@ -198,6 +212,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
   function render() {
     baseInputs.clear();
     overlayInputs.clear();
+    viewInputs.clear();
     warnings.clear();
 
     const baseGroup = element('fieldset', 'layer-group', null);
@@ -210,7 +225,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     });
     baseInputs.set('', plain.input);
     baseGroup.append(plain.label);
-    for (const layer of layers.filter((item) => item.transparent !== true)) {
+    for (const layer of everyday().filter((item) => item.transparent !== true)) {
       const row = choiceRow({ type: 'radio', name: 'layer-base', value: layer.id, title: layer.name, note: layer.description, warn: true });
       row.input.addEventListener('change', () => {
         if (!row.input.checked) return;
@@ -224,7 +239,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
 
     const cloudGroup = element('fieldset', 'layer-group', null);
     cloudGroup.append(element('legend', null, 'Near-live clouds'));
-    for (const layer of layers.filter((item) => item.transparent === true)) {
+    for (const layer of everyday().filter((item) => item.transparent === true)) {
       const row = choiceRow({ type: 'checkbox', name: 'layer-overlay', value: layer.id, title: layer.name, note: layer.description, warn: true });
       row.input.addEventListener('change', () => {
         setOverlay(layer.id, row.input.checked);
@@ -233,6 +248,28 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
       overlayInputs.set(layer.id, row.input);
       warnings.set(layer.id, row.warning);
       cloudGroup.append(row.label);
+    }
+
+    const viewGroup = element('fieldset', 'layer-group', null);
+    viewGroup.append(element('legend', null, 'What satellites measure'));
+    const noView = choiceRow({ type: 'radio', name: 'layer-view', value: '', title: 'None' });
+    noView.input.addEventListener('change', () => {
+      if (!noView.input.checked) return;
+      state.view = '';
+      commit();
+    });
+    viewInputs.set('', noView.input);
+    viewGroup.append(noView.label);
+    for (const layer of views()) {
+      const row = choiceRow({ type: 'radio', name: 'layer-view', value: layer.id, title: layer.name, note: layer.description, warn: true });
+      row.input.addEventListener('change', () => {
+        if (!row.input.checked) return;
+        state.view = layer.id;
+        commit();
+      });
+      viewInputs.set(layer.id, row.input);
+      warnings.set(layer.id, row.warning);
+      viewGroup.append(row.label);
     }
 
     const overlayGroup = element('fieldset', 'layer-group', null);
@@ -291,7 +328,9 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     ui.back = back;
     ui.controls = controls;
 
-    panel.replaceChildren(element('h2', 'eyebrow', 'Layers'), baseGroup, cloudGroup, overlayGroup, presets);
+    const groups = [baseGroup, cloudGroup];
+    if (views().length) groups.push(viewGroup);
+    panel.replaceChildren(element('h2', 'eyebrow', 'Layers'), ...groups, overlayGroup, presets);
   }
 
   async function start() {
@@ -323,7 +362,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     render();
     active = true;
     sync();
-    if (state.base || state.overlays.length || state.aurora) apply();
+    if (state.base || state.overlays.length || state.view || state.aurora) apply();
     else showCredit([]);
   }
 
@@ -336,8 +375,18 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
   }
 
   function selection() {
-    return { base: state.base, overlays: [...state.overlays], aurora: state.aurora };
+    return { base: state.base, overlays: [...state.overlays], view: state.view, aurora: state.aurora };
   }
 
-  return { start, setKp, selection };
+  // Shows one "what satellites measure" view, or none for ''. The Data tab and lessons call this.
+  // A transparent view goes over true colour when there is no base yet, so it has a backdrop.
+  function show(id) {
+    if (!active || (id !== '' && !isViewId(id))) return false;
+    state.view = id;
+    if (id && byId.get(id).transparent === true && !state.base) state.base = trueColor();
+    commit();
+    return true;
+  }
+
+  return { start, setKp, selection, show, views: () => views().map((layer) => ({ ...layer })), viewOn: () => state.view };
 }

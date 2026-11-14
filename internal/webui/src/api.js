@@ -56,6 +56,7 @@ export function createApi(fetchJSON = globalThis.fetch?.bind(globalThis)) {
     spaceEvents: () => get('/api/v1/space-events', {}, 'space-events'),
     catalogRecord: (id) => get('/api/v1/catalog-record', { norad_id: id }, 'catalog-record'),
     spaceTrack: (id) => get('/api/v1/space-track', { norad_id: id }, 'space-track'),
+    satelliteData: (id) => get('/api/v1/satellite-data', { norad_id: id }, 'satellite-data'),
     recentScenes: (id) => get('/api/v1/recent-scenes', { norad_id: id }, 'recent-scenes'),
     cloudCover: (observer) => get('/api/v1/cloud-cover', { lat: observer.lat, lon: observer.lon }, 'cloud-cover'),
     look: (id, observer, start, end) => get('/api/v1/look', { norad_id: id, start, end, samples: 64, ...observerParams(observer) }, 'look'),

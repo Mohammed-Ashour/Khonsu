@@ -294,6 +294,14 @@ test('selectionChanged clears the scene and fetches only for a dossier tab', asy
   await dossier.selectionChanged('radio');
   assert.equal(env.clears, 2);
   assert.deepEqual(calls, [{ source: 'transmitters', id: '25544' }]);
+  await dossier.selectionChanged([]);
+  assert.equal(calls.length, 1, 'no open section asks no provider');
+});
+
+test('selectionChanged reloads every open section', async () => {
+  const { dossier, calls } = harness();
+  await dossier.selectionChanged(['radio', 'sees', 'nope']);
+  assert.deepEqual(calls.map((call) => call.source).sort(), ['recentScenes', 'transmitters']);
 });
 
 test('radio shows no active transmitters', async () => {

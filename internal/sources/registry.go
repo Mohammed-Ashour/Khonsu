@@ -55,7 +55,10 @@ var all = []feed.Info{
 
 // Layers lists the images that can be draped on the globe, in display order.
 func Layers() []gibs.Layer {
-	return []gibs.Layer{gibs.TrueColor, goes.East, goes.West, himawari.Infrared}
+	return []gibs.Layer{
+		gibs.TrueColor, goes.East, goes.West, himawari.Infrared,
+		goes.EastVisible, goes.EastInfrared, gibs.FalseColor, gibs.NightLights, gibs.LandTemperature, gibs.SeaTemperature,
+	}
 }
 
 // FindLayer returns an imagery layer by ID.

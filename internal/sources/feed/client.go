@@ -66,6 +66,11 @@ func NewClient(cacheDir string) *Client {
 // user's account. That waits longestPause, while other Prepare errors wait failurePause.
 var ErrCredentialsRejected = errors.New("credentials rejected")
 
+// ErrNoData is wrapped by a Validate error when the provider answered properly but
+// has nothing for this request, such as a daily image that is not ready yet. It
+// does not count as a provider failure, so other requests are not paused.
+var ErrNoData = errors.New("no data for this request")
+
 // Request describes one provider response to fetch or reuse.
 type Request struct {
 	Source, Key, URL, Accept string
@@ -129,8 +134,10 @@ func (c *Client) Fetch(ctx context.Context, r Request) ([]byte, Meta, error) {
 		body, pause, err = c.download(ctx, r)
 		if err == nil {
 			if err = r.Validate(body); err != nil {
+				if !errors.Is(err, ErrNoData) {
+					pause = failurePause
+				}
 				err = fmt.Errorf("unexpected response: %w", err)
-				pause = failurePause
 			}
 		}
 		if err == nil {

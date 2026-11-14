@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Mohammed-Ashour/khonsu/internal/catalog"
+	"github.com/Mohammed-Ashour/khonsu/internal/knowledge"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/celestraksw"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/donki"
@@ -43,6 +44,7 @@ func registerDataRoutes(mux *http.ServeMux, client *sources.Hub) {
 	c := client
 	mux.HandleFunc("/api/v1/sources", d.catalog)
 	mux.HandleFunc("/api/v1/imagery", d.imagery)
+	mux.HandleFunc("/api/v1/satellite-data", satelliteData)
 	mux.Handle("/api/v1/space-weather", feedRoute(d, swpc.ID, dataTimeout, func(ctx context.Context, _ *http.Request) (swpc.Conditions, feed.Meta, error) {
 		return c.SWPC.Conditions(ctx)
 	}))
@@ -85,6 +87,28 @@ func (d dataAPI) catalog(w http.ResponseWriter, _ *http.Request) {
 		groups = d.client.Catalog()
 	}
 	writeJSON(w, map[string]any{"live_data": d.client != nil, "categories": groups, "imagery_layers": sources.Layers(), "imaging_satellites": earthsearch.ImagingIDs()})
+}
+
+// satelliteData says what a satellite measures, from Khonsu's own curated notes, so
+// it makes no provider request and works while serving a local file.
+func satelliteData(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("norad_id")
+	if err := catalog.ValidateNoradID(id); err != nil {
+		writeFailure(w, badRequest("%s", err.Error()))
+		return
+	}
+	base, err := knowledge.Load()
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
+	number, _ := strconv.Atoi(id)
+	profile, described := base.ForSatellite(strconv.Itoa(number))
+	if !described {
+		writeJSON(w, map[string]any{"described": false, "profile": nil})
+		return
+	}
+	writeJSON(w, map[string]any{"described": true, "profile": profile})
 }
 
 func coordinates(r *http.Request) (float64, float64, error) {

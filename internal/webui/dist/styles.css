@@ -255,3 +255,15 @@ ul { list-style: none; }
 .why-source::before { content: "↗ "; opacity: .7; }
 .why-source:hover, .why-source:focus-visible { text-decoration: underline; }
 .tab-panel .why-legend { margin-top: 8px; font-size: 11px; }
+.dossier-section { margin-top: 10px; border-top: 1px solid var(--line); }
+.dossier-section > summary { padding: 8px 0 6px; color: var(--soft); font-size: 13px; cursor: pointer; }
+.dossier-section > summary:hover, .dossier-section > summary:focus-visible { color: var(--accent); }
+.data-kinds-title { margin-top: 12px; }
+.data-instrument { margin: 10px 0 2px; font-size: 13px; font-weight: 600; }
+.data-kind { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(235, 209, 147, .14); }
+.data-kind > summary { color: var(--soft); font-size: 12px; cursor: pointer; }
+.data-kind .why-list { margin-top: 6px; }
+.data-kind .link-row { margin-top: 8px; }
+.data-view { max-width: 100%; text-align: left; white-space: normal; }
+.data-view[aria-pressed="true"] { color: var(--accent); }
+.tab-panel .data-chips li:first-child { background: rgba(170, 184, 222, .13); color: var(--soft); }

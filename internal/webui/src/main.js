@@ -8,6 +8,7 @@ import {
 import { sampleAt } from '../../../pkg/templates/viewer-state.js';
 import { renderSky } from './sky.js';
 import { createDossier } from './dossier.js';
+import { appendSources, createDataTab } from './datatab.js';
 import { createSkyBar } from './skybar.js';
 
 const LIST_LIMIT = 200;
@@ -57,13 +58,23 @@ let sourcesRequest = null;
 let catalog = null;
 let layersCatalog = null;
 let dossier = null;
+let dataTab = null;
+let layersPanel = null;
 let skyBar = null;
-// Bumped on every selection change, so only the newest decides the Sees tab.
+// Bumped on every selection change, so only the newest decides whether scenes are offered.
 let selectionToken = 0;
 
-// Tab order matches the markup. Scenes is hidden unless the selected satellite has scenes.
-const TABS = ['now', 'passes', 'orbit', 'identity', 'radio', 'sees'];
-const DOSSIER_TABS = ['identity', 'radio', 'sees'];
+// Tab order matches the markup.
+const TABS = ['now', 'orbit', 'data', 'passes'];
+// The collapsible dossier sections and the tab each one sits in. A provider hears about a
+// satellite only when its section is opened. Scene locations are offered only for imaging satellites.
+const SECTIONS = { identity: 'now', radio: 'now', sees: 'data' };
+
+function openSections() {
+  return Object.entries(SECTIONS)
+    .filter(([section, tab]) => tab === state.tab && byId(`section-${section}`).open && !byId(`section-${section}`).hidden)
+    .map(([section]) => section);
+}
 
 // Rerendering a list replaces its rows, so keyboard focus moves to the row with the
 // same data-focus key, or to the fallback if that row is gone.
@@ -191,17 +202,17 @@ function select(id) {
   if (changed) applySelection();
 }
 
-// Decides whether Sees is offered before the dossier opens a tab. If Sees is active and
-// the satellite has no scenes, the view moves to Now first, so no scene request is made.
+// Decides whether scene locations are offered before the dossier reloads its open sections.
+// For a satellite with no scenes the section is closed and hidden first, so no scene request is made.
 function applySelection() {
   const token = ++selectionToken;
+  if (state.tab === 'data') dataTab.render();
   dossier.hasSees().then((hasScenes) => {
     if (token !== selectionToken) return;
-    const seesTab = byId('tab-sees');
-    const focused = document.activeElement === seesTab;
-    seesTab.hidden = !hasScenes;
-    if (!hasScenes && state.tab === 'sees') showTab('now', focused);
-    dossier.selectionChanged(state.tab);
+    const scenes = byId('section-sees');
+    scenes.hidden = !hasScenes;
+    if (!hasScenes) scenes.open = false;
+    dossier.selectionChanged(openSections());
   });
 }
 
@@ -686,15 +697,7 @@ function renderWhy(explanation) {
       mark.setAttribute('aria-describedby', 'orbit-why-legend');
       row.append(' ', mark);
     }
-    for (const source of item.sources) {
-      const link = element('a', 'why-source', source.label);
-      link.href = source.url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.title = source.title;
-      link.setAttribute('aria-label', `Source: ${source.title} (${source.label}, opens in a new tab)`);
-      row.append(' ', link);
-    }
+    appendSources(element, row, item.sources);
     return row;
   }));
 }
@@ -1135,7 +1138,8 @@ function showTab(name, focus = false) {
   }
   if (name === 'passes') refreshPlan();
   if (name === 'orbit') refreshReport();
-  if (DOSSIER_TABS.includes(name)) dossier.open(name);
+  if (name === 'data') dataTab.render();
+  for (const section of openSections()) dossier.open(section);
 }
 
 function wireTabs() {
@@ -1143,7 +1147,6 @@ function wireTabs() {
     const button = byId(`tab-${name}`);
     button.addEventListener('click', () => showTab(name));
     button.addEventListener('keydown', (event) => {
-      // Hidden tabs are skipped, so the arrow keys never reach Sees for a satellite without scenes.
       const shown = TABS.filter((tab) => !byId(`tab-${tab}`).hidden);
       const position = shown.indexOf(name);
       if (event.key === 'ArrowRight') showTab(shown[(position + 1) % shown.length], true);
@@ -1185,7 +1188,7 @@ function wireControls() {
     renderInspector();
     renderStatus();
     // Scene times are the only dossier text that depends on the zone. This reuses the saved response.
-    if (state.tab === 'sees') dossier.open('sees');
+    if (openSections().includes('sees')) dossier.open('sees');
   });
   byId('group-select').addEventListener('change', (event) => {
     byId('filter-input').value = '';
@@ -1210,7 +1213,7 @@ function setFollow(value) {
   globe?.setFollowing(value);
 }
 
-// Sees rows call these. Both are safe without WebGL, when there is no globe.
+// Scene rows call these. Both are safe without WebGL, when there is no globe.
 function focusScene(point) {
   if (!globe) return;
   globe.showPoint(point.lat, point.lon);
@@ -1257,6 +1260,13 @@ async function start() {
     focusScene,
     clearScene,
   });
+  // Each section asks its provider only when the user opens it.
+  for (const section of Object.keys(SECTIONS)) {
+    byId(`section-${section}`).addEventListener('toggle', (event) => {
+      if (event.target.open) dossier.open(section);
+    });
+  }
+  dataTab = createDataTab({ api, element, panel: byId('data-measures'), selectedEntry, dataFailure, layers: () => layersPanel });
   try {
     globe = createGlobe(byId('scene'), {
       onPick(point) {
@@ -1290,7 +1300,11 @@ async function start() {
     globe,
     dataAge,
   });
-  layers.start();
+  layersPanel = layers;
+  // The Data tab's "show on the globe" buttons appear once the views are known.
+  layers.start().then(() => {
+    if (state.tab === 'data') dataTab.render();
+  });
   skyBar = createSkyBar({
     api,
     element,
