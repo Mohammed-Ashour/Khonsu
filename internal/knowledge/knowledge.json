@@ -682,12 +682,6 @@
    "name": "Passive microwave",
    "statements": [
     {
-     "text": "Microwave energy can pass through clouds, which many weather instruments make use of.",
-     "sources": [
-      "earthdata-spectrum"
-     ]
-    },
-    {
      "text": "SMAP measures the amount of water in the surface soil everywhere on Earth, every 2–3 days.",
      "sources": [
       "smap"
@@ -736,12 +730,6 @@
      "text": "Radar is an active instrument: it sends out pulses of energy and measures what is reflected back.",
      "sources": [
       "earthdata-active"
-     ]
-    },
-    {
-     "text": "Synthetic aperture radar makes high-resolution images night or day, regardless of the weather.",
-     "sources": [
-      "earthdata-sar"
      ]
     },
     {
@@ -2036,12 +2024,13 @@
        ]
       },
       {
-       "text": "Plants reflect near infrared very strongly, so the Congo rainforest and the Sahel's grasslands show bright green against the Sahara.",
+       "text": "Plants reflect near infrared very strongly, so vegetated land shows bright green in this view.",
        "sources": [
         "eo-false-color"
        ]
       }
-     ]
+     ],
+     "hint": "Look at Africa and compare the land south of the Sahara with the desert."
     },
     {
      "view": "false-color",
@@ -2501,7 +2490,7 @@
    "title": "Cleaner air during the 2020 lockdowns",
    "when": "Early 2020",
    "where": "China and Europe",
-   "summary": "Nitrogen dioxide fell as traffic and industry slowed, and satellites measured it.",
+   "summary": "Satellites measured nitrogen dioxide falling over China and Europe in early 2020.",
    "kinds": [
     "atmospheric_composition"
    ],
@@ -2637,7 +2626,7 @@
    "title": "Lake Mead shrinks",
    "when": "2000 and 2022",
    "where": "Nevada and Arizona, USA",
-   "summary": "Two July days, 22 years apart, show how far the largest reservoir in the US dropped.",
+   "summary": "Two July days, 22 years apart, seen from orbit.",
    "kinds": [
     "visible"
    ],
@@ -2818,7 +2807,7 @@
    "title": "Arctic sea ice at its summer low",
    "when": "September 2012 and 2025",
    "where": "The Arctic Ocean",
-   "summary": "Microwave radiometers see sea ice through cloud and polar night, and have watched it since 1979.",
+   "summary": "Microwave radiometers have measured Arctic sea ice since 1979.",
    "kinds": [
     "passive_microwave"
    ],

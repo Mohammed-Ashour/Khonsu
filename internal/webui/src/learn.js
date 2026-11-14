@@ -112,7 +112,7 @@ export function createLearnHub({ api, element, panel, layers, showSatellite, sta
   }
 
   function kindsChapter() {
-    const nodes = [note('Satellites measure different kinds of light and radio waves. Each kind shows something the others miss. Open one to see what it is, what it is used for, and which satellites collect it.', 'learn-intro')];
+    const nodes = [note('Satellites measure different kinds of light and radio waves. Open one to see what it is, what it is used for today, and which satellites collect it.', 'learn-intro')];
     const rows = spectrumRows(data.instruments);
     if (rows.length && Array.isArray(data.regions) && data.regions.length) {
       nodes.push(element('h3', 'why-title', 'Where each instrument looks'));
@@ -132,7 +132,7 @@ export function createLearnHub({ api, element, panel, layers, showSatellite, sta
 
   function sharpChapter() {
     const points = sharpPoints(data.instruments);
-    const nodes = [note('No instrument sees everything sharply and often. A sharper view needs a narrower swath, which means more time between looks.', 'learn-intro')];
+    const nodes = [note('Each dot is an instrument: the size of its smallest pixel against the time between looks at the same place.', 'learn-intro')];
     nodes.push(sourcedList(safeItems(data.sharp_statements)));
     if (points.length) {
       nodes.push(chart(scatterChart({ title: 'Pixel size against time between looks', xLabel: 'Smallest pixel (m)', yLabel: 'Days between looks', points })));

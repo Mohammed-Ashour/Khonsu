@@ -24,7 +24,7 @@ Satellites cross your sky every night, but most trackers only give you numbers. 
 
 - **A moment to look up.** It tells you when a satellite will pass over you, whether you'll be able to see it, and whether clouds will be in the way.
 - **An understanding of what you see.** It explains in plain words why each orbit is the way it is and what each satellite measures, and links every sentence to a source.
-- **A view of the planet they watch.** See today's clouds, yesterday's Earth and the aurora estimate, and find where Sentinel-2 and Landsat recently captured scenes.
+- **A view of the planet they watch.** See today's clouds and yesterday's Earth, step through real events such as Puerto Rico going dark after Hurricane Maria, and find where Sentinel-2 and Landsat recently captured scenes.
 - **Tools you own.** Khonsu is one program that runs on your computer, with a web app, a terminal app and a command line. It needs no account.
 
 Khonsu was the ancient Egyptian god of the Moon. His name means "traveller", which may refer to the Moon's nightly journey across the sky ([Wikipedia](https://en.wikipedia.org/wiki/Khonsu)). This project follows newer travellers along the same path. It was previously called TLEGO.
@@ -111,15 +111,41 @@ Open **Data** to see what a satellite measures: its instruments, the kinds of da
 
 ### Learn by looking
 
-Press **Learn** for short lessons on the globe:
+Press **Learn** to open four chapters next to the globe.
 
-- **Light or heat?** compares GOES East's visible and infrared views.
-- **Colours you can't see** uses NOAA-20's false colour to find plants and ice.
-- **The orbit decides the data** explains why GOES watches one side of Earth every 10 minutes while Terra maps all of it every day or two.
+- **Kinds of data**: visible light, near and shortwave infrared, thermal infrared, night lights, microwaves, radar, altimetry, gases in the air and more. Each kind shows:
+  - whether it works at night and through cloud;
+  - what it is used for today, such as Copernicus flood maps from Sentinel-1 radar or NASA's FIRMS fire alerts;
+  - which satellites collect it, so you can pick one and follow it.
 
-Each step sets up the satellite, picture and camera for you. It asks you to predict what you'll see, then explains the answer with a source.
+  A spectrum chart places each instrument's bands on one wavelength scale.
+- **Sharp or often**: a chart of pixel size against time between looks for each instrument, from GOES every 10 minutes at 500 m to Sentinel-2 every 5 days at 10 m.
+- **Stories**: seven real events, each with the satellite pictures from those days placed over the right part of the globe:
+  - Puerto Rico's lights after Hurricane Maria;
+  - the 2025 Los Angeles fires;
+  - Hurricane Helene's flooding mapped by radar through cloud;
+  - nitrogen dioxide during the 2020 lockdowns;
+  - Lake Mead in 2000 and 2022;
+  - three decades of sea level;
+  - the Arctic sea ice minimum.
 
-![The "Colours you can't see" lesson: Antarctica's ice shows bright blue in NOAA-20's shortwave infrared false colour, and the lesson confirms the prediction with a NASA source](assets/web-lesson.jpg)
+  Each story asks you to predict what comes next, then lets you switch between before and after.
+- **Lessons**: three short guided tours, such as comparing GOES East's visible and infrared views.
+
+<table>
+  <tr>
+    <td width="50%"><img src="assets/story-puerto-rico.gif" alt="Puerto Rico at night seen by Suomi NPP: lit in July 2017, mostly dark on 27 September 2017 after Hurricane Maria"></td>
+    <td width="50%"><img src="assets/story-lake-mead.gif" alt="Lake Mead seen by Terra on 6 July 2000 and 3 July 2022, with the lake much smaller in 2022"></td>
+  </tr>
+  <tr>
+    <td>Puerto Rico before and after Hurricane Maria, from Suomi NPP's night-time band. Maria knocked down 80 percent of the island's utility poles (<a href="https://www.nhc.noaa.gov/data/tcr/AL152017_Maria.pdf">NOAA NHC</a>).</td>
+    <td>Lake Mead on 6 July 2000 and 3 July 2022, the dates NASA compared. In July 2022 it was 27 percent full (<a href="https://science.nasa.gov/earth/earth-observatory/lake-mead-keeps-dropping-150111">NASA Earth Observatory</a>).</td>
+  </tr>
+</table>
+
+![The Learn panel showing imaging radar: it works at night and through cloud, is used for Copernicus flood maps and European ground motion maps, and is collected by Sentinel-1; beside it a story card charts Arctic sea ice each September since 1979](assets/web-learn.jpg)
+
+The charts use records Khonsu downloads when you open them: [NSIDC's Sea Ice Index](https://nsidc.org/data/g02135/versions/4) and [NOAA's satellite sea level record](https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/). Every sentence in Learn links to the page it comes from, and [What satellites measure](docs/what-satellites-measure.md) lists them all.
 
 On **Overview**, *Who runs it* combines Wikidata, GCAT and, with your own account, Space-Track. *Radio* lists what the satellite transmits and on which frequencies. For Sentinel-2 and Landsat, *Scene locations* lists the latest scenes they captured and turns the globe to the centre of each one.
 
@@ -165,7 +191,8 @@ The calendar is an [extension](docs/extensions.md), a small program any language
 | Orbits | [CelesTrak](https://celestrak.org/), and [Space-Track](https://www.space-track.org/) with your own account |
 | Missions | [Wikidata](https://www.wikidata.org/) and [GCAT](https://planet4589.org/space/gcat/) by Jonathan McDowell |
 | Space weather | [NOAA SWPC](https://www.swpc.noaa.gov/), [CelesTrak](https://celestrak.org/SpaceData/) and [NASA DONKI](https://ccmc.gsfc.nasa.gov/tools/DONKI/) |
-| Earth imagery | [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/) with GOES and Himawari, and [Element 84 Earth Search](https://element84.com/earth-search/) |
+| Earth imagery | [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/) with GOES, Himawari, MODIS, VIIRS, Landsat, OPERA and OMI layers, and [Element 84 Earth Search](https://element84.com/earth-search/) |
+| Long records | [NSIDC Sea Ice Index](https://nsidc.org/data/g02135/versions/4) and [NOAA Laboratory for Satellite Altimetry](https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/) |
 | Sky, radio and launches | [Open-Meteo](https://open-meteo.com/), [SatNOGS DB](https://db.satnogs.org/) and [The Space Devs](https://thespacedevs.com/) |
 | Orbit explanations and what satellites measure | ESA, NASA, NOAA, Copernicus, JMA, USGS, CelesTrak and others, linked from each sentence |
 

@@ -62,6 +62,18 @@ The notes also hold short lessons, in the same file. They follow the same rules:
 | Colours you can't see | NOAA 20 | True colour against shortwave infrared false colour: plants, burns, ice |
 | The orbit decides the data | GOES 19, Terra | A geostationary view every 10 minutes against polar strips every day or two |
 
+Stories are lessons about one real event, with `when` and `where`. Their pictures are story layers for a past day, usually over a small area:
+
+| Story | Satellites | Pictures and charts |
+|---|---|---|
+| The night Puerto Rico went dark | Suomi NPP | VIIRS Day/Night Band, 24 July and 27 September 2017 |
+| Los Angeles fires, January 2025 | NOAA 20 | Terra true colour and bands 7-2-1, VIIRS fire detections |
+| Mapping a flood through the clouds | Sentinel-1A | OPERA surface water from Sentinel-1, 14 and 26 September 2024 |
+| Cleaner air during the 2020 lockdowns | Sentinel-5P, Aura | OMI nitrogen dioxide over China; ESA's city figures as a bar chart |
+| Lake Mead shrinks | Landsat 8 | Terra true colour, 6 July 2000 and 3 July 2022; Landsat (HLS) 2022 |
+| Three decades of rising seas | Sentinel-6A | NOAA's global mean sea level record |
+| Arctic sea ice at its summer low | GCOM-W1 | AMSR2 sea ice, 2012 and 2025; NSIDC's September extent since 1979 |
+
 ## Globe views
 
 | View | Kind | From |

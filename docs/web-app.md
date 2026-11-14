@@ -27,7 +27,7 @@ khonsu web --file satellites.tle            # Local elements, no provider reques
 - **Data:** what the satellite measures: its instruments, the kinds of data they collect, such as visible light, thermal infrared or radar, and what that data is used for. Every sentence links to its source. Kinds that have a view offer *Show on the globe*. The descriptions are written by hand and built into Khonsu, so opening the tab sends nothing to any provider, and satellites without one say so. [What satellites measure](what-satellites-measure.md) lists them. For Sentinel-2 and Landsat, *Scene locations* lists recent scenes from Earth Search. Choose one to mark its centre on the globe. It shows where the scene was taken, not the picture itself.
 - **Chips:** the top bar shows the latest Kp index and the time to the next launch. Select a chip to see the space weather details or the next launches.
 - **Time:** *Live* follows the clock. The slider and playback speeds cover about 25 hours, starting an hour ago. Times can be local or UTC.
-- **Learn:** short guided lessons on the globe. Each step picks a satellite, puts a picture of its data on the globe and turns the camera, then explains what you see, with a source for every fact. Some steps ask you to predict what you'll see before showing the answer, and some let you switch between two views. Start a lesson from *Learn* in the top bar, or from a kind of data on the Data tab. The address includes the lesson and step, so you can share it. Lessons need live data and WebGL for their pictures.
+- **Learn:** opens in place of the satellite list, with four chapters. *Kinds of data* says, for each kind, whether it works at night and through cloud, what it is used for today, and which satellites collect it, with a spectrum chart of instrument bands. *Sharp or often* charts pixel size against time between looks. *Stories* are seven real events: each step picks the satellite, places a picture from that day over the area, and flies the camera there. A see-through picture gets a same-day true-colour picture under it, and two dates can be switched. Some steps draw a long record, such as NSIDC's Arctic sea ice or NOAA's sea level, which Khonsu downloads when you open the step. *Lessons* are three guided tours. Steps may ask you to predict before showing the answer. The address holds the lesson or story and its step, so a link reopens the same step. Pictures need live data and WebGL.
 - **Panels:** drag the edge of the satellite list or the details panel to resize it, or focus the edge and use the arrow keys (Shift for bigger steps). Double-click resets it. Widths are saved in this browser, and the globe always keeps at least 360 px.
 - **Share:** the URL holds the tracked satellites and the selection, so you can bookmark or send it.
 
@@ -64,7 +64,10 @@ The server also exposes these JSON routes. The `/api/v1` routes other than searc
 | `/api/v1/space-weather` | | Feed: NOAA SWPC Kp, F10.7, storm scales and recent alerts |
 | `/api/v1/launches` | | Feed: upcoming launches from Launch Library 2 |
 | `/api/v1/satellite-data` | `norad_id` | Plain JSON: `described`, and a `profile` with the satellite's instruments, the kinds of data they collect, and sourced statements. Made from Khonsu's own notes, with no provider request |
-| `/api/v1/lessons` | | Plain JSON: `lessons`, each with its steps, sourced sentences and questions |
+| `/api/v1/lessons` | | Plain JSON: `lessons` and stories, each with its steps, sourced sentences, pictures, charts and questions |
+| `/api/v1/learn` | | Plain JSON: `kinds` (with conditions, uses and the satellites that collect them), `instruments` (with bands, pixel size and revisit), `lessons`, `stories`, `regions` and their sources |
+| `/api/v1/sea-ice` | `hemisphere` (north or south), `month` (1–12) | Feed: NSIDC Sea Ice Index extent for that month each year since 1979 |
+| `/api/v1/sea-level` | | Feed: NOAA LSA global mean sea level from satellite altimeters, with NOAA's stated trend |
 | `/api/v1/satellite-details` | `norad_id` | Feed: Wikidata items for the catalog number |
 | `/api/v1/catalog-record` | `norad_id` | Feed: GCAT entry, or null |
 | `/api/v1/space-track` | `norad_id` | Feed: Space-Track record, with an account |
@@ -73,7 +76,7 @@ The server also exposes these JSON routes. The `/api/v1` routes other than searc
 | `/api/v1/space-weather-history` | | Feed: a year of daily Kp and F10.7 from CelesTrak |
 | `/api/v1/space-events` | | Feed: recent NASA DONKI events (research grade) |
 | `/api/v1/cloud-cover` | `lat`, `lon` | Feed: 48 hours of Open-Meteo cloud cover |
-| `/api/v1/imagery` | `layer` | Worldwide image from NASA GIBS. Layers are listed by `/api/v1/sources` |
+| `/api/v1/imagery` | `layer`, optional `date` (a past day, for daily and story layers) and `bbox` (minLat,minLon,maxLat,maxLon, story layers only) | Image from NASA GIBS: worldwide, or a sharper picture of one area. Layers, including story layers, are listed by `/api/v1/sources`; a past day's picture is kept for 30 days |
 | `/api/satellite-groups`, `/api/satellites?group=` | | Plain JSON lists |
 
 Feed routes return `source` (with its credit), `fetched_at`, `stale`, `warning` and `data`. Khonsu caches each response under `sources/` in the cache directory, makes one request at a time to each provider and pauses a provider after a failure, showing saved data until it recovers.
