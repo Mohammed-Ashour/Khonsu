@@ -27,6 +27,7 @@ khonsu web --file satellites.tle            # Local elements, no provider reques
 - **Data:** what the satellite measures: its instruments, the kinds of data they collect, such as visible light, thermal infrared or radar, and what that data is used for. Every sentence links to its source. Kinds that have a view offer *Show on the globe*. The descriptions are written by hand and built into Khonsu, so opening the tab sends nothing to any provider, and satellites without one say so. [What satellites measure](what-satellites-measure.md) lists them. For Sentinel-2 and Landsat, *Scene locations* lists recent scenes from Earth Search. Choose one to mark its centre on the globe. It shows where the scene was taken, not the picture itself.
 - **Chips:** the top bar shows the latest Kp index and the time to the next launch. Select a chip to see the space weather details or the next launches.
 - **Time:** *Live* follows the clock. The slider and playback speeds cover about 25 hours, starting an hour ago. Times can be local or UTC.
+- **Learn:** short guided lessons on the globe. Each step picks a satellite, puts a picture of its data on the globe and turns the camera, then explains what you see, with a source for every fact. Some steps ask you to predict what you'll see before showing the answer, and some let you switch between two views. Start a lesson from *Learn* in the top bar, or from a kind of data on the Data tab. The address includes the lesson and step, so you can share it. Lessons need live data and WebGL for their pictures.
 - **Panels:** drag the edge of the satellite list or the details panel to resize it, or focus the edge and use the arrow keys (Shift for bigger steps). Double-click resets it. Widths are saved in this browser, and the globe always keeps at least 360 px.
 - **Share:** the URL holds the tracked satellites and the selection, so you can bookmark or send it.
 
@@ -63,6 +64,7 @@ The server also exposes these JSON routes. The `/api/v1` routes other than searc
 | `/api/v1/space-weather` | | Feed: NOAA SWPC Kp, F10.7, storm scales and recent alerts |
 | `/api/v1/launches` | | Feed: upcoming launches from Launch Library 2 |
 | `/api/v1/satellite-data` | `norad_id` | Plain JSON: `described`, and a `profile` with the satellite's instruments, the kinds of data they collect, and sourced statements. Made from Khonsu's own notes, with no provider request |
+| `/api/v1/lessons` | | Plain JSON: `lessons`, each with its steps, sourced sentences and questions |
 | `/api/v1/satellite-details` | `norad_id` | Feed: Wikidata items for the catalog number |
 | `/api/v1/catalog-record` | `norad_id` | Feed: GCAT entry, or null |
 | `/api/v1/space-track` | `norad_id` | Feed: Space-Track record, with an account |

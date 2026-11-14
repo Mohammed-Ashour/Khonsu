@@ -52,13 +52,14 @@ const SENTINEL = {
     instruments: [{ name: 'MultiSpectral Instrument (MSI)', kinds: ['visible', 'shortwave_infrared'], statements: [{ text: 'Samples 13 bands.', sources: [{ label: 'Copernicus', title: 'S2', url: 'https://sentiwiki.copernicus.eu/web/s2-mission' }] }] }],
     kinds: [
       { id: 'visible', name: 'Visible light', statements: [{ text: 'Eyes see it.', sources: [] }], layers: ['true-color'] },
-      { id: 'shortwave_infrared', name: 'Shortwave infrared', statements: [{ text: 'Burns show.', sources: [] }], layers: ['false-color'] },
+      { id: 'shortwave_infrared', name: 'Shortwave infrared', statements: [{ text: 'Burns show.', sources: [] }], layers: ['false-color'], lessons: [{ id: 'colours-you-cannot-see', title: "Colours you can't see" }] },
     ],
   },
 };
 
 function setup({ answers = {}, views = [{ id: 'false-color', name: 'False colour' }], selected = { id: '40697' } } = {}) {
   const calls = [];
+  const lessons = [];
   const shown = [];
   let viewOn = '';
   const layersApi = {
@@ -85,8 +86,9 @@ function setup({ answers = {}, views = [{ id: 'false-color', name: 'False colour
     selectedEntry: () => state.selected,
     dataFailure: (error) => element('p', 'note is-error', error.message),
     layers: () => layersApi,
+    startLesson: (id) => lessons.push(id),
   });
-  return { tab, panel, calls, shown, state };
+  return { tab, panel, calls, shown, state, lessons };
 }
 
 test('a described satellite lists instruments, kinds and a globe view, and asks once', async () => {
@@ -132,4 +134,12 @@ test('no selection, failures and late answers', async () => {
   await pending;
   await flush();
   assert.doesNotMatch(textOf(late.panel), /MultiSpectral/, 'the older selection does not repaint');
+});
+
+test('a kind with a lesson offers to start it', async () => {
+  const { tab, panel, lessons } = setup({ answers: { 40697: SENTINEL } });
+  await tab.render();
+  const button = find(panel, (node) => node.tagName === 'button' && node.textContent === "Lesson: Colours you can't see");
+  button.click();
+  assert.deepEqual(lessons, ['colours-you-cannot-see']);
 });

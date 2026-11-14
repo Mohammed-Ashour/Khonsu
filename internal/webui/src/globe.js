@@ -284,6 +284,13 @@ export function createGlobe(container, { onPick, onSelect }) {
     frameDirection(pointMarker.getWorldPosition(new Vector3()));
   }
 
+  // Turns to face a point on Earth at the current time, without marking it.
+  function face(lat, lon) {
+    setFollowing(false);
+    earth.updateMatrixWorld(true);
+    frameDirection(surfacePoint(lat, lon, 1).applyMatrix4(earth.matrixWorld));
+  }
+
   function clearPoint() {
     pointMarker.visible = false;
   }
@@ -463,6 +470,7 @@ export function createGlobe(container, { onPick, onSelect }) {
     selectedScreenPosition,
     home,
     showPoint,
+    face,
     clearPoint,
     select(id) {
       selected = id;

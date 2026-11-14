@@ -10,6 +10,7 @@ import { renderSky } from './sky.js';
 import { createDossier } from './dossier.js';
 import { appendSources, createDataTab } from './datatab.js';
 import { createResizers } from './resize.js';
+import { createLessonPlayer, lessonFromUrl, withLesson } from './lesson.js';
 import { createSkyBar } from './skybar.js';
 
 const LIST_LIMIT = 200;
@@ -60,6 +61,9 @@ let catalog = null;
 let layersCatalog = null;
 let dossier = null;
 let dataTab = null;
+let lessonPlayer = null;
+// Read before the first syncUrl, which rewrites the address.
+const initialLesson = lessonFromUrl(location.search);
 let layersPanel = null;
 let skyBar = null;
 // Bumped on every selection change, so only the newest decides whether scenes are offered.
@@ -104,7 +108,7 @@ function selectedEntry() {
 }
 
 function syncUrl() {
-  history.replaceState(null, '', buildUrlState(trackedIds(), state.selected) || location.pathname);
+  history.replaceState(null, '', withLesson(buildUrlState(trackedIds(), state.selected) || location.pathname, lessonPlayer?.current()));
 }
 
 function dayAndClock(time) {
@@ -152,7 +156,7 @@ async function loadTrack(entry) {
   }
 }
 
-function addSatellite(id, name, { selectIt = true } = {}) {
+function addSatellite(id, name, { selectIt = true, frame = true } = {}) {
   const key = canonicalId(id);
   if (state.tracked.has(key)) {
     if (selectIt) select(key);
@@ -162,7 +166,7 @@ function addSatellite(id, name, { selectIt = true } = {}) {
     setCatalogStatus(`You can track up to ${MAX_TRACKED} satellites. Remove one to add another.`, 'is-warning');
     return;
   }
-  const entry = { id: key, name: name || `NORAD ${key}`, color: nextColor([...state.tracked.values()].map((item) => item.color)), track: null, error: null, loading: true, framePending: true };
+  const entry = { id: key, name: name || `NORAD ${key}`, color: nextColor([...state.tracked.values()].map((item) => item.color)), track: null, error: null, loading: true, framePending: frame };
   state.tracked.set(key, entry);
   if (selectIt) select(key);
   loadTrack(entry);
@@ -1061,6 +1065,26 @@ function wireLayersPanel() {
   });
 }
 
+// Lessons pick a satellite and turn the camera themselves, so the new satellite is not framed.
+function showSatellite(id) {
+  addSatellite(id, undefined, { frame: false });
+}
+
+function faceGlobe(lat, lon) {
+  if (!globe) return;
+  globe.face(lat, lon);
+  setFollow(false);
+}
+
+function wireLearn() {
+  const dialog = byId('learn-dialog');
+  byId('learn-open').addEventListener('click', () => {
+    dialog.showModal();
+    lessonPlayer.renderList(() => dialog.close());
+  });
+  byId('learn-close').addEventListener('click', () => dialog.close());
+}
+
 function wireDataDialog() {
   const dialog = byId('data-dialog');
   byId('data-open').addEventListener('click', openDataDialog);
@@ -1269,7 +1293,20 @@ async function start() {
   }
   const resizers = createResizers({ root: document.querySelector('.app'), handles: { catalog: byId('resize-catalog'), inspector: byId('resize-inspector') }, storage });
   window.addEventListener('resize', () => resizers.fit());
-  dataTab = createDataTab({ api, element, panel: byId('data-measures'), selectedEntry, dataFailure, layers: () => layersPanel });
+  lessonPlayer = createLessonPlayer({
+    api,
+    element,
+    card: byId('lesson-card'),
+    list: byId('learn-list'),
+    layers: () => layersPanel,
+    showSatellite,
+    face: faceGlobe,
+    onChange() {
+      byId('headline').hidden = Boolean(lessonPlayer.current());
+      syncUrl();
+    },
+  });
+  dataTab = createDataTab({ api, element, panel: byId('data-measures'), selectedEntry, dataFailure, layers: () => layersPanel, startLesson: (id) => lessonPlayer.start(id) });
   try {
     globe = createGlobe(byId('scene'), {
       onPick(point) {
@@ -1307,6 +1344,8 @@ async function start() {
   // The Data tab's "show on the globe" buttons appear once the views are known.
   layers.start().then(() => {
     if (state.tab === 'data') dataTab.render();
+    // A shared lesson link starts once the views are known, so its pictures can show.
+    if (initialLesson) lessonPlayer.start(initialLesson.id, initialLesson.step);
   });
   skyBar = createSkyBar({
     api,
@@ -1324,6 +1363,7 @@ async function start() {
   wireControls();
   wireObserver();
   wireDataDialog();
+  wireLearn();
   wireLayersPanel();
   renderObserverLabel();
   renderSliderLabels();

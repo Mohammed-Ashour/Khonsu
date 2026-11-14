@@ -1,6 +1,6 @@
 # Design: what satellites measure, and lessons that show it
 
-Status: accepted 14 November 2026. Decisions: merge into four tabs, curated knowledge, live imagery with an earlier-day fallback, review fixes first (PR #69). Phase 2 (knowledge, Data tab, globe views) is in progress on `feat/data-lessons`.
+Status: accepted 14 November 2026. Decisions: merge into four tabs, curated knowledge, live imagery with an earlier-day fallback, review fixes first (PR #69). Phase 2 (knowledge, Data tab, globe views) is PR #70. Phase 3 (lesson player, Learn, lessons 1, 2 and 5) is on `feat/lessons`.
 
 ## Why
 

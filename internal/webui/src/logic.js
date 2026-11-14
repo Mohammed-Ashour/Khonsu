@@ -427,6 +427,7 @@ export function measuresView(response, views = []) {
       name: kind.name,
       items: sourcedItems(kind.statements),
       views: (kind.layers ?? []).filter((id) => viewById.has(id)).map((id) => ({ id, name: viewById.get(id).name })),
+      lessons: (Array.isArray(kind.lessons) ? kind.lessons : []).filter((lesson) => lesson?.id && lesson?.title).map((lesson) => ({ id: String(lesson.id), title: String(lesson.title) })),
     })),
   };
 }

@@ -21,7 +21,7 @@ export function appendSources(element, row, sources) {
   }
 }
 
-export function createDataTab({ api, element, panel, selectedEntry, dataFailure, layers }) {
+export function createDataTab({ api, element, panel, selectedEntry, dataFailure, layers, startLesson = null }) {
   // The answer for each satellite is kept for the session; it never changes while Khonsu runs.
   const cache = new Map();
   // Kind sections the user opened stay open when the tab repaints.
@@ -76,9 +76,17 @@ export function createDataTab({ api, element, panel, selectedEntry, dataFailure,
         else openKinds.delete(kind.id);
       });
       box.append(element('summary', '', kind.name), sourcedList(kind.items));
-      if (kind.views.length) {
+      if (kind.views.length || (startLesson && kind.lessons.length)) {
         const row = element('div', 'link-row');
         row.append(...kind.views.map((view) => viewButton(view, kind.id)));
+        if (startLesson) {
+          row.append(...kind.lessons.map((lesson) => {
+            const button = element('button', 'text-button data-view data-lesson', `Lesson: ${lesson.title}`);
+            button.type = 'button';
+            button.addEventListener('click', () => startLesson(lesson.id));
+            return button;
+          }));
+        }
         box.append(row);
       }
       nodes.push(box);

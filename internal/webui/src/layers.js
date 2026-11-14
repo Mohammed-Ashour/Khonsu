@@ -388,5 +388,13 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     return true;
   }
 
-  return { start, setKp, selection, show, views: () => views().map((layer) => ({ ...layer })), viewOn: () => state.view };
+  // Sets the base picture, or '' for the plain globe. Lessons use it for true colour.
+  function setBase(id) {
+    if (!active || (id !== '' && !isBaseId(id))) return false;
+    state.base = id;
+    commit();
+    return true;
+  }
+
+  return { start, setKp, selection, show, setBase, views: () => views().map((layer) => ({ ...layer })), viewOn: () => state.view };
 }
