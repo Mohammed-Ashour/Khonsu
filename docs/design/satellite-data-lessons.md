@@ -1,6 +1,6 @@
 # Design: what satellites measure, and lessons that show it
 
-Status: accepted 14 November 2026. Decisions: merge into four tabs, curated knowledge, live imagery with an earlier-day fallback, review fixes first (PR #69). Phase 2 (knowledge, Data tab, globe views) is PR #70. Phase 3 (lesson player, Learn, lessons 1, 2 and 5) is on `feat/lessons`.
+Historical design, accepted 14 November 2026. This records the original proposal and research checklist, not current implementation guarantees. The current Learn hub includes three lessons and seven stories. See [the web app guide](../web-app.md), [the current source and story notes](../what-satellites-measure.md) and [AgDR-0001](../agdr/AgDR-0001-reproducible-sourced-lessons.md) for the implemented scene, date, palette and scientific-comparison rules. The original phases and open questions below are retained as design history.
 
 ## Why
 

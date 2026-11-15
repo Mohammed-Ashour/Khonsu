@@ -24,7 +24,7 @@ Satellites cross your sky every night, but most trackers only give you numbers. 
 
 - **A moment to look up.** It tells you when a satellite will pass over you, whether you'll be able to see it, and whether clouds will be in the way.
 - **An understanding of what you see.** It explains in plain words why each orbit is the way it is and what each satellite measures, and links every sentence to a source.
-- **A view of the planet they watch.** See today's clouds and yesterday's Earth, step through real events such as Puerto Rico going dark after Hurricane Maria, and find where Sentinel-2 and Landsat recently captured scenes.
+- **A view of the planet they watch.** See recent clouds and daily Earth imagery, explore published findings about events such as Hurricane Maria, and find where Sentinel-2 and Landsat recently captured scenes.
 - **Tools you own.** Khonsu is one program that runs on your computer, with a web app, a terminal app and a command line. It needs no account.
 
 Khonsu was the ancient Egyptian god of the Moon. His name means "traveller", which may refer to the Moon's nightly journey across the sky ([Wikipedia](https://en.wikipedia.org/wiki/Khonsu)). This project follows newer travellers along the same path. It was previously called TLEGO.
@@ -118,9 +118,9 @@ Press **Learn** to open four chapters next to the globe.
   - what it is used for today, such as Copernicus flood maps from Sentinel-1 radar or NASA's FIRMS fire alerts;
   - which satellites collect it, so you can pick one and follow it.
 
-  A spectrum chart places each instrument's bands on one wavelength scale.
-- **Sharp or often**: a chart of pixel size against time between looks for each instrument, from GOES every 10 minutes at 500 m to Sentinel-2 every 5 days at 10 m.
-- **Stories**: seven real events, each with the satellite pictures from those days placed over the right part of the globe:
+  Two spectrum panels show selected instrument bands and centre wavelengths for light and radio waves.
+- **Sharp or often**: compare spatial resolution and observation intervals. The specifications explain each band's resolution, operating mode and satellite configuration.
+- **Stories**: seven events explained with dated pictures, published findings and records:
   - Puerto Rico's lights after Hurricane Maria;
   - the 2025 Los Angeles fires;
   - Hurricane Helene's flooding mapped by radar through cloud;
@@ -129,29 +129,29 @@ Press **Learn** to open four chapters next to the globe.
   - three decades of sea level;
   - the Arctic sea ice minimum.
 
-  Each story asks you to predict what comes next, then lets you switch between before and after.
+  Steps ask you to make a prediction, compare dated views or read a record. Illustrations are distinguished from the processed evidence in the cited studies. In particular, the Puerto Rico night images cannot establish changes in electric lighting.
 - **Lessons**: three short guided tours, such as comparing GOES East's visible and infrared views.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/story-puerto-rico.gif" alt="Puerto Rico at night seen by Suomi NPP: lit in July 2017, mostly dark on 27 September 2017 after Hurricane Maria"></td>
+    <td width="50%"><img src="assets/story-puerto-rico.gif" alt="Qualitative Suomi NPP ENCC illustrations for July and September 2017; their brightness cannot be compared to infer power outages"></td>
     <td width="50%"><img src="assets/story-lake-mead.gif" alt="Lake Mead seen by Terra on 6 July 2000 and 3 July 2022, with the lake much smaller in 2022"></td>
   </tr>
   <tr>
-    <td>Puerto Rico before and after Hurricane Maria, from Suomi NPP's night-time band. Maria knocked down 80 percent of the island's utility poles (<a href="https://www.nhc.noaa.gov/data/tcr/AL152017_Maria.pdf">NOAA NHC</a>).</td>
+    <td>Puerto Rico's ENCC night images are qualitative illustrations, not outage measurements. <a href="https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/snpp/VIIRS_SNPP_DayNightBand_ENCC.md">NASA warns that brightness is not comparable across nights.</a> NOAA separately reported that Maria knocked down 80 percent of utility poles (<a href="https://www.nhc.noaa.gov/data/tcr/AL152017_Maria.pdf">NOAA NHC</a>).</td>
     <td>Lake Mead on 6 July 2000 and 3 July 2022, the dates NASA compared. In July 2022 it was 27 percent full (<a href="https://science.nasa.gov/earth/earth-observatory/lake-mead-keeps-dropping-150111">NASA Earth Observatory</a>).</td>
   </tr>
 </table>
 
 ![The Learn panel showing imaging radar: it works at night and through cloud, is used for Copernicus flood maps and European ground motion maps, and is collected by Sentinel-1; beside it a story card charts Arctic sea ice each September since 1979](assets/web-learn.jpg)
 
-The charts use records Khonsu downloads when you open them: [NSIDC's Sea Ice Index](https://nsidc.org/data/g02135/versions/4) and [NOAA's satellite sea level record](https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/). Every sentence in Learn links to the page it comes from, and [What satellites measure](docs/what-satellites-measure.md) lists them all.
+The charts use records Khonsu downloads when you open them: [NSIDC's Sea Ice Index](https://nsidc.org/data/g02135/versions/4) and [NOAA's satellite sea level record](https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/). Scientific claims link to their sources, and [What satellites measure](docs/what-satellites-measure.md) lists them all.
 
 On **Overview**, *Who runs it* combines Wikidata, GCAT and, with your own account, Space-Track. *Radio* lists what the satellite transmits and on which frequencies. For Sentinel-2 and Landsat, *Scene locations* lists the latest scenes they captured and turns the globe to the centre of each one.
 
 ### Watch the planet and the sky above it
 
-Press **Layers** to drape yesterday's true-colour Earth or near-live clouds from GOES and Himawari over the globe. You can add an aurora estimate drawn from NOAA's Kp index. The **Kp** and **Launch** chips in the top bar show today's space weather and the next launch. Scrub the timeline to look ahead, then press **Live** to come back.
+Press **Layers** for a recent daily true-colour mosaic or recent clouds from GOES and Himawari. Picture dates, download ages and expandable provider scales appear beside the globe. You can add an aurora estimate drawn from NOAA's Kp index. The **Kp** and **Launch** chips in the top bar show today's space weather and the next launch. Scrub the timeline to look ahead, then press **Live** to come back.
 
 ![The ISS over a globe with near-live clouds and an aurora estimate, and its upcoming passes with cloud forecasts](assets/web-app.jpg)
 

@@ -98,7 +98,7 @@ THE SOFTWARE.
 
 ## github.com/Mohammed-Ashour/go-satellite-v2 v0.0.0-20250421083854-5e798e1d6f5b
 
-https://github.com/Mohammed-Ashour/go-satellite-v2
+https://github.com/Mohammed-Ashour/go-satellite-v2/blob/5e798e1d6f5b/LICENSE
 
 ```text
 BSD 2-Clause License
@@ -130,7 +130,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## github.com/atotto/clipboard v0.1.4
 
-https://github.com/atotto/clipboard
+https://github.com/atotto/clipboard/blob/v0.1.4/LICENSE
 
 ```text
 Copyright (c) 2013 Ato Araki. All rights reserved.
@@ -164,7 +164,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## github.com/aymanbagabas/go-osc52/v2 v2.0.1
 
-https://github.com/aymanbagabas/go-osc52/v2
+https://github.com/aymanbagabas/go-osc52/blob/v2.0.1/LICENSE
 
 ```text
 MIT License
@@ -192,7 +192,7 @@ SOFTWARE.
 
 ## github.com/charmbracelet/bubbles v0.18.0
 
-https://github.com/charmbracelet/bubbles
+https://github.com/charmbracelet/bubbles/blob/v0.18.0/LICENSE
 
 ```text
 MIT License
@@ -220,7 +220,7 @@ SOFTWARE.
 
 ## github.com/charmbracelet/bubbletea v0.25.0
 
-https://github.com/charmbracelet/bubbletea
+https://github.com/charmbracelet/bubbletea/blob/v0.25.0/LICENSE
 
 ```text
 MIT License
@@ -248,7 +248,7 @@ SOFTWARE.
 
 ## github.com/charmbracelet/lipgloss v0.9.1
 
-https://github.com/charmbracelet/lipgloss
+https://github.com/charmbracelet/lipgloss/blob/v0.9.1/LICENSE
 
 ```text
 MIT License
@@ -276,7 +276,7 @@ SOFTWARE.
 
 ## github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81
 
-https://github.com/containerd/console
+https://github.com/containerd/console/blob/1ae8d489ac81/LICENSE
 
 ```text
 Apache License
@@ -473,7 +473,7 @@ Apache License
 
 ## github.com/lucasb-eyer/go-colorful v1.2.0
 
-https://github.com/lucasb-eyer/go-colorful
+https://github.com/lucasb-eyer/go-colorful/blob/v1.2.0/LICENSE
 
 ```text
 Copyright (c) 2013 Lucas Beyer
@@ -487,7 +487,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ## github.com/mattn/go-isatty v0.0.18
 
-https://github.com/mattn/go-isatty
+https://github.com/mattn/go-isatty/blob/v0.0.18/LICENSE
 
 ```text
 Copyright (c) Yasuhiro MATSUMOTO <mattn.jp@gmail.com>
@@ -503,15 +503,39 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 ## github.com/mattn/go-localereader v0.0.1
 
-https://github.com/mattn/go-localereader
+https://github.com/mattn/go-localereader/blob/6bae6c923850ab5e0da9f36f69811ffe17064228/LICENSE
+
+The v0.0.1 tag points to 6338b4c69507fb1f9edba3db33882a8e9ab9bfa8. Its [README](https://github.com/mattn/go-localereader/blob/6338b4c69507fb1f9edba3db33882a8e9ab9bfa8/README.md) states MIT and names Yasuhiro Matsumoto as the author, but the tag has no license file.
+
+The full notice below comes from upstream revision 6bae6c923850ab5e0da9f36f69811ffe17064228. The [three intervening commits](https://github.com/mattn/go-localereader/compare/6338b4c69507fb1f9edba3db33882a8e9ab9bfa8...6bae6c923850ab5e0da9f36f69811ffe17064228) only add and correct LICENSE. Every existing file, including all Go sources, is unchanged. This is the basis for applying that notice to v0.0.1; the 2022 attribution is reproduced without alteration.
 
 ```text
-This version ships no license file. The upstream repository, https://github.com/mattn/go-localereader, is published under the MIT License.
+The MIT License (MIT)
+
+Copyright (c) 2022 Yasuhiro Matsumoto
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 ```
 
 ## github.com/mattn/go-runewidth v0.0.15
 
-https://github.com/mattn/go-runewidth
+https://github.com/mattn/go-runewidth/blob/v0.0.15/LICENSE
 
 ```text
 The MIT License (MIT)
@@ -539,7 +563,7 @@ SOFTWARE.
 
 ## github.com/muesli/ansi v0.0.0-20211018074035-2e021307bc4b
 
-https://github.com/muesli/ansi
+https://github.com/muesli/ansi/blob/2e021307bc4b/LICENSE
 
 ```text
 MIT License
@@ -567,7 +591,7 @@ SOFTWARE.
 
 ## github.com/muesli/cancelreader v0.2.2
 
-https://github.com/muesli/cancelreader
+https://github.com/muesli/cancelreader/blob/v0.2.2/LICENSE
 
 ```text
 MIT License
@@ -595,7 +619,7 @@ SOFTWARE.
 
 ## github.com/muesli/reflow v0.3.0
 
-https://github.com/muesli/reflow
+https://github.com/muesli/reflow/blob/v0.3.0/LICENSE
 
 ```text
 MIT License
@@ -623,7 +647,7 @@ SOFTWARE.
 
 ## github.com/muesli/termenv v0.15.2
 
-https://github.com/muesli/termenv
+https://github.com/muesli/termenv/blob/v0.15.2/LICENSE
 
 ```text
 MIT License
@@ -651,7 +675,7 @@ SOFTWARE.
 
 ## github.com/rivo/uniseg v0.4.6
 
-https://github.com/rivo/uniseg
+https://github.com/rivo/uniseg/blob/v0.4.6/LICENSE.txt
 
 ```text
 MIT License
@@ -679,7 +703,7 @@ SOFTWARE.
 
 ## github.com/sahilm/fuzzy v0.1.1-0.20230530133925-c48e322e2a8f
 
-https://github.com/sahilm/fuzzy
+https://github.com/sahilm/fuzzy/blob/c48e322e2a8f/LICENSE
 
 ```text
 The MIT License (MIT)
@@ -707,7 +731,7 @@ SOFTWARE.
 
 ## github.com/urfave/cli/v3 v3.1.1
 
-https://github.com/urfave/cli/v3
+https://github.com/urfave/cli/blob/v3.1.1/LICENSE
 
 ```text
 MIT License

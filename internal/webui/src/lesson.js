@@ -1,5 +1,5 @@
 import { appendSources } from './datatab.js';
-import { barChart, lineChart, yearlyAverages } from './charts.js';
+import { annualSeries, barChart, lineChart } from './charts.js';
 
 // Guided lessons: short steps that set the satellite, the globe picture and the camera,
 // then explain what is on screen with a source for every sentence. A question asks for a
@@ -51,21 +51,42 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
   const viewName = (id) => layers()?.views().find((view) => view.id === id)?.name ?? id;
 
   const boxOf = (box) => (box ? { minLat: box.min_lat, minLon: box.min_lon, maxLat: box.max_lat, maxLon: box.max_lon } : null);
-  const showPicture = (picture) => layers()?.show(picture.layer, picture.date, boxOf(picture.box), { plain: Boolean(picture.plain) });
+  const showPicture = (picture, base) => layers()?.show(picture.layer, picture.date, boxOf(picture.box), { plain: Boolean(picture.plain), base });
   const picturesOf = (step) => (Array.isArray(step.pictures) && step.pictures.length >= 2 ? step.pictures : null);
 
-  // Sets the app up for a step. Only runs when a step is entered, not on every repaint.
-  function enter(step) {
-    if (step.satellite) showSatellite(step.satellite);
-    const panel = layers();
-    if (panel) {
-      if (typeof step.base === 'string') panel.setBase(step.base);
-      if (picturesOf(step)) showPicture(step.pictures[0]);
-      else if (step.picture) showPicture(step.picture);
-      else if (Array.isArray(step.compare) && step.compare.length === 2) panel.show(step.compare[0]);
-      else if (typeof step.view === 'string') panel.show(step.view);
+  // Resolve only the destination scene. A new visual choice replaces the whole previous choice.
+  function sceneFor(lesson, index) {
+    const scene = { base: '', view: '' };
+    for (const step of lesson.steps.slice(0, index + 1)) {
+      if (step.satellite) scene.satellite = step.satellite;
+      if (step.camera) scene.camera = step.camera;
+      if (typeof step.base === 'string') scene.base = step.base;
+      if (picturesOf(step) || step.picture || step.compare?.length === 2 || typeof step.view === 'string') {
+        delete scene.pictures;
+        delete scene.picture;
+        delete scene.compare;
+        delete scene.view;
+        if (picturesOf(step)) scene.pictures = step.pictures;
+        else if (step.picture) scene.picture = step.picture;
+        else if (step.compare?.length === 2) scene.compare = step.compare;
+        else scene.view = step.view;
+      }
     }
-    if (step.camera) face(step.camera.lat, step.camera.lon, step.camera.distance || null);
+    return scene;
+  }
+
+  function enter(scene, beginning = false) {
+    // Selection is synchronous. A capacity refusal must leave the rest of the scene untouched.
+    if (scene.satellite && showSatellite(scene.satellite) === false) return false;
+    const panel = layers();
+    if (beginning) panel?.beginLesson();
+    if (panel) {
+      if (picturesOf(scene)) showPicture(scene.pictures[0], scene.base);
+      else if (scene.picture) showPicture(scene.picture, scene.base);
+      else panel.show(scene.compare?.[0] ?? scene.view, '', null, { base: scene.base });
+    }
+    if (scene.camera) face(scene.camera.lat, scene.camera.lon, scene.camera.distance || null);
+    return true;
   }
 
   // Records are fetched when a chart is first shown, and kept for the session.
@@ -92,11 +113,15 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
       return { markup: lineChart({ title: chart.title, xLabel: 'Year', yLabel: `Extent (${chart.unit})`, points, highlight }), feed, note: 'Computed by Khonsu from NSIDC\'s monthly values.' };
     }
     const series = feed.data ?? {};
-    const points = yearlyAverages((series.points ?? []).map((point) => ({ x: point.year, y: point.level_mm })));
-    const last = (series.points ?? []).at(-1);
-    const through = last ? ` Data through ${Math.floor(last.year)}.` : '';
+    const { points, partialYears, through } = annualSeries((series.points ?? []).map((point) => ({ x: point.year, y: point.level_mm })));
+    const year = through === null ? null : Math.floor(through);
+    const date = year === null ? null : new Date(Date.UTC(year, 0, 1) + Math.round((through - year) * (Date.UTC(year + 1, 0, 1) - Date.UTC(year, 0, 1))));
+    const observed = date ? ` Latest observation: ${date.toISOString().slice(0, 10)} UTC, converted from NOAA's decimal year.` : '';
     const trend = series.trend ? ` NOAA's stated trend: ${series.trend}.` : '';
-    return { markup: lineChart({ title: chart.title, xLabel: 'Year', yLabel: 'Sea level (mm)', points }), feed, note: `Yearly averages of NOAA's values, computed by Khonsu.${through}${trend}` };
+    const notes = Array.isArray(series.notes) ? series.notes.join(' ') : (series.notes ?? '');
+    const highlight = partialYears.map((year) => ({ x: year, label: `${year} partial` }));
+    const partial = partialYears.length ? ` Partial years: ${partialYears.join(', ')}. These means cover only the available observations.` : '';
+    return { markup: lineChart({ title: chart.title, xLabel: 'Year', yLabel: 'Sea-level anomaly (mm)', points, highlight }), feed, note: `Annual means of NOAA's sea-level anomalies, computed by Khonsu.${partial}${observed} The seasonal cycle is removed. No glacial-isostatic adjustment is applied.${trend} ${notes}`.trim() };
   }
 
   function chartBlock(chart, token) {
@@ -131,6 +156,7 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
   function button(text, className, onClick) {
     const node = element('button', className, text);
     node.type = 'button';
+    node.dataset.lessonFocus = text;
     node.addEventListener('click', onClick);
     return node;
   }
@@ -142,7 +168,7 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     row.append(...step.pictures.map((picture, index) => {
       const node = button(picture.label || picture.date, 'text-button', () => {
         current.compareOn = index;
-        showPicture(picture);
+        showPicture(picture, step.base);
         render();
       });
       node.setAttribute('aria-pressed', String(current.compareOn === index));
@@ -158,7 +184,7 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     row.append(...step.compare.map((id, index) => {
       const node = button(viewName(id), 'text-button', () => {
         current.compareOn = index;
-        layers()?.show(id);
+        layers()?.show(id, '', null, { base: step.base });
         render();
       });
       node.setAttribute('aria-pressed', String(current.compareOn === index));
@@ -204,65 +230,74 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
       card.replaceChildren();
       return;
     }
+    const focused = card.ownerDocument?.activeElement;
+    const focusKey = card.contains?.(focused) ? focused?.dataset?.lessonFocus : null;
     const { lesson } = current;
     card.classList?.toggle?.('is-story', Boolean(lesson.story));
-    const step = lesson.steps[current.step];
+    const step = { ...lesson.steps[current.step], ...sceneFor(lesson, current.step) };
     const total = lesson.steps.length;
     const nodes = [
-      element('p', 'eyebrow', `${lesson.story ? 'Story' : 'Lesson'} · step ${current.step + 1} of ${total}`),
+      element('p', 'eyebrow', current.applied ? `${lesson.story ? 'Story' : 'Lesson'} · step ${current.step + 1} of ${total}` : 'Scene not applied'),
       element('h2', 'lesson-title', lesson.title),
     ];
-    const text = (step.text ?? []).map(safe).filter((item) => item.text);
-    if (text.length) nodes.push(statementList(text));
-    if (picturesOf(step)) nodes.push(pictureRow(step));
-    else if (Array.isArray(step.compare) && step.compare.length === 2) nodes.push(compareRow(step));
-    if (step.chart) nodes.push(chartBlock(step.chart, renders));
-    if (step.hint) nodes.push(element('p', 'note lesson-hint', step.hint));
-    if (step.question) nodes.push(questionBlock(step.question));
-    if (!layers()?.views().length && (step.view || step.compare || step.base || step.picture || step.pictures)) {
-      nodes.push(element('p', 'note', 'The pictures in this lesson need live data and WebGL, so the globe stays as it is.'));
+    if (current.error) {
+      const error = element('p', 'note is-error', current.error);
+      error.setAttribute('role', 'alert');
+      nodes.push(error, button('Retry scene', 'text-button', () => go(current.pendingStep, current.pendingLesson)));
+    }
+    if (current.applied) {
+      const text = (step.text ?? []).map(safe).filter((item) => item.text);
+      if (text.length) nodes.push(statementList(text));
+      if (picturesOf(step)) nodes.push(pictureRow(step));
+      else if (Array.isArray(step.compare) && step.compare.length === 2) nodes.push(compareRow(step));
+      if (step.chart) nodes.push(chartBlock(step.chart, renders));
+      if (step.hint) nodes.push(element('p', 'note lesson-hint', step.hint));
+      if (step.question) nodes.push(questionBlock(step.question));
+      if (!layers()?.views().length && (step.view || step.compare || step.base || step.picture || step.pictures)) {
+        nodes.push(element('p', 'note', 'The pictures in this lesson need live data and WebGL, so the globe stays as it is.'));
+      }
     }
     const actions = element('div', 'lesson-actions');
     const back = button('Back', 'text-button', () => go(current.step - 1));
-    back.disabled = current.step === 0;
+    back.disabled = !current.applied || current.step === 0;
     const last = current.step === total - 1;
     const next = button(last ? 'Finish' : 'Next', 'primary-button', () => (last ? stop() : go(current.step + 1)));
+    next.disabled = !current.applied;
     actions.append(back, next, button('Close', 'text-button lesson-close', stop));
     nodes.push(actions);
     card.replaceChildren(...nodes);
     card.hidden = false;
-  }
-
-  // The camera a step uses: its own, or the last one set before it.
-  function cameraFor(lesson, index) {
-    for (let i = index; i >= 0; i -= 1) {
-      if (lesson.steps[i]?.camera) return lesson.steps[i].camera;
+    if (focusKey) {
+      const controls = [...(card.querySelectorAll?.('button') ?? [])];
+      const replacement = controls.find((node) => node.dataset.lessonFocus === focusKey && !node.disabled);
+      (replacement ?? controls.find((node) => node.textContent === 'Retry scene') ?? next).focus?.();
     }
-    return null;
   }
 
-  function go(index) {
-    if (!current) return;
-    const step = Math.max(0, Math.min(current.lesson.steps.length - 1, index));
-    current = { lesson: current.lesson, step, answer: null, compareOn: 0 };
-    enter(current.lesson.steps[step]);
+  function go(index, lesson = current?.lesson, beginning = false) {
+    if (!lesson) return false;
+    const step = Math.max(0, Math.min(lesson.steps.length - 1, index));
+    const applied = enter(sceneFor(lesson, step), beginning || !current?.applied || current.lesson !== lesson);
+    if (applied) {
+      current = { lesson, step, answer: null, compareOn: 0, applied: true };
+    } else {
+      // Keep an existing lesson and scene, even when starting a different lesson fails.
+      current ??= { lesson, step, answer: null, compareOn: 0, applied: false };
+      current.error = `This scene needs another satellite, but all tracking slots are full. Remove a satellite from Tracked, then retry, or close the lesson. ${current.applied ? 'Your current scene has not changed.' : 'No lesson scene has been applied.'}`;
+      current.pendingStep = step;
+      current.pendingLesson = lesson;
+    }
     render();
     onChange();
+    return applied;
   }
 
-  // Starts a lesson at a step. Steps before it are applied first, so a shared link to a
-  // later step shows the same satellite and picture as stepping there would.
+  // Shared links apply the resolved destination once, without fetching earlier images or tracks.
   async function start(id, stepIndex = 0) {
     const all = await load();
     const lesson = all.find((item) => item.id === id);
     if (!lesson || !Array.isArray(lesson.steps) || !lesson.steps.length) return false;
-    const step = Math.max(0, Math.min(lesson.steps.length - 1, stepIndex));
-    for (const earlier of lesson.steps.slice(0, step)) enter({ ...earlier, camera: null });
-    current = { lesson, step, answer: null, compareOn: 0 };
-    enter({ ...lesson.steps[step], camera: cameraFor(lesson, step) });
-    render();
-    onChange();
-    return true;
+    return go(stepIndex, lesson, true);
   }
 
   function stop() {
@@ -296,8 +331,8 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     start,
     stop,
     renderList,
-    current: () => (current ? { id: current.lesson.id, step: current.step } : null),
+    current: () => (current?.applied ? { id: current.lesson.id, step: current.step } : null),
     // True while the lesson has placed the camera, so the app should not reframe it.
-    holdsCamera: () => Boolean(current && cameraFor(current.lesson, current.step)),
+    holdsCamera: () => Boolean(current?.applied && sceneFor(current.lesson, current.step).camera),
   };
 }

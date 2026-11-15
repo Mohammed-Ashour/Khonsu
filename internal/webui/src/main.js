@@ -170,16 +170,17 @@ function addSatellite(id, name, { selectIt = true, frame = true } = {}) {
   const key = canonicalId(id);
   if (state.tracked.has(key)) {
     if (selectIt) select(key);
-    return;
+    return true;
   }
   if (state.tracked.size >= MAX_TRACKED) {
     setCatalogStatus(`You can track up to ${MAX_TRACKED} satellites. Remove one to add another.`, 'is-warning');
-    return;
+    return false;
   }
   const entry = { id: key, name: name || `NORAD ${key}`, color: nextColor([...state.tracked.values()].map((item) => item.color)), track: null, error: null, loading: true, framePending: frame };
   state.tracked.set(key, entry);
   if (selectIt) select(key);
   loadTrack(entry);
+  return true;
 }
 
 function removeSatellite(id) {
@@ -266,7 +267,10 @@ async function loadGroups() {
   }
 }
 
+let catalogRequest = 0;
+
 async function loadGroup(name) {
+  const request = ++catalogRequest;
   state.isSearchResult = false;
   if (groupCache.has(name)) {
     state.items = groupCache.get(name);
@@ -281,18 +285,20 @@ async function loadGroup(name) {
   setCatalogStatus(`Loading ${name}… The first time can take a few seconds.`);
   try {
     const items = await api.satellites(name);
+    if (request !== catalogRequest) return;
     state.items = Array.isArray(items) ? items : [];
     groupCache.set(name, state.items);
     setCatalogStatus('');
   } catch (error) {
-    if (isAbort(error)) return;
-    setCatalogStatus(`Could not load ${name}: ${providerMessage(error.message)}`, 'is-error');
+    if (request !== catalogRequest) return;
+    if (!isAbort(error)) setCatalogStatus(`Could not load ${name}: ${providerMessage(error.message)}`, 'is-error');
   }
   state.catalogLoading = false;
   renderCatalog();
 }
 
 async function searchAllGroups(query) {
+  const request = ++catalogRequest;
   state.items = [];
   state.isSearchResult = true;
   state.catalogLoading = true;
@@ -300,6 +306,7 @@ async function searchAllGroups(query) {
   setCatalogStatus('Searching every group. The first search can take up to a minute.');
   try {
     const result = await api.search(query);
+    if (request !== catalogRequest) return;
     state.items = result.satellites ?? [];
     const partial = result.groups_covered < result.groups_total;
     setCatalogStatus(
@@ -307,8 +314,8 @@ async function searchAllGroups(query) {
       partial ? 'is-warning' : '',
     );
   } catch (error) {
-    if (isAbort(error)) return;
-    setCatalogStatus(`Search failed: ${providerMessage(error.message)}`, 'is-error');
+    if (request !== catalogRequest) return;
+    if (!isAbort(error)) setCatalogStatus(`Search failed: ${providerMessage(error.message)}`, 'is-error');
   }
   state.catalogLoading = false;
   renderCatalog();
@@ -832,11 +839,12 @@ function renderHeadline() {
       element('p', 'headline-title', `${started ? 'Viewing window now' : 'Next viewing window'} · ${entry.name}`),
       element('p', 'headline-main', `${dayAndClock(start).slice(0, -3)}${started ? '' : ` · ${formatCountdown(start, Date.now())}`}`),
       element('p', 'headline-sub', `Up to ${Math.round(visible.peak.elevation_deg)}° in the ${compassPoint(visible.peak.azimuth_deg)}, starting in the ${compassPoint(visible.start.azimuth_deg)}.`),
-      element('p', 'headline-sub', state.plan.warnings?.length ? `${SIGHTING_CAVEAT} ${state.plan.warnings[0].message}` : SIGHTING_CAVEAT),
+      element('p', 'headline-sub plan-warning', [SIGHTING_CAVEAT, ...(state.plan.warnings ?? []).map((warning) => warning.message)].join(' ')),
     );
     return;
   }
   headline.append(element('p', 'headline-title', entry.name), element('p', 'headline-main', state.plan.tonight.dark_start ? `No viewing windows in the next ${PLAN_HOURS} hours` : 'No dark sky soon'));
+  headline.append(element('p', 'headline-sub plan-warning', [SIGHTING_CAVEAT, ...(state.plan.warnings ?? []).map((warning) => warning.message)].join(' ')));
 }
 
 function renderStatus() {
@@ -1103,7 +1111,7 @@ function wireLayersPanel() {
 
 // Lessons pick a satellite and turn the camera themselves, so the new satellite is not framed.
 function showSatellite(id) {
-  addSatellite(id, undefined, { frame: false });
+  return addSatellite(id, undefined, { frame: false });
 }
 
 function faceGlobe(lat, lon, distance = null) {

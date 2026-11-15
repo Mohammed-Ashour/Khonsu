@@ -11,18 +11,30 @@ package main
 import (
 	"bufio"
 	"bytes"
+	_ "embed"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
 )
 
-// Modules whose published version carries no license file, with where the license is stated.
-var missingLicense = map[string]string{
-	"github.com/mattn/go-localereader": "This version ships no license file. The upstream repository, https://github.com/mattn/go-localereader, is published under the MIT License.",
+//go:embed licenses/go-localereader.txt
+var localeReaderLicense string
+
+// Exceptions apply only to the inspected version. Keep provenance outside the
+// verbatim license text. Generation uses these embedded inputs, never the network.
+var missingLicense = map[string]struct{ version, origin, text string }{
+	"github.com/mattn/go-localereader": {
+		version: "v0.0.1",
+		origin: "https://github.com/mattn/go-localereader/blob/6bae6c923850ab5e0da9f36f69811ffe17064228/LICENSE\n\n" +
+			"The v0.0.1 tag points to 6338b4c69507fb1f9edba3db33882a8e9ab9bfa8. Its [README](https://github.com/mattn/go-localereader/blob/6338b4c69507fb1f9edba3db33882a8e9ab9bfa8/README.md) states MIT and names Yasuhiro Matsumoto as the author, but the tag has no license file.\n\n" +
+			"The full notice below comes from upstream revision 6bae6c923850ab5e0da9f36f69811ffe17064228. The [three intervening commits](https://github.com/mattn/go-localereader/compare/6338b4c69507fb1f9edba3db33882a8e9ab9bfa8...6bae6c923850ab5e0da9f36f69811ffe17064228) only add and correct LICENSE. Every existing file, including all Go sources, is unchanged. This is the basis for applying that notice to v0.0.1; the 2022 attribution is reproduced without alteration.",
+		text: localeReaderLicense,
+	},
 }
 
 type notice struct{ title, origin, text string }
@@ -58,17 +70,11 @@ func run() error {
 		return fmt.Errorf("%w (run npm ci in internal/webui first)", err)
 	}
 	for _, m := range modules {
-		if text, ok := missingLicense[m.path]; ok {
-			notices = append(notices, notice{m.path + " " + m.version, "https://" + m.path, text})
-			continue
-		}
-		file, err := licenseFile(m.dir)
+		n, err := moduleNotice(m)
 		if err != nil {
-			return fmt.Errorf("%s: %w", m.path, err)
-		}
-		if err := add(m.path+" "+m.version, "https://"+m.path, file); err != nil {
 			return err
 		}
+		notices = append(notices, n)
 	}
 
 	out := bufio.NewWriter(os.Stdout)
@@ -81,14 +87,67 @@ func run() error {
 
 type module struct{ path, version, dir string }
 
+func moduleNotice(m module) (notice, error) {
+	n := notice{title: m.path + " " + m.version, origin: repositoryURL(m.path)}
+	if exception, ok := missingLicense[m.path]; ok {
+		if m.version != exception.version {
+			return notice{}, fmt.Errorf("%s %s: license exception verified only for %s; recheck upstream provenance", m.path, m.version, exception.version)
+		}
+		n.origin, n.text = exception.origin, strings.TrimSpace(exception.text)
+		return n, nil
+	}
+	file, err := licenseFile(m.dir)
+	if err != nil {
+		return notice{}, fmt.Errorf("%s: %w", m.path, err)
+	}
+	text, err := os.ReadFile(file)
+	if err != nil {
+		return notice{}, err
+	}
+	n.origin = moduleLicenseURL(m, file)
+	n.text = strings.TrimSpace(strings.ReplaceAll(string(text), "\r\n", "\n"))
+	return n, nil
+}
+
+// Pseudo-versions identify a revision, not a Git tag. Match the timestamp and
+// hash suffix in all three Go pseudo-version forms.
+var pseudoVersion = regexp.MustCompile(`^v\d+\.\d+\.\d+-(?:.*\.)?\d{14}-([0-9a-f]{12})$`)
+
+func moduleLicenseURL(m module, file string) string {
+	repo := repositoryURL(m.path)
+	subpath := strings.TrimPrefix(m.path, strings.TrimPrefix(repo, "https://"))
+	major := strings.Split(m.version, ".")[0]
+	// Root modules and their /vN import suffixes use the repository's version
+	// tag. Keep other submodules at the repository root rather than guessing
+	// their tag prefix or whether Go copied a parent license into the module.
+	if strings.HasPrefix(repo, "https://github.com/") && m.version != "" && (subpath == "" || subpath == "/"+major) {
+		revision := strings.TrimSuffix(m.version, "+incompatible")
+		if match := pseudoVersion.FindStringSubmatch(revision); match != nil {
+			revision = match[1]
+		}
+		return repo + "/blob/" + revision + "/" + filepath.Base(file)
+	}
+	return repo
+}
+
+func repositoryURL(modulePath string) string {
+	// GitHub module subdirectories and /vN suffixes are not repository roots.
+	if parts := strings.SplitN(modulePath, "/", 4); len(parts) >= 3 && parts[0] == "github.com" {
+		return "https://" + strings.Join(parts[:3], "/")
+	}
+	return "https://" + modulePath
+}
+
 // binaryModules lists the modules linked into a release binary, not test-only ones.
 // Some, such as terminal support for Windows, are linked only on one platform, so
 // it asks for every release target.
 func binaryModules() ([]module, error) {
 	seen := map[string]module{}
 	for _, goos := range []string{"linux", "darwin", "windows"} {
-		cmd := exec.Command("go", "list", "-deps", "-f", "{{with .Module}}{{if not .Main}}{{.Path}}\t{{.Version}}\t{{.Dir}}{{end}}{{end}}", ".")
-		cmd.Env = append(os.Environ(), "CGO_ENABLED=0", "GOOS="+goos)
+		cmd := exec.Command("go", "list", "-mod=readonly", "-deps", "-f", "{{with .Module}}{{if not .Main}}{{.Path}}\t{{.Version}}\t{{.Dir}}{{end}}{{end}}", ".")
+		// Dependencies and the toolchain must already be installed. Do not
+		// download modules, checksum records or toolchains during generation.
+		cmd.Env = append(os.Environ(), "CGO_ENABLED=0", "GOOS="+goos, "GOPROXY=off", "GONOPROXY=none", "GOSUMDB=off", "GOTOOLCHAIN=local")
 		output, err := cmd.Output()
 		if err != nil {
 			return nil, fmt.Errorf("go list for %s: %w", goos, err)

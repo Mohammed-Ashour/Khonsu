@@ -62,12 +62,13 @@ func NewAt(f *feed.Client, base string) *Client { return &Client{f, base} }
 
 // Layer is a global image that can be draped on the globe.
 type Layer struct {
-	ID          string `json:"id"`
-	Name        string `json:"name"`
-	SourceID    string `json:"source_id"`
-	Credit      string `json:"credit"`
-	Description string `json:"description"`
-	Transparent bool   `json:"transparent"`
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	SourceID    string  `json:"source_id"`
+	Credit      string  `json:"credit"`
+	Description string  `json:"description"`
+	Legend      *Legend `json:"legend,omitempty"`
+	Transparent bool    `json:"transparent"`
 	// Topic names the kind of data a layer shows, such as thermal_infrared. Layers
 	// with a topic are the "what satellites measure" views, kept apart from the
 	// everyday base and cloud pictures.
@@ -143,30 +144,51 @@ func (c *Client) Image(ctx context.Context, layer Layer) ([]byte, feed.Meta, err
 		query.Set("TRANSPARENT", "TRUE")
 		ext = "png"
 	}
-	request := func() ([]byte, feed.Meta, error) {
-		return c.feed.Fetch(ctx, feed.Request{Source: ID, Key: layer.ID, Ext: ext, URL: c.base + "?" + query.Encode(), TTL: ttl, MaxBytes: maxImageBytes, Timeout: time.Minute, Validate: validateImage(layer)})
-	}
+	request := feed.Request{Source: ID, Key: layer.ID, Ext: ext, TTL: ttl, MaxBytes: maxImageBytes, Timeout: time.Minute, Validate: validateImage(layer)}
 	if !layer.Daily {
-		return request()
+		request.URL = c.base + "?" + query.Encode()
+		return c.feed.Fetch(ctx, request)
 	}
-	// A saved picture expires at the next UTC midnight, so yesterday's view is never
-	// served after the day changes. Some daily products arrive a day or two late, so
-	// an empty day falls back to the one before it.
+	// A date is part of the identity of a daily image. A saved response for one
+	// day must never mask another day's availability or inherit its date.
 	now := c.feed.Now().UTC()
-	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-	ttl = min(dailyImageTTL, now.Sub(midnight))
-	var (
-		image []byte
-		meta  feed.Meta
-		err   error
-	)
+	request.TTL = dailyImageTTL
+	var lastErr error
 	for back := 1; back <= dailyFallbackDays; back++ {
-		query.Set("TIME", now.AddDate(0, 0, -back).Format("2006-01-02"))
-		if image, meta, err = request(); !errors.Is(err, feed.ErrNoData) {
-			break
+		day := now.AddDate(0, 0, -back).Format("2006-01-02")
+		query.Set("TIME", day)
+		request.Key = layer.ID + "-" + day
+		request.URL = c.base + "?" + query.Encode()
+		body, meta, err := c.feed.Fetch(ctx, request)
+		if err == nil && !meta.Stale {
+			meta.PictureDate = day
+			return body, meta, nil
+		}
+		if err != nil {
+			lastErr = err
+		}
+		if ctx.Err() != nil {
+			return nil, feed.Meta{}, ctx.Err()
+		}
+		// ErrNoData does not pause the provider. Other failures do, so later
+		// candidate calls only consult their own cache during the backoff.
+	}
+	// Preserve a recent last-good, dated picture on outages. Read only: do not
+	// issue thirty provider requests. Undated legacy cache files are not used.
+	for back := 1; back <= 30; back++ {
+		day := now.AddDate(0, 0, -back).Format("2006-01-02")
+		request.Key = layer.ID + "-" + day
+		if body, meta, ok := c.feed.Cached(request); ok {
+			meta.PictureDate = day
+			meta.Stale = true
+			meta.Warning = "Showing a saved picture because no newer daily image was available."
+			return body, meta, nil
 		}
 	}
-	return image, meta, err
+	if lastErr == nil {
+		lastErr = feed.ErrNoData
+	}
+	return nil, feed.Meta{}, lastErr
 }
 
 // Box is a latitude and longitude rectangle, in degrees.
@@ -218,7 +240,11 @@ func (c *Client) ImageOn(ctx context.Context, layer Layer, day time.Time, box Bo
 		query.Set("TRANSPARENT", "TRUE")
 		ext = "png"
 	}
-	return c.feed.Fetch(ctx, feed.Request{Source: ID, Key: layer.ID + "-" + day.Format("2006-01-02") + box.key(), Ext: ext, URL: c.base + "?" + query.Encode(), TTL: pastImageTTL, MaxBytes: maxImageBytes, Timeout: time.Minute, Validate: validateImage(layer)})
+	body, meta, err := c.feed.Fetch(ctx, feed.Request{Source: ID, Key: layer.ID + "-" + day.Format("2006-01-02") + box.key(), Ext: ext, URL: c.base + "?" + query.Encode(), TTL: pastImageTTL, MaxBytes: maxImageBytes, Timeout: time.Minute, Validate: validateImage(layer)})
+	if err == nil {
+		meta.PictureDate = day.Format("2006-01-02")
+	}
+	return body, meta, err
 }
 
 // Story marks a layer for lessons and stories only.
@@ -230,7 +256,7 @@ func (l Layer) AsStory() Layer {
 // NewLayer describes a GIBS layer for one source. Transparent layers are partial
 // views of the Earth and come as PNG.
 func NewLayer(id, name string, info feed.Info, description, gibsName string, transparent, daily bool) Layer {
-	return Layer{ID: id, Name: name, SourceID: info.ID, Credit: info.Credit, Description: description, Transparent: transparent, GIBSName: gibsName, Daily: daily, MinBytes: minImageBytes}
+	return Layer{ID: id, Name: name, SourceID: info.ID, Credit: info.Credit, Description: description, Legend: legendFor(gibsName, id), Transparent: transparent, GIBSName: gibsName, Daily: daily, MinBytes: minImageBytes}
 }
 
 // About marks a layer as a view of one kind of data, such as thermal_infrared.
@@ -239,9 +265,9 @@ func (l Layer) About(topic string) Layer {
 	return l
 }
 
-// TrueColor is yesterday's worldwide view. It uses NOAA-20 because Suomi NPP's
+// TrueColor is a recent daily mosaic. It uses NOAA-20 because Suomi NPP's
 // layer has had long outages.
-var TrueColor = NewLayer("true-color", "True color (daily)", Info, "Yesterday's whole-Earth view from NOAA-20's VIIRS instrument.", "VIIRS_NOAA20_CorrectedReflectance_TrueColor", false, true)
+var TrueColor = NewLayer("true-color", "True color (daily)", Info, "A daily mosaic from NOAA-20's VIIRS instrument. The credit gives the product date; polar night and missing observations can leave gaps.", "VIIRS_NOAA20_CorrectedReflectance_TrueColor", false, true)
 
 // The daily "what satellites measure" views. Each falls back to an earlier day
 // when the newest one is not ready yet.

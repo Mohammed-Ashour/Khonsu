@@ -12,7 +12,7 @@ The notes are written by hand. A satellite that isn't listed is "not described y
   - **satellites:** each is keyed by NORAD catalog number and lists its instruments.
 - **Every sentence has a source.** The source is an https page that was read and supports the sentence. Agency and mission pages come first: NASA, NOAA, ESA and Copernicus, JMA, USGS. Tests reject a sentence without a source, an unknown reference, or a view that no kind lists.
 - **Kinds are Khonsu's classification.** Linking an instrument to a kind, such as SLSTR to thermal infrared, is Khonsu's own grouping. The sentences under each instrument carry the sources.
-- **Views.** Some kinds link to a globe view. These are NASA GIBS layers in the *What satellites measure* group of the Layers panel. Daily views fall back to an earlier day when yesterday's picture isn't ready yet.
+- **Views.** Some kinds link to NASA GIBS globe images. Daily images can come from an earlier available date. An instrument's scan rate does not guarantee the age or coverage of the image shown. Retrieval time is not observation time.
 
 To add a satellite, find its NORAD number on [CelesTrak SATCAT](https://celestrak.org/satcat/search.php). Add it with its instruments, giving each new sentence a source you have read. Then run `go test ./internal/knowledge`.
 
@@ -60,32 +60,54 @@ The notes also hold short lessons, in the same file. They follow the same rules:
 |---|---|---|
 | Light or heat? | GOES 19 | Visible band 2 against infrared band 13, and why infrared works at night |
 | Colours you can't see | NOAA 20 | True colour against shortwave infrared false colour: plants, burns, ice |
-| The orbit decides the data | GOES 19, Terra | A geostationary view every 10 minutes against polar strips every day or two |
+| How orbit shapes the view | GOES 19, Terra | A fixed geostationary view against strips from a near-polar orbit |
 
 Stories are lessons about one real event, with `when` and `where`. Their pictures are story layers for a past day, usually over a small area:
 
 | Story | Satellites | Pictures and charts |
 |---|---|---|
-| The night Puerto Rico went dark | Suomi NPP | VIIRS Day/Night Band, 24 July and 27 September 2017 |
-| Los Angeles fires, January 2025 | NOAA 20 | Terra true colour and bands 7-2-1, VIIRS fire detections |
+| The night Puerto Rico went dark | Suomi NPP | Qualitative ENCC illustrations, 24 July and 27 September 2017; NASA's corrected outage findings in text |
+| Los Angeles fires, January 2025 | Terra, NOAA 20 | Terra true colour and bands 7-2-1, then NOAA-20 VIIRS heat detections |
 | Mapping a flood through the clouds | Sentinel-1A | OPERA surface water from Sentinel-1, 14 and 26 September 2024 |
 | Cleaner air during the 2020 lockdowns | Sentinel-5P, Aura | OMI nitrogen dioxide over China; ESA's city figures as a bar chart |
-| Lake Mead shrinks | Landsat 8 | Terra true colour, 6 July 2000 and 3 July 2022; Landsat (HLS) 2022 |
+| Lake Mead shrinks | Terra, Landsat 8 | Terra overviews, 6 July 2000 and 3 July 2022; the Landsat 8/9 HLS L30 collection for the closer 2022 view |
 | Three decades of rising seas | Sentinel-6A | NOAA's global mean sea level record |
-| Arctic sea ice at its summer low | GCOM-W1 | AMSR2 sea ice, 2012 and 2025; NSIDC's September extent since 1979 |
+| Arctic sea ice at its summer low | GCOM-W1 | Daily AMSR2 ice concentration, 2012 and 2025; monthly mean September extent from NSIDC |
+
+### Limits of the seven stories
+
+The dates in a picture request name archive selections. They do not certify that every cell has an observation on that day. A missing or masked cell does not prove that nothing happened there. The app's reduced-resolution globe images cannot show all the detail of the original sensor data.
+
+1. **Puerto Rico.** ENCC means Enhanced Near Constant Contrast. NASA normalizes each scan separately, so brightness values are not comparable across nights. Both image steps put this warning before the event explanation. These images cannot identify or measure outages. NASA's published study used corrected observations from 27 and 28 September; the app does not provide that corrected comparison. NASA discontinued ENCC in July 2023.
+2. **Los Angeles fires.** The visible and false-colour images come from Terra MODIS. The false-colour recipe uses shortwave infrared, near infrared and visible red. Burn colour is not fire temperature or total burned area. The next step selects NOAA-20 for VIIRS heat detections. A point marks a detected anomaly near a sensor pixel's centre, not a fire boundary; the product can also detect non-fire heat sources.
+3. **Helene flood.** OPERA classifies surface water from Sentinel-1 radar. Open water can be permanent. Inundated vegetation is a separate class, and masked cells lack a usable classification. The 14 and 26 September dates follow NASA's article; they are not a verified acquisition time for every cell or a calculated new-flood-area map. The story avoids assigning a UTC landfall date from an article using a local date.
+4. **Cleaner air in 2020.** The two daily maps use Aura OMI, not the averaged Sentinel-5P TROPOMI maps in NASA's published comparison. They cannot by themselves establish a lockdown effect. These maps measure a lower-atmosphere column, not street-level exposure. ESA's European bars reproduce approximate published decreases, with about 15 percent uncertainty from weather variability.
+5. **Lake Mead.** The 2000 and 2022 MODIS images are broad Terra overviews, not NASA's Landsat comparison. The closer view requests the 30 m HLS L30 collection, which combines Landsat 8 and 9 observations. It is not NASA's original image processing and does not measure reservoir volume. Cloud and collection coverage can leave gaps.
+6. **Rising seas.** NASA's 9.1 cm result is for 1993 through 2022. Its 0.59 cm rise and roughly two-thirds thermal-expansion contribution refer to 2024 in the March 2025 analysis. These are separate from the plotted NOAA series. The chart averages sea-level anomalies by year, not ocean depths. NOAA removes annual signals and applies no glacial-isostatic adjustment. Boundary years can be partial, and the latest available observation need not be current. Sentinel-6 contributes to the record; it did not measure all three decades.
+7. **Arctic sea ice.** The maps show daily concentration, the percentage of a 12 km cell covered by ice. The second map is dated 1 September 2025, not the likely 10 September minimum. NASA's minimum animation uses different processing and 10 km data. The chart instead shows monthly mean extent, counting cells with at least 15 percent ice. September 2025's mean is 4.75 million km², not its 4.60 million km² daily minimum.
+
+### Reading the instrument charts
+
+Wavelength ranges depend on the source's definitions. NASA's near/shortwave infrared boundary is 1.1 µm; WMO uses 1.3 µm. The displayed spectrum uses NASA's convention, so ABI's 3.9 µm band is called infrared rather than treating it as shortwave infrared everywhere.
+
+The ABI points mark sourced central wavelengths, not uncertain band edges. C-SAR and SMAP also use centre markers, converted with wavelength = speed of light / frequency. C-SAR uses 5.405 GHz and SMAP's radiometer uses 1.41 GHz. Neither marker means the sensor measures the whole C or L category.
+
+The resolution comparison uses a selected band, mode or footprint. C-SAR's Interferometric Wide swath mode resolves 5 m by 20 m, so the chart uses the finer 5 m dimension. That is not a square pixel or product pixel spacing. SMAP uses the finer dimension of its 38 km by 49 km footprint. OLI uses the listed 30 m multispectral bands. SWOT is excluded because its 100 m river-width capability is not pixel size.
+
+Time values also need their specifications. Sentinel-2's 5 days describes a nominal two-satellite constellation at the equator. C-SAR's 6 days is a nominal two-satellite repeat cycle, not guaranteed coverage. OLCI and SLSTR intervals refer to two satellites at the equator. MODIS's 1.5 days and SMAP's 2.5 days represent stated ranges. An optical revisit is another observing opportunity, not guaranteed cloud-free coverage.
 
 ## Globe views
 
 | View | Kind | From |
 |---|---|---|
-| GOES East visible (band 2) | Visible light | NOAA GOES-East ABI, near live |
-| GOES East infrared (band 13) | Thermal infrared | NOAA GOES-East ABI, near live |
-| Shortwave infrared false colour | Shortwave and near infrared | NOAA-20 VIIRS bands M11, I2 and I1, daily |
+| GOES East visible (band 2) | Visible light | NOAA GOES-East ABI; instrument scan cadence is not delivery age |
+| GOES East infrared (band 13) | Thermal infrared | NOAA GOES-East ABI; brightness temperature, not ground temperature everywhere |
+| Shortwave infrared false colour | Shortwave infrared, near infrared and visible red | NOAA-20 VIIRS bands M11, I2 and I1, daily composite |
 | Earth at night | Light at night | NOAA-20 VIIRS Day/Night Band, daily |
 | Land surface temperature | Thermal infrared | Terra MODIS, daily |
-| Sea surface temperature | Thermal infrared | GHRSST MUR analysis, daily |
+| Sea surface temperature | Thermal infrared | GHRSST MUR analysis, daily; blends satellite and in-situ data |
 
-All views come from [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/), and each is credited on the globe while it shows.
+All views come from [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/), and each is credited on the globe while it shows. The daily NOAA-20 night layer is also a qualitative display product whose values cannot be directly compared across dates. It is not corrected Black Marble imagery. In the false-colour view, ice clouds can look blue like surface snow and ice; colour alone is not a land-cover classification.
 
 ## Sources used
 
@@ -120,3 +142,70 @@ All views come from [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/), and
 - NOAA NESDIS, [Geostationary Satellites](https://www.nesdis.noaa.gov/our-satellites/currently-flying/geostationary-satellites)
 - USGS, [What are the band designations for the Landsat satellites?](https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites)
 - University of Maryland, [GEDI](https://gedi.umd.edu/)
+- ESA, [Types of orbits](https://www.esa.int/Enabling_Support/Space_Transportation/Types_of_orbits)
+- CelesTrak, [Basics of the Geostationary Orbit](https://celestrak.org/columns/v04n07/)
+- NOAA NHC, [Tropical Cyclone Report: Hurricane Maria](https://www.nhc.noaa.gov/data/tcr/AL152017_Maria.pdf)
+- NASA Earth Observatory, [Pinpointing Where the Lights Went Out in Puerto Rico](https://science.nasa.gov/earth/earth-observatory/pinpointing-where-lights-went-out-in-puerto-rico-91044)
+- NOAA NESDIS, [NOAA Satellites Monitor Raging Wildfires in California](https://www.nesdis.noaa.gov/news/noaa-satellites-monitor-raging-wildfires-california)
+- NASA Earthdata, [OPERA: Mapping Flood Waters in the Face of the Storm](https://www.earthdata.nasa.gov/learn/data-in-action/opera-mapping-flood-waters-face-storm)
+- NASA Earth Observatory, [Airborne Nitrogen Dioxide Plummets Over China](https://science.nasa.gov/earth/earth-observatory/airborne-nitrogen-dioxide-plummets-over-china-146362)
+- ESA, [Air pollution remains low as Europeans stay at home](https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-5P/Air_pollution_remains_low_as_Europeans_stay_at_home)
+- NASA Earth Observatory, [Lake Mead Keeps Dropping](https://science.nasa.gov/earth/earth-observatory/lake-mead-keeps-dropping-150111)
+- NASA Science / JPL-Caltech, [30 Years of Sea Level Rise, 17 March 2023](https://science.nasa.gov/photojournal/30-years-of-sea-level-rise/)
+- NASA Science / JPL-Caltech, [Satellite Record of Sea Level Rise From 1993 to 2024, 13 March 2025](https://science.nasa.gov/photojournal/satellite-record-of-sea-level-rise-from-1993-to-2024/)
+- NOAA LSA, [Laboratory for Satellite Altimetry: Sea Level Rise](https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/)
+- NASA SVS, [Arctic Sea Ice Minimum 2025](https://svs.gsfc.nasa.gov/5583)
+- NASA SVS, [Arctic Sea Ice Minimum 1979–2012](https://svs.gsfc.nasa.gov/11081/)
+- NASA Earth Observatory, [Arctic Sea Ice Ties for 10th Lowest on Record](https://science.nasa.gov/earth/earth-observatory/arctic-sea-ice-ties-for-10th-lowest-on-record-154807/)
+- NSIDC, [Sea Ice Index, Version 4 (G02135)](https://nsidc.org/data/g02135/versions/4)
+- NOAA, [ABI Band 2 Quick Guide](https://www.goes.noaa.gov/documents/ABIQuickGuide_Band02.pdf)
+- NOAA, [ABI Spectral Attributes](https://www.goes.noaa.gov/abispectralattributes.php)
+- NASA Earth Observatory, [Remote Sensing](https://science.nasa.gov/earth/earth-observatory/remote-sensing)
+- WMO OSCAR, [Mid-wave infrared observing missions](https://space.oscar.wmo.int/observingmissions/view/39)
+- NASA Science, [Infrared Waves](https://science.nasa.gov/ems/07_infraredwaves/)
+- Copernicus, [CLMS releases HR-VPP product to assess ecosystems and biodiversity](https://www.copernicus.eu/en/news/news/observer-clms-releases-hr-vpp-product-assess-ecosystems-and-biodiversity)
+- USDA NASS, [Crop-CASMA metadata](https://www.nass.usda.gov/Research_and_Science/Cropland/metadata/metadata_cropcasma.htm)
+- NASA Earthdata, [Black Marble](https://www.earthdata.nasa.gov/data/projects/black-marble)
+- NASA Science, [Landsat Spectral Bands and Applications](https://science.nasa.gov/mission/landsat/spectral-bands-and-applications/)
+- MTBS (USGS and USDA Forest Service), [Project Overview](https://www.mtbs.gov/project-overview)
+- USGS, [Landsat Normalized Burn Ratio](https://www.usgs.gov/landsat-missions/landsat-normalized-burn-ratio)
+- NOAA CoastWatch, [Sea Surface Temperature](https://coastwatch.noaa.gov/cwn/product-families/sea-surface-temperature.html)
+- NASA Earthdata, [FIRMS](https://www.earthdata.nasa.gov/data/tools/firms)
+- NOAA Coral Reef Watch, [Daily 5km Satellite Coral Bleaching Heat Stress Monitoring](https://coralreefwatch.noaa.gov/product/5km/index.php)
+- NASA, [NASA Launches Groundbreaking Soil Moisture Mapping Satellite](https://www.nasa.gov/news-release/nasa-launches-groundbreaking-soil-moisture-mapping-satellite-2/)
+- ECMWF, [Recent progress in all-sky radiance assimilation](https://www.ecmwf.int/en/newsletter/161/meteorology/recent-progress-all-sky-radiance-assimilation)
+- NOAA NESDIS, [Advanced Technology Microwave Sounder (ATMS)](https://www.nesdis.noaa.gov/our-satellites/currently-flying/joint-polar-satellite-system/advanced-technology-microwave-sounder-atms)
+- Copernicus, [Copernicus Emergency Management Service week 2021](https://www.copernicus.eu/en/news/news/observer-copernicus-emergency-management-service-week-2021)
+- Copernicus Land Monitoring Service, [European Ground Motion Service](https://land.copernicus.eu/en/products/european-ground-motion-service)
+- Copernicus, [How Sentinel-6 Michael Freilich improves Copernicus Marine Service ocean data](https://www.copernicus.eu/en/news/news/observer-how-sentinel-6-michael-freilich-improves-copernicus-marine-service-ocean-data)
+- NASA Earthdata, [SWOT](https://www.earthdata.nasa.gov/data/platforms/space-based-platforms/swot)
+- NASA GSFC, [ICESat-2: Space Lasers](https://icesat-2.gsfc.nasa.gov/space-lasers)
+- Copernicus CAMS, [CAMS global forecasting system introduces operational use of Sentinel-5P NO2](https://atmosphere.copernicus.eu/successful-upgrade-cams-global-forecasting-system-introduces-operational-use-sentinel-5p-no2)
+- BIRA-IASB, [Support to Aviation Control Service](https://sacs.aeronomie.be/)
+- NASA SVS, [OCO-2 carbon dioxide](https://svs.gsfc.nasa.gov/5115)
+- NASA LAADS, [VIIRS Day/Night Band (VJ102DNB)](https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/VJ102DNB)
+- NOAA NCC, [About VIIRS](https://ncc.nesdis.noaa.gov/VIIRS/aboutVIIRS.php)
+- NASA Earthdata, [Transition from MODIS to VIIRS](https://www.earthdata.nasa.gov/data/alerts-outages/transition-from-modis-viirs)
+- USGS, [Landsat 9](https://www.usgs.gov/landsat-missions/landsat-9)
+- USGS, [Landsat 8 and Landsat 9 satellite constellation](https://www.usgs.gov/media/videos/landsat-8-and-landsat-9-satellite-constellation)
+- NASA JPL, [SMAP Observatory Specifications](https://smap.jpl.nasa.gov/observatory/specifications/)
+- TROPOMI mission team, [Nitrogen dioxide](https://www.tropomi.eu/data-products/nitrogen-dioxide)
+- AVISO (CNES), [SWOT](https://www.aviso.altimetry.fr/en/missions/current-missions/swot)
+- NASA GIBS / Worldview, [NOAA-20 VIIRS corrected reflectance, bands M11-I2-I1](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/noaa20/VIIRS_NOAA20_CorrectedReflectance_BandsM11-I2-I1.md)
+- NASA GIBS / Worldview, [NOAA-20 VIIRS corrected reflectance, true color](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/noaa20/VIIRS_NOAA20_CorrectedReflectance_TrueColor.md)
+- NASA GIBS / Worldview, [Suomi NPP VIIRS Day/Night Band ENCC limitations](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/snpp/VIIRS_SNPP_DayNightBand_ENCC.md)
+- NASA GIBS / Worldview, [OPERA Sentinel-1 dynamic surface water extent](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/multi-mission/opera/OPERA_L3_Dynamic_Surface_Water_Extent-Sentinel-1.md)
+- NASA GIBS / Worldview, [AMSR-E/AMSR2 sea ice concentration, 12 km](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/amsr2/AMSRU2_Sea_Ice_Concentration_12km.md)
+- NASA GIBS / Worldview, [Terra MODIS corrected reflectance, true color](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/modis/terra/MODIS_Terra_CorrectedReflectance_TrueColor.md)
+- NASA GIBS / Worldview, [Terra MODIS corrected reflectance, bands 7-2-1](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/modis/terra/MODIS_Terra_CorrectedReflectance_Bands721.md)
+- NASA GIBS / Worldview, [NOAA-20 VIIRS thermal anomalies, 375 m](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/noaa20/VIIRS_NOAA20_Thermal_Anomalies_375m_All.md)
+- NASA GIBS / Worldview, [Aura OMI tropospheric nitrogen dioxide column](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/omi/OMI_Nitrogen_Dioxide_Tropo_Column.md)
+- NASA GIBS / Worldview, [HLS Landsat 8/9 OLI adjusted reflectance](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/multi-mission/hls/HLS_L30_Nadir_BRDF_Adjusted_Reflectance.md)
+- NASA JPL, [SMAP Team Investigating Radar Instrument Anomaly, updated 5 August 2015](https://smap.jpl.nasa.gov/news/1244/smap-team-investigating-radar-instrument-anomaly/)
+- WMO OSCAR, [Instruments covering 700-1300 nm](https://space.oscar.wmo.int/observingmissions/view/37)
+- WMO OSCAR, [Instruments covering 1300-3000 nm](https://space.oscar.wmo.int/observingmissions/view/38)
+- NASA GIBS / Worldview, [Terra MODIS daytime land surface temperature](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/modis/terra/MODIS_Terra_Land_Surface_Temp_Day.md)
+- NASA GIBS / Worldview, [GOES East ABI band 13 clean infrared](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/goes/GOES-East_ABI_Band13_Clean_Infrared.md)
+- NASA GIBS / Worldview, [NOAA-20 VIIRS Day/Night Band display limitations](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/noaa20/VIIRS_NOAA20_DayNightBand.md)
+- NOAA LSA, [Global mean sea level anomaly, annual signals removed, CSV](https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/slr/slr_sla_gbl_free_ref_90.csv)
+- NSIDC, [Sea Ice Index V4, northern September monthly extent, CSV](https://noaadata.apps.nsidc.org/NOAA/G02135/north/monthly/data/N_09_extent_v4.0.csv)

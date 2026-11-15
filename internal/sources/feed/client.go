@@ -31,6 +31,9 @@ type Meta struct {
 	FetchedAt time.Time `json:"fetched_at"`
 	Stale     bool      `json:"stale"`
 	Warning   string    `json:"warning,omitempty"`
+	// PictureDate is the daily product's UTC date, not its retrieval time.
+	// Imagery clients derive it only from a date-specific cache key.
+	PictureDate string `json:"picture_date,omitempty"`
 }
 
 // Client fetches provider data politely. Each provider gets one request at a time,
@@ -261,6 +264,15 @@ func writeSaved(path string, body []byte) error {
 		return err
 	}
 	return os.Rename(file.Name(), path)
+}
+
+// Cached reads and validates an exact saved response without contacting its provider.
+// It does not imply freshness; callers choosing a fallback must mark it stale.
+func (c *Client) Cached(r Request) ([]byte, Meta, bool) {
+	if c.dirErr != nil {
+		return nil, Meta{}, false
+	}
+	return c.readSaved(r.savedPath(c.dir), r)
 }
 
 // Now returns the client's current time.

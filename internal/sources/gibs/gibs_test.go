@@ -84,7 +84,7 @@ func TestDailyImageExpiresAtUTCMidnight(t *testing.T) {
 	f.Clock = func() time.Time { return now }
 	c := NewAt(f, server.URL)
 	// The feed client reads the saved file's age from its modification time, so set it to the fake clock.
-	path := filepath.Join(cache, "sources", ID, TrueColor.ID+".jpg")
+	path := filepath.Join(cache, "sources", ID, TrueColor.ID+"-2026-11-07.jpg")
 	if _, _, err := c.Image(context.Background(), TrueColor); err != nil {
 		t.Fatal(err)
 	}
@@ -95,6 +95,7 @@ func TestDailyImageExpiresAtUTCMidnight(t *testing.T) {
 	if _, _, err := c.Image(context.Background(), TrueColor); err != nil || hits.Load() != 2 {
 		t.Fatalf("hits = %d, err = %v; want the picture saved before midnight to be refetched", hits.Load(), err)
 	}
+	path = filepath.Join(cache, "sources", ID, TrueColor.ID+"-2026-11-08.jpg")
 	if err := os.Chtimes(path, now, now); err != nil {
 		t.Fatal(err)
 	}

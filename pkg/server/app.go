@@ -549,7 +549,7 @@ func newAppHandler(source elementSource, feeds *sources.Hub, ui fs.FS) http.Hand
 func securityHeaders(next http.Handler) http.Handler {
 	return readOnlySameSite(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headers := w.Header()
-		headers.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
+		headers.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data: blob:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
 		headers.Set("X-Content-Type-Options", "nosniff")
 		headers.Set("Referrer-Policy", "no-referrer")
 		next.ServeHTTP(w, r)

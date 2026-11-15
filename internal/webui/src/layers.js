@@ -1,10 +1,11 @@
+import { imageryLegend } from './imagerylegend.js';
+
 // The Layers panel: one base picture, any number of near-live cloud layers and an aurora estimate,
 // or one "what satellites measure" view, which replaces the clouds while it is on. Choices are
 // saved in storage and sent to the globe; the credit line names what is showing.
 
 const STORAGE_KEY = 'khonsu.layers';
 const TRUE_COLOR = 'true-color';
-// Drawn under see-through story pictures of one area.
 // Drawn under see-through story pictures of one area: Suomi NPP from 2012, whose wide swath
 // leaves no gaps at the equator, and Terra before that.
 const STORY_UNDER = 'story-true-color';
@@ -104,23 +105,36 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
   }
 
   function renderCredit(shown) {
-    const lines = shown.map((layer) => [layer.name, layer.id === state.view && state.viewDate ? `picture from ${state.viewDate}` : '', layer.credit, layer.id === state.view && state.viewDate ? '' : freshness.get(layer.id)].filter(Boolean).join(' · '));
+    const lines = shown.map((layer) => {
+      const meta = freshness.get(layer.url);
+      const date = meta?.pictureDate || new URLSearchParams(layer.url.split('?')[1]).get('date');
+      return [layer.name, date ? `picture from ${date}` : '', layer.credit,
+        meta?.fetchedAt ? `retrieved ${dataAge(meta.fetchedAt, now())}` : '', meta?.stale ? 'saved copy' : ''].filter(Boolean).join(' · ');
+    });
     if (state.aurora) lines.push(AURORA_CREDIT);
     showCredit(lines);
+    for (const layer of shown) {
+      const legend = imageryLegend(element, layer);
+      if (legend) credit.append(legend);
+    }
   }
 
   // A HEAD request only reads headers; any failure just leaves the freshness out.
-  async function freshnessOf(id) {
+  async function freshnessOf(layer) {
     try {
-      const response = await fetchHead(imageryUrl(id));
+      // The date and regional crop are part of the displayed image's identity.
+      const response = await fetchHead(layer.url);
+      if (response.ok === false) return null;
       const headers = response.headers;
-      const parts = [];
       const fetchedAt = headers.get('X-Khonsu-Fetched-At');
-      if (fetchedAt && !Number.isNaN(Date.parse(fetchedAt))) parts.push(`updated ${dataAge(fetchedAt, now())}`);
-      if (headers.get('X-Khonsu-Stale') === 'true') parts.push('saved copy');
-      return parts.join(' · ');
+      const pictureDate = headers.get('X-Khonsu-Picture-Date');
+      return {
+        pictureDate: /^\d{4}-\d{2}-\d{2}$/.test(pictureDate ?? '') ? pictureDate : '',
+        fetchedAt: fetchedAt && !Number.isNaN(Date.parse(fetchedAt)) ? fetchedAt : '',
+        stale: headers.get('X-Khonsu-Stale') === 'true',
+      };
     } catch {
-      return '';
+      return null;
     }
   }
 
@@ -133,12 +147,18 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
 
   function settle(token, stack, results) {
     if (token !== calls) return;
-    for (const layer of stack) setWarning(layer.id, results[layer.id] !== 'ok');
-    const shown = stack.filter((layer) => results[layer.id] === 'ok').map((layer) => byId.get(layer.id));
+    const loaded = (layer) => results[layer.id] === 'ok' || results[layer.id]?.status === 'ok';
+    for (const layer of stack) {
+      setWarning(layer.id, !loaded(layer));
+      if (loaded(layer) && results[layer.id]?.meta) freshness.set(layer.url, results[layer.id].meta);
+    }
+    const shown = stack.filter(loaded).map((layer) => ({ ...byId.get(layer.id), ...layer }));
     renderCredit(shown);
-    Promise.all(shown.map(async (layer) => {
-      const line = await freshnessOf(layer.id);
-      if (token === calls) freshness.set(layer.id, line);
+    // Legacy adapters may only return a status. Real textures carry their GET headers,
+    // so a later HEAD cannot assign a newer date to older retained pixels.
+    Promise.all(shown.filter((layer) => !results[layer.id]?.meta).map(async (layer) => {
+      const meta = await freshnessOf(layer);
+      if (token === calls) freshness.set(layer.url, meta);
     })).then(() => {
       if (token === calls) renderCredit(shown);
     });
@@ -152,7 +172,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     for (const id of warnings.keys()) {
       if (!ids.has(id)) setWarning(id, false);
     }
-    for (const id of ids) freshness.delete(id);
+    freshness.clear();
     showCredit([LOADING]);
     globe.setAurora(state.aurora ? auroraKp() : null);
     let request;
@@ -217,7 +237,7 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
       state.viewDate = '';
       state.viewBox = null;
     }],
-    ["Yesterday's Earth", () => {
+    ['Recent daily Earth', () => {
       state.base = trueColor();
       state.overlays = [];
       state.view = '';
@@ -412,14 +432,15 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
   // A transparent view goes over true colour when there is no base yet, so it has a backdrop.
   // Shows one view, or none for ''. Lessons and stories may give a past date, and an area
   // { minLat, minLon, maxLat, maxLon } for a sharp picture of one region.
-  function show(id, date = '', box = null, { plain = false } = {}) {
+  function show(id, date = '', box = null, { plain = false, base } = {}) {
     if (!active || (id !== '' && !isViewId(id))) return false;
     if (id && byId.get(id).story && !date) return false;
+    if (typeof base === 'string' && (base === '' || isBaseId(base))) state.base = base;
     state.view = id;
     state.viewDate = id ? date : '';
     state.viewBox = id && box ? box : null;
     state.viewPlain = Boolean(plain);
-    if (id && (byId.get(id).transparent === true || box) && !state.base) state.base = trueColor();
+    if (base === undefined && id && (byId.get(id).transparent === true || box) && !state.base) state.base = trueColor();
     commit();
     return true;
   }
@@ -432,5 +453,13 @@ export function createLayers({ element, panel, credit, catalog, storage, globe, 
     return true;
   }
 
-  return { start, setKp, selection, show, setBase, views: () => views().map((layer) => ({ ...layer })), viewOn: () => state.view };
+  // Lessons start without saved imagery or estimates. Ordinary panel choices keep their stacking rules.
+  function beginLesson() {
+    if (!active) return false;
+    Object.assign(state, { base: '', overlays: [], view: '', viewDate: '', viewBox: null, viewPlain: false, aurora: false, tried: null });
+    commit();
+    return true;
+  }
+
+  return { start, setKp, selection, show, setBase, beginLesson, views: () => views().map((layer) => ({ ...layer })), viewOn: () => state.view };
 }

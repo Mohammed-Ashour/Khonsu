@@ -148,12 +148,28 @@ export function createGlobe(container, { onPick, onSelect }) {
     entry.mesh = null;
   }
 
-  function loadImage(url) {
+  async function loadImage(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`The image request failed (${response.status}).`);
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
     return new Promise((resolve, reject) => {
       const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error('The image could not be loaded.'));
-      image.src = url;
+      image.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        // Keep the metadata with these exact bytes, including when the texture is reused.
+        image.imageryMeta = {
+          pictureDate: response.headers.get('X-Khonsu-Picture-Date') || '',
+          fetchedAt: response.headers.get('X-Khonsu-Fetched-At') || '',
+          stale: response.headers.get('X-Khonsu-Stale') === 'true',
+        };
+        resolve(image);
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('The image could not be loaded.'));
+      };
+      image.src = objectUrl;
     });
   }
 
@@ -186,6 +202,7 @@ export function createGlobe(container, { onPick, onSelect }) {
     const image = await loadImage(url);
     const texture = transparent ? new CanvasTexture(featherEdges(image)) : new Texture(image);
     texture.colorSpace = SRGBColorSpace;
+    texture.userData.imageryMeta = image.imageryMeta;
     texture.needsUpdate = true;
     return texture;
   }
@@ -212,9 +229,11 @@ export function createGlobe(container, { onPick, onSelect }) {
         return new Error('This layer was replaced before it loaded.');
       }
       entry.texture = texture;
+      entry.meta = texture.userData.imageryMeta;
       entry.mesh = new Mesh(
         layerGeometry(entry.box),
-        new MeshPhongMaterial({ map: texture, transparent: layer.transparent, depthWrite: false, depthFunc: LessEqualDepth, specular: 0x111111, shininess: 6 }),
+        // Keep provider colours unchanged by sunlight, highlights and tone mapping.
+        new MeshBasicMaterial({ map: texture, transparent: layer.transparent, depthWrite: false, depthFunc: LessEqualDepth, toneMapped: false }),
       );
       if (entry.box) entry.mesh.scale.setScalar(PATCH_RADIUS);
       earth.add(entry.mesh);
@@ -248,7 +267,7 @@ export function createGlobe(container, { onPick, onSelect }) {
     }
     imageryStack = next;
     restackLayers();
-    return Promise.all(next.map((entry) => entry.status.then((status) => [entry.id, status]))).then(Object.fromEntries);
+    return Promise.all(next.map((entry) => entry.status.then((status) => [entry.id, status === 'ok' && entry.meta ? { status, meta: entry.meta } : status]))).then(Object.fromEntries);
   }
 
   // The rings are children of Earth, so they turn with it. Replaced on each call.

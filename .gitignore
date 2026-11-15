@@ -10,6 +10,8 @@
 
 # Intentional offline documentation fixture
 !examples/tui-demo/iss.tle
+# Required offline license input, embedded by the notice generator.
+!/internal/tools/notices/licenses/go-localereader.txt
 /pkg/templates/node_modules/
 /examples/calendar/build/
 /examples/calendar/*.egg-info/

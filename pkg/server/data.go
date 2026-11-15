@@ -47,6 +47,7 @@ func registerDataRoutes(mux *http.ServeMux, client *sources.Hub) {
 	c := client
 	mux.HandleFunc("/api/v1/sources", d.catalog)
 	mux.HandleFunc("/api/v1/imagery", d.imagery)
+	mux.HandleFunc("/api/v1/imagery-legend", imageryLegend)
 	mux.HandleFunc("/api/v1/satellite-data", satelliteData)
 	mux.HandleFunc("/api/v1/lessons", lessons)
 	mux.HandleFunc("/api/v1/learn", learn)
@@ -259,6 +260,25 @@ func imageryBox(value string, layer gibs.Layer) (gibs.Box, error) {
 	return box, nil
 }
 
+// imageryLegend serves only bundled provider legends, including in local-file mode.
+func imageryLegend(w http.ResponseWriter, r *http.Request) {
+	layer, found := sources.FindLayer(r.URL.Query().Get("layer"))
+	if !found || layer.Legend == nil {
+		writeFailure(w, badRequest("unknown imagery legend"))
+		return
+	}
+	body, err := gibs.LegendImage(layer)
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	if r.Method != http.MethodHead {
+		_, _ = w.Write(body)
+	}
+}
+
 func (d dataAPI) imagery(w http.ResponseWriter, r *http.Request) {
 	layer, found := sources.FindLayer(r.URL.Query().Get("layer"))
 	if !found {
@@ -297,6 +317,9 @@ func (d dataAPI) imagery(w http.ResponseWriter, r *http.Request) {
 	headers.Set("Cache-Control", "no-store")
 	headers.Set("X-Khonsu-Fetched-At", meta.FetchedAt.Format(time.RFC3339))
 	headers.Set("X-Khonsu-Stale", strings.ToLower(strconv.FormatBool(meta.Stale)))
+	if meta.PictureDate != "" {
+		headers.Set("X-Khonsu-Picture-Date", meta.PictureDate)
+	}
 	if r.Method != http.MethodHead {
 		_, _ = w.Write(image)
 	}
