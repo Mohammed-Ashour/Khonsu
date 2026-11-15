@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/gibs"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/goes"
 	"io/fs"
 	"net"
 	"net/http"
@@ -13,6 +15,7 @@ import (
 	"strings"
 	"testing"
 	"testing/fstest"
+	"time"
 
 	"github.com/Mohammed-Ashour/khonsu/internal/catalog"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources"
@@ -353,5 +356,96 @@ func TestDataRoutesRejectBadInputBeforeReachingAProvider(t *testing.T) {
 		if recorder.Code != http.StatusBadRequest {
 			t.Errorf("%s: status %d, want 400", path, recorder.Code)
 		}
+	}
+}
+
+func TestSatelliteDataDescribesKnownSatellitesWithoutLiveData(t *testing.T) {
+	handler := newAppHandler(fileSource{nil}, nil, fstest.MapFS{"index.html": {Data: []byte("app")}})
+	get := func(id string) (int, map[string]any) {
+		recorder := httptest.NewRecorder()
+		handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/api/v1/satellite-data?norad_id="+id, nil))
+		var body map[string]any
+		_ = json.Unmarshal(recorder.Body.Bytes(), &body)
+		return recorder.Code, body
+	}
+	code, body := get("0040697")
+	profile, _ := body["profile"].(map[string]any)
+	if code != http.StatusOK || body["described"] != true || profile["name"] != "Sentinel-2A" || len(profile["kinds"].([]any)) == 0 {
+		t.Fatalf("Sentinel-2A = %d %v", code, body)
+	}
+	if code, body = get("99999"); code != http.StatusOK || body["described"] != false || body["profile"] != nil {
+		t.Fatalf("undescribed = %d %v", code, body)
+	}
+	if code, _ = get("abc"); code != http.StatusBadRequest {
+		t.Fatalf("invalid ID status = %d", code)
+	}
+}
+
+func TestLessonsAreServedWithoutLiveData(t *testing.T) {
+	handler := newAppHandler(fileSource{nil}, nil, fstest.MapFS{"index.html": {Data: []byte("app")}})
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/api/v1/lessons", nil))
+	var body struct {
+		Lessons []struct {
+			ID    string `json:"id"`
+			Steps []struct {
+				Text []struct {
+					Sources []struct {
+						URL string `json:"url"`
+					} `json:"sources"`
+				} `json:"text"`
+			} `json:"steps"`
+		} `json:"lessons"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &body); err != nil || recorder.Code != http.StatusOK || len(body.Lessons) == 0 {
+		t.Fatalf("status %d, err %v, body %s", recorder.Code, err, recorder.Body.String())
+	}
+	if body.Lessons[0].ID != "light-and-heat" || body.Lessons[0].Steps[0].Text[0].Sources[0].URL == "" {
+		t.Fatalf("first lesson = %+v", body.Lessons[0])
+	}
+}
+
+func TestImageryDateRules(t *testing.T) {
+	now := time.Date(2026, 11, 14, 12, 0, 0, 0, time.UTC)
+	daily := gibs.NightLights
+	story := gibs.NightLights.AsStory()
+	live := goes.EastInfrared
+	for _, tc := range []struct {
+		value string
+		layer gibs.Layer
+		dated bool
+		fails bool
+	}{
+		{"", daily, false, false},
+		{"2017-09-20", daily, true, false},
+		{"2017-09-20", story, true, false},
+		{"", story, false, true},
+		{"2026-11-14", daily, false, true},
+		{"1999-12-31", daily, false, true},
+		{"20170920", daily, false, true},
+		{"2017-09-20", live, false, true},
+	} {
+		_, dated, err := imageryDate(tc.value, tc.layer, now)
+		if dated != tc.dated || (err != nil) != tc.fails {
+			t.Errorf("%q %s: dated=%v err=%v", tc.value, tc.layer.ID, dated, err)
+		}
+	}
+}
+
+func TestImageryBoxIsForStoryLayersOnly(t *testing.T) {
+	story := gibs.NightLights.AsStory()
+	if box, err := imageryBox("17.6,-67.6,18.8,-65.2", story); err != nil || box != (gibs.Box{MinLat: 17.6, MinLon: -67.6, MaxLat: 18.8, MaxLon: -65.2}) {
+		t.Fatalf("box = %+v, err = %v", box, err)
+	}
+	if box, err := imageryBox("", gibs.NightLights); err != nil || box != gibs.World {
+		t.Fatalf("no bbox = %+v, %v", box, err)
+	}
+	for _, bad := range []string{"1,2,3", "a,b,c,d", "18,-65,17,-67", "-95,0,10,10"} {
+		if _, err := imageryBox(bad, story); err == nil {
+			t.Errorf("accepted %q", bad)
+		}
+	}
+	if _, err := imageryBox("17,-67,18,-65", gibs.NightLights); err == nil {
+		t.Error("a panel layer accepted an area")
 	}
 }

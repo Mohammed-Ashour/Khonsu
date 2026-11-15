@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="assets/web-demo.mp4"><img src="assets/web-demo.gif" width="100%" alt="A 25-second tour of the Khonsu web app: the ISS over a globe with live clouds, its next visible pass from London with a sky plot, the timeline playing ahead, then why Sentinel-2A is sun-synchronous, who runs it, and today's space weather"></a>
+  <a href="assets/web-demo.mp4"><img src="assets/web-demo.gif" width="100%" alt="A 25-second tour of the Khonsu web app: the ISS over a globe with live clouds, its next viewing window from London with a sky plot, the timeline playing ahead, then why Sentinel-2A is sun-synchronous, who runs it, and today's space weather"></a>
 </p>
 
 <img align="right" src="assets/khonsu-god.png" width="120" alt="Khonsu, the ancient Egyptian moon god, standing with a full moon resting in a crescent on his head, holding a crook, flail and staff, painted in blue and gold">
@@ -23,8 +23,8 @@
 Satellites cross your sky every night, but most trackers only give you numbers. Khonsu turns those numbers into answers:
 
 - **A moment to look up.** It tells you when a satellite will pass over you, whether you'll be able to see it, and whether clouds will be in the way.
-- **An understanding of what you see.** It explains in plain words why each orbit is the way it is, and links every sentence to a source.
-- **A view of the planet they watch.** See today's clouds, yesterday's Earth, the aurora estimate, and the latest pictures satellites took.
+- **An understanding of what you see.** It explains in plain words why each orbit is the way it is and what each satellite measures, and links every sentence to a source.
+- **A view of the planet they watch.** See recent clouds and daily Earth imagery, explore published findings about events such as Hurricane Maria, and find where Sentinel-2 and Landsat recently captured scenes.
 - **Tools you own.** Khonsu is one program that runs on your computer, with a web app, a terminal app and a command line. It needs no account.
 
 Khonsu was the ancient Egyptian god of the Moon. His name means "traveller", which may refer to the Moon's nightly journey across the sky ([Wikipedia](https://en.wikipedia.org/wiki/Khonsu)). This project follows newer travellers along the same path. It was previously called TLEGO.
@@ -42,13 +42,13 @@ go install github.com/Mohammed-Ashour/khonsu@latest
 khonsu web          # opens the app in your browser
 ```
 
-Everything works without setup. To save your location, or to connect an optional free [Space-Track](https://www.space-track.org/auth/createAccount) account, run `khonsu setup`, and press Enter to skip any question. From a checkout, `make install` and `make web` do the same, and `make help` lists the rest.
+No account is required. To save a location for terminal pass estimates, or to connect an optional free [Space-Track](https://www.space-track.org/auth/createAccount) account, run `khonsu setup`, and press Enter to skip any question. The web app keeps its own location in your browser. From a checkout, `make install` and `make web` do the same, and `make help` lists the rest.
 
 ## What you can do
 
 ### See the ISS tonight
 
-Ask when the International Space Station will be visible from where you are. This example uses Greenwich, London:
+Ask when the International Space Station will next be sunlit in your dark sky, a *viewing window* when you might see it. This example uses Greenwich, London:
 
 ```console
 $ khonsu tonight --lat 51.48 --lon 0
@@ -61,7 +61,11 @@ Sat 14 Nov  visible for 2m 25s
   fades    18:23:46  32° above S
 ```
 
-In the web app, set your location and open **Passes**. You get a countdown to the next visible pass, a sky plot of where to look, and a *Visible* badge on each pass you can see. **Check clouds near me** adds the forecast cloud cover for each one. `khonsu passes` does the same for any satellite.
+In the web app, set your location and open **Sky**. You get a countdown to the next viewing window, a sky plot of where to look, and a *Window* badge on each pass that is sunlit in a dark sky. Brightness, weather and obstructions may still prevent a sighting. **Check clouds near me** adds the forecast cloud cover for each one. `khonsu passes` does the same for any satellite.
+
+### Find any satellite
+
+Pick a group from the searchable group list, then filter it by name or type a NORAD number. *Search all groups* looks through every group at once. Each group's list is kept for the session, so switching back is instant. You can follow up to eight satellites, and drag the edges of the side panels to make room for the globe.
 
 ### Understand why a satellite flies where it does
 
@@ -92,24 +96,62 @@ Why It's Up There (Low Earth orbit):
 ...
 ```
 
-### Meet the satellite, and see what it sees
+### Learn what a satellite measures
 
-**Identity** shows who runs a satellite, when it launched and what it's for. **Radio** lists what it transmits and on which frequencies. For Sentinel-2 and Landsat, **Sees** finds their latest pictures of Earth and turns the globe to where each one was taken.
+Open **Data** to see what a satellite measures: its instruments, the kinds of data they collect, such as visible light, thermal infrared or radar, and what that data is used for. Every sentence links to its source. *Show on the globe* puts a matching picture over the globe:
+
+- GOES East's 10.3 µm infrared band, which shows clouds by day and by night;
+- NOAA-20's shortwave infrared false colour, which picks out plants, burn scars and snow;
+- city lights at night;
+- land and sea temperature.
+
+![GOES 19's Data tab explaining thermal infrared, with GOES East's infrared view of the Americas draped over the globe](assets/web-data.jpg)
+
+[What satellites measure](docs/what-satellites-measure.md) lists the satellites Khonsu describes and every source it uses.
+
+### Learn by looking
+
+Press **Learn** to open four chapters next to the globe.
+
+- **Kinds of data**: visible light, near and shortwave infrared, thermal infrared, night lights, microwaves, radar, altimetry, gases in the air and more. Each kind shows:
+  - whether it works at night and through cloud;
+  - what it is used for today, such as Copernicus flood maps from Sentinel-1 radar or NASA's FIRMS fire alerts;
+  - which satellites collect it, so you can pick one and follow it.
+
+  Two spectrum panels show selected instrument bands and centre wavelengths for light and radio waves.
+- **Sharp or often**: compare spatial resolution and observation intervals. The specifications explain each band's resolution, operating mode and satellite configuration.
+- **Stories**: seven events explained with dated pictures, published findings and records:
+  - Puerto Rico's lights after Hurricane Maria;
+  - the 2025 Los Angeles fires;
+  - Hurricane Helene's flooding mapped by radar through cloud;
+  - nitrogen dioxide during the 2020 lockdowns;
+  - Lake Mead in 2000 and 2022;
+  - three decades of sea level;
+  - the Arctic sea ice minimum.
+
+  Steps ask you to make a prediction, compare dated views or read a record. Illustrations are distinguished from the processed evidence in the cited studies. In particular, the Puerto Rico night images cannot establish changes in electric lighting.
+- **Lessons**: three short guided tours, such as comparing GOES East's visible and infrared views.
 
 <table>
   <tr>
-    <td width="50%"><img src="assets/web-identity.jpg" alt="The Identity tab for Sentinel-2A, with details from Wikidata, GCAT and Space-Track"></td>
-    <td width="50%"><img src="assets/web-sees.jpg" alt="The Sees tab marking where Sentinel-2A's latest image of Earth was taken, with the globe turned to face it"></td>
+    <td width="50%"><img src="assets/story-puerto-rico.gif" alt="Qualitative Suomi NPP ENCC illustrations for July and September 2017; their brightness cannot be compared to infer power outages"></td>
+    <td width="50%"><img src="assets/story-lake-mead.gif" alt="Lake Mead seen by Terra on 6 July 2000 and 3 July 2022, with the lake much smaller in 2022"></td>
   </tr>
   <tr>
-    <td>Identity combines Wikidata, GCAT and, with your own account, Space-Track.</td>
-    <td>Pick a recent image, and the globe turns to where it was taken.</td>
+    <td>Puerto Rico's ENCC night images are qualitative illustrations, not outage measurements. <a href="https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/snpp/VIIRS_SNPP_DayNightBand_ENCC.md">NASA warns that brightness is not comparable across nights.</a> NOAA separately reported that Maria knocked down 80 percent of utility poles (<a href="https://www.nhc.noaa.gov/data/tcr/AL152017_Maria.pdf">NOAA NHC</a>).</td>
+    <td>Lake Mead on 6 July 2000 and 3 July 2022, the dates NASA compared. In July 2022 it was 27 percent full (<a href="https://science.nasa.gov/earth/earth-observatory/lake-mead-keeps-dropping-150111">NASA Earth Observatory</a>).</td>
   </tr>
 </table>
 
+![The Learn panel showing imaging radar: it works at night and through cloud, is used for Copernicus flood maps and European ground motion maps, and is collected by Sentinel-1; beside it a story card charts Arctic sea ice each September since 1979](assets/web-learn.jpg)
+
+The charts use records Khonsu downloads when you open them: [NSIDC's Sea Ice Index](https://nsidc.org/data/g02135/versions/4) and [NOAA's satellite sea level record](https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/). Scientific claims link to their sources, and [What satellites measure](docs/what-satellites-measure.md) lists them all.
+
+On **Overview**, *Who runs it* combines Wikidata, GCAT and, with your own account, Space-Track. *Radio* lists what the satellite transmits and on which frequencies. For Sentinel-2 and Landsat, *Scene locations* lists the latest scenes they captured and turns the globe to the centre of each one.
+
 ### Watch the planet and the sky above it
 
-Press **Layers** to drape yesterday's true-colour Earth or near-live clouds from GOES and Himawari over the globe. You can add an aurora estimate drawn from NOAA's Kp index. The **Kp** and **Launch** chips in the top bar show today's space weather and the next launch. Scrub the timeline to look ahead, then press **Live** to come back.
+Press **Layers** for a recent daily true-colour mosaic or recent clouds from GOES and Himawari. Picture dates, download ages and expandable provider scales appear beside the globe. You can add an aurora estimate drawn from NOAA's Kp index. The **Kp** and **Launch** chips in the top bar show today's space weather and the next launch. Scrub the timeline to look ahead, then press **Live** to come back.
 
 ![The ISS over a globe with near-live clouds and an aurora estimate, and its upcoming passes with cloud forecasts](assets/web-app.jpg)
 
@@ -149,15 +191,16 @@ The calendar is an [extension](docs/extensions.md), a small program any language
 | Orbits | [CelesTrak](https://celestrak.org/), and [Space-Track](https://www.space-track.org/) with your own account |
 | Missions | [Wikidata](https://www.wikidata.org/) and [GCAT](https://planet4589.org/space/gcat/) by Jonathan McDowell |
 | Space weather | [NOAA SWPC](https://www.swpc.noaa.gov/), [CelesTrak](https://celestrak.org/SpaceData/) and [NASA DONKI](https://ccmc.gsfc.nasa.gov/tools/DONKI/) |
-| Earth imagery | [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/) with GOES and Himawari, and [Element 84 Earth Search](https://element84.com/earth-search/) |
+| Earth imagery | [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/) with GOES, Himawari, MODIS, VIIRS, Landsat, OPERA and OMI layers, and [Element 84 Earth Search](https://element84.com/earth-search/) |
+| Long records | [NSIDC Sea Ice Index](https://nsidc.org/data/g02135/versions/4) and [NOAA Laboratory for Satellite Altimetry](https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/) |
 | Sky, radio and launches | [Open-Meteo](https://open-meteo.com/), [SatNOGS DB](https://db.satnogs.org/) and [The Space Devs](https://thespacedevs.com/) |
-| Orbit explanations | ESA, NASA, CelesTrak, GPS.gov and others, linked from each sentence |
+| Orbit explanations and what satellites measure | ESA, NASA, NOAA, Copernicus, JMA, USGS, CelesTrak and others, linked from each sentence |
 
 Your copy of Khonsu fetches this data at runtime and credits it on screen, under the **Data** button. Khonsu doesn't bundle or redistribute it.
 
 ## Limits
 
-- Passes are geometric estimates found at one-minute steps, so a very short pass can be missed. Brightness isn't considered. See [visibility estimates](docs/visibility.md).
+- Viewing windows are geometric estimates found at one-minute steps, so a very short pass can be missed. Brightness isn't considered. See [visibility estimates](docs/visibility.md).
 - Predictions drift as orbital elements age, so Khonsu shows when they were last updated.
 - Orbit explanations are estimates from the elements. Their tolerances are documented in [orbit estimates](docs/orbit-estimates.md#why-its-up-there).
 - Newer objects have catalog numbers too long for TLE text. Khonsu uses GP JSON throughout, and only `khonsu tle` is limited.
@@ -184,7 +227,7 @@ CI runs on Linux, macOS and Windows. The web app's source is in `internal/webui/
 
 ## License
 
-Khonsu is available under the [MIT license](LICENSE.md).
+Khonsu is available under the [MIT license](LICENSE.md). The software it builds on keeps its own licenses, listed in full in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), which ships in every release archive.
 
 - **Libraries:** propagation uses [go-satellite-v2](https://github.com/Mohammed-Ashour/go-satellite-v2), the TUI uses [Bubble Tea](https://github.com/charmbracelet/bubbletea), and commands use [urfave/cli](https://github.com/urfave/cli). The web app and orbit viewer use [Three.js](https://threejs.org/) and [Natural Earth](https://www.naturalearthdata.com/).
 - **Drawing of Khonsu:** dedicated to the public domain ([CC0](https://creativecommons.org/publicdomain/zero/1.0/)) by its author on [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Khonsu_(azure_skin_color).svg).

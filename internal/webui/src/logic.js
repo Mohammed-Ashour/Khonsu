@@ -170,6 +170,20 @@ export function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
+// Codes every pass answer carries. Their limits are already stated next to the list.
+const ROUTINE_PLAN_WARNINGS = new Set(['sampled_passes', 'estimated_visibility']);
+
+// The warnings of a pass plan's answers, such as old or saved elements, once each.
+export function planWarnings(results) {
+  const seen = new Map();
+  for (const result of results) {
+    for (const warning of result?.warnings ?? []) {
+      if (!ROUTINE_PLAN_WARNINGS.has(warning.code) && !seen.has(warning.code)) seen.set(warning.code, warning);
+    }
+  }
+  return [...seen.values()];
+}
+
 // Marks each pass that overlaps a visible stretch, and carries that stretch along.
 export function annotatePasses(passes, visible) {
   return passes.map((pass) => ({
@@ -377,6 +391,47 @@ const PATTERN_LABELS = {
 
 // Turns the report's orbit explanation into what the Orbit tab shows. Unknown
 // pattern IDs are skipped, so a newer server can add patterns safely.
+// Only https links are shown, so a bad server value can't become a script URL.
+function safeSources(list) {
+  return (Array.isArray(list) ? list : [])
+    .filter((src) => typeof src?.url === 'string' && /^https:\/\//.test(src.url))
+    .map((src) => ({ label: String(src.label || 'Source'), title: String(src.title || src.label || 'Source'), url: src.url }));
+}
+
+function sourcedItems(statements) {
+  return (Array.isArray(statements) ? statements : [])
+    .filter((s) => typeof s?.text === 'string' && s.text.trim())
+    .map((s) => ({ text: s.text, sources: safeSources(s.sources) }));
+}
+
+// Shapes an /api/v1/satellite-data answer for the Data tab. Returns null for a satellite
+// Khonsu does not describe. `views` are the globe views on offer, so each kind lists only
+// the ones that can be shown.
+export function measuresView(response, views = []) {
+  const profile = response?.described ? response.profile : null;
+  if (!profile || !Array.isArray(profile.instruments) || profile.instruments.length === 0) return null;
+  const viewById = new Map(views.map((view) => [view.id, view]));
+  const kinds = (Array.isArray(profile.kinds) ? profile.kinds : []).filter((kind) => kind?.id && kind?.name);
+  const kindName = new Map(kinds.map((kind) => [kind.id, kind.name]));
+  return {
+    name: String(profile.name || ''),
+    chips: kinds.map((kind) => kind.name),
+    items: sourcedItems(profile.statements),
+    instruments: profile.instruments.map((instrument) => ({
+      name: String(instrument.name || ''),
+      kinds: (instrument.kinds ?? []).map((id) => kindName.get(id)).filter(Boolean),
+      items: sourcedItems(instrument.statements),
+    })),
+    kinds: kinds.map((kind) => ({
+      id: kind.id,
+      name: kind.name,
+      items: sourcedItems(kind.statements),
+      views: (kind.layers ?? []).filter((id) => viewById.has(id)).map((id) => ({ id, name: viewById.get(id).name })),
+      lessons: (Array.isArray(kind.lessons) ? kind.lessons : []).filter((lesson) => lesson?.id && lesson?.title).map((lesson) => ({ id: String(lesson.id), title: String(lesson.title) })),
+    })),
+  };
+}
+
 export function explanationView(explanation) {
   if (!explanation || !Array.isArray(explanation.statements) || explanation.statements.length === 0) return null;
   const chips = [explanation.regime_name || explanation.regime, ...(explanation.patterns ?? []).map((id) => PATTERN_LABELS[id])].filter(Boolean);

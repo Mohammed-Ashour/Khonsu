@@ -48,4 +48,5 @@ const (
 	CategorySkyConditions = "sky-conditions"
 	CategoryRadio         = "radio"
 	CategoryLaunches      = "launches"
+	CategoryRecords       = "records"
 )

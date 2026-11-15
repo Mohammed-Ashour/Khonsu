@@ -2,12 +2,17 @@ import { createApi, isAbort } from './api.js';
 import { createGlobe } from './globe.js';
 import { createLayers } from './layers.js';
 import {
-  annotatePasses, buildUrlState, canonicalId, clamp, cloudAtTime, compassPoint, elementAgeDays, filterSatellites, formatClock, formatCoordinate, formatCountdown, formatDay, formatDuration,
+  annotatePasses, planWarnings, buildUrlState, canonicalId, clamp, cloudAtTime, compassPoint, elementAgeDays, filterSatellites, formatClock, formatCoordinate, formatCountdown, formatDay, formatDuration,
   dataAge, explanationView, lookAt, MAX_TRACKED, migrateStorage, needsNewWindow, nextColor, parseObserver, parseUrlState, passesOverlap, providerMessage, readStoredObserver, safeStorage, shortCoordinate, sunlitAt, validId, windowFrom, zoneLabel,
 } from './logic.js';
 import { sampleAt } from '../../../pkg/templates/viewer-state.js';
 import { renderSky } from './sky.js';
 import { createDossier } from './dossier.js';
+import { appendSources, createDataTab } from './datatab.js';
+import { createResizers } from './resize.js';
+import { createGroupPicker } from './grouppicker.js';
+import { createLessonPlayer, lessonFromUrl, withLesson } from './lesson.js';
+import { createLearnHub } from './learn.js';
 import { createSkyBar } from './skybar.js';
 
 const LIST_LIMIT = 200;
@@ -34,6 +39,7 @@ const state = {
   groups: [],
   items: [],
   isSearchResult: false,
+  catalogLoading: false,
   tab: 'now',
   report: null,
   plan: null,
@@ -57,13 +63,33 @@ let sourcesRequest = null;
 let catalog = null;
 let layersCatalog = null;
 let dossier = null;
+let dataTab = null;
+let lessonPlayer = null;
+let groupPicker = null;
+let learnHub = null;
+// Each group's satellites, kept for the session so switching back is instant.
+const groupCache = new Map();
+// What the catalog list last showed, so an unchanged list is not rebuilt.
+let catalogKey = '';
+let catalogItems = null;
+// Read before the first syncUrl, which rewrites the address.
+const initialLesson = lessonFromUrl(location.search);
+let layersPanel = null;
 let skyBar = null;
-// Bumped on every selection change, so only the newest decides the Sees tab.
+// Bumped on every selection change, so only the newest decides whether scenes are offered.
 let selectionToken = 0;
 
-// Tab order matches the markup. Sees is hidden unless the selected satellite has scenes.
-const TABS = ['now', 'passes', 'orbit', 'identity', 'radio', 'sees'];
-const DOSSIER_TABS = ['identity', 'radio', 'sees'];
+// Tab order matches the markup.
+const TABS = ['now', 'orbit', 'data', 'passes'];
+// The collapsible dossier sections and the tab each one sits in. A provider hears about a
+// satellite only when its section is opened. Scene locations are offered only for imaging satellites.
+const SECTIONS = { identity: 'now', radio: 'now', sees: 'data' };
+
+function openSections() {
+  return Object.entries(SECTIONS)
+    .filter(([section, tab]) => tab === state.tab && byId(`section-${section}`).open && !byId(`section-${section}`).hidden)
+    .map(([section]) => section);
+}
 
 // Rerendering a list replaces its rows, so keyboard focus moves to the row with the
 // same data-focus key, or to the fallback if that row is gone.
@@ -92,7 +118,7 @@ function selectedEntry() {
 }
 
 function syncUrl() {
-  history.replaceState(null, '', buildUrlState(trackedIds(), state.selected) || location.pathname);
+  history.replaceState(null, '', withLesson(buildUrlState(trackedIds(), state.selected) || location.pathname, lessonPlayer?.current()));
 }
 
 function dayAndClock(time) {
@@ -120,7 +146,7 @@ async function loadTrack(entry) {
     globe?.select(state.selected);
     if (entry.framePending) {
       entry.framePending = false;
-      if (entry.id === state.selected) globe?.home(entry.id);
+      if (entry.id === state.selected && !lessonPlayer?.holdsCamera()) globe?.home(entry.id);
     }
   } catch (error) {
     if (isAbort(error)) return;
@@ -140,20 +166,21 @@ async function loadTrack(entry) {
   }
 }
 
-function addSatellite(id, name, { selectIt = true } = {}) {
+function addSatellite(id, name, { selectIt = true, frame = true } = {}) {
   const key = canonicalId(id);
   if (state.tracked.has(key)) {
     if (selectIt) select(key);
-    return;
+    return true;
   }
   if (state.tracked.size >= MAX_TRACKED) {
     setCatalogStatus(`You can track up to ${MAX_TRACKED} satellites. Remove one to add another.`, 'is-warning');
-    return;
+    return false;
   }
-  const entry = { id: key, name: name || `NORAD ${key}`, color: nextColor([...state.tracked.values()].map((item) => item.color)), track: null, error: null, loading: true, framePending: true };
+  const entry = { id: key, name: name || `NORAD ${key}`, color: nextColor([...state.tracked.values()].map((item) => item.color)), track: null, error: null, loading: true, framePending: frame };
   state.tracked.set(key, entry);
   if (selectIt) select(key);
   loadTrack(entry);
+  return true;
 }
 
 function removeSatellite(id) {
@@ -179,7 +206,7 @@ function select(id) {
     state.planFor = null;
     state.planError = null;
     state.activePass = null;
-    if (id && state.tracked.get(id)?.track) globe?.home(id);
+    if (id && state.tracked.get(id)?.track && !lessonPlayer?.holdsCamera()) globe?.home(id);
   }
   syncUrl();
   renderTracked();
@@ -191,17 +218,17 @@ function select(id) {
   if (changed) applySelection();
 }
 
-// Decides whether Sees is offered before the dossier opens a tab. If Sees is active and
-// the satellite has no scenes, the view moves to Now first, so no scene request is made.
+// Decides whether scene locations are offered before the dossier reloads its open sections.
+// For a satellite with no scenes the section is closed and hidden first, so no scene request is made.
 function applySelection() {
   const token = ++selectionToken;
+  if (state.tab === 'data') dataTab.render();
   dossier.hasSees().then((hasScenes) => {
     if (token !== selectionToken) return;
-    const seesTab = byId('tab-sees');
-    const focused = document.activeElement === seesTab;
-    seesTab.hidden = !hasScenes;
-    if (!hasScenes && state.tab === 'sees') showTab('now', focused);
-    dossier.selectionChanged(state.tab);
+    const scenes = byId('section-sees');
+    scenes.hidden = !hasScenes;
+    if (!hasScenes) scenes.open = false;
+    dossier.selectionChanged(openSections());
   });
 }
 
@@ -232,41 +259,54 @@ async function loadGroups() {
     if (!isAbort(error)) setCatalogStatus(`Could not load satellite groups: ${providerMessage(error.message)}`, 'is-error');
     return;
   }
-  const select = byId('group-select');
-  select.replaceChildren(...state.groups.map((name) => {
-    const option = element('option', '', name);
-    option.value = name;
-    return option;
-  }));
+  groupPicker.setGroups(state.groups);
   const preferred = state.groups.find((name) => name === 'Space Stations') ?? state.groups[0];
   if (preferred) {
-    select.value = preferred;
+    groupPicker.setCurrent(preferred);
     await loadGroup(preferred);
   }
 }
 
+let catalogRequest = 0;
+
 async function loadGroup(name) {
-  state.items = [];
+  const request = ++catalogRequest;
   state.isSearchResult = false;
+  if (groupCache.has(name)) {
+    state.items = groupCache.get(name);
+    state.catalogLoading = false;
+    setCatalogStatus('');
+    renderCatalog();
+    return;
+  }
+  state.items = [];
+  state.catalogLoading = true;
   renderCatalog();
-  setCatalogStatus(`Loading ${name}…`);
+  setCatalogStatus(`Loading ${name}… The first time can take a few seconds.`);
   try {
-    state.items = await api.satellites(name);
+    const items = await api.satellites(name);
+    if (request !== catalogRequest) return;
+    state.items = Array.isArray(items) ? items : [];
+    groupCache.set(name, state.items);
     setCatalogStatus('');
   } catch (error) {
-    if (isAbort(error)) return;
-    setCatalogStatus(`Could not load ${name}: ${providerMessage(error.message)}`, 'is-error');
+    if (request !== catalogRequest) return;
+    if (!isAbort(error)) setCatalogStatus(`Could not load ${name}: ${providerMessage(error.message)}`, 'is-error');
   }
+  state.catalogLoading = false;
   renderCatalog();
 }
 
 async function searchAllGroups(query) {
+  const request = ++catalogRequest;
   state.items = [];
   state.isSearchResult = true;
+  state.catalogLoading = true;
   renderCatalog();
   setCatalogStatus('Searching every group. The first search can take up to a minute.');
   try {
     const result = await api.search(query);
+    if (request !== catalogRequest) return;
     state.items = result.satellites ?? [];
     const partial = result.groups_covered < result.groups_total;
     setCatalogStatus(
@@ -274,17 +314,32 @@ async function searchAllGroups(query) {
       partial ? 'is-warning' : '',
     );
   } catch (error) {
-    if (isAbort(error)) return;
-    setCatalogStatus(`Search failed: ${providerMessage(error.message)}`, 'is-error');
+    if (request !== catalogRequest) return;
+    if (!isAbort(error)) setCatalogStatus(`Search failed: ${providerMessage(error.message)}`, 'is-error');
   }
+  state.catalogLoading = false;
   renderCatalog();
 }
 
 function renderCatalog() {
   const query = byId('filter-input').value;
+  const full = state.tracked.size >= MAX_TRACKED;
+  // Tracks load in the background and call this often. The rows only change with these,
+  // so an unchanged list is left alone instead of being rebuilt under the pointer.
+  const key = [state.items.length, state.items[0]?.norad_id, state.isSearchResult, state.catalogLoading, query, trackedIds().join(',')].join('|');
+  if (key === catalogKey && catalogItems === state.items) return;
+  catalogKey = key;
+  catalogItems = state.items;
   const matches = state.isSearchResult ? state.items : filterSatellites(state.items, query);
   const list = byId('catalog-list');
-  const full = state.tracked.size >= MAX_TRACKED;
+  if (state.catalogLoading && !state.items.length) {
+    // Placeholder rows hold the list's place, so it does not jump when the answer arrives.
+    list.replaceChildren(...Array.from({ length: 12 }, () => element('li', 'catalog-skeleton')));
+    list.setAttribute('aria-busy', 'true');
+    renderCatalogActions(query);
+    return;
+  }
+  list.removeAttribute('aria-busy');
   keepFocus(list, () => {
   list.replaceChildren(...matches.slice(0, LIST_LIMIT).map((item) => {
     const id = canonicalId(item.norad_id);
@@ -308,6 +363,10 @@ function renderCatalog() {
   }
   if (full) list.prepend(element('li', 'note', `You can track up to ${MAX_TRACKED} satellites. Remove one to add another.`));
   }, byId('filter-input'));
+  renderCatalogActions(query);
+}
+
+function renderCatalogActions(query) {
   const actions = byId('catalog-actions');
   actions.replaceChildren();
   const trimmed = query.trim();
@@ -441,6 +500,9 @@ function locationPrompt(container) {
   container.append(button);
 }
 
+// Shown beside every viewing window: the estimate is geometric only.
+const SIGHTING_CAVEAT = 'Brightness, weather and obstructions may prevent a sighting.';
+
 function nextVisible() {
   const passes = state.plan?.visible ?? [];
   return passes.find((pass) => Date.parse(pass.end.at) > Date.now()) ?? null;
@@ -454,13 +516,14 @@ function passSummary() {
   if (visible) {
     const start = Date.parse(visible.start.at);
     summary.append(
-      element('strong', '', Date.now() >= start ? 'Visible now' : `Visible ${formatCountdown(start, Date.now())}`),
+      element('strong', '', Date.now() >= start ? 'Viewing window now' : `Viewing window ${formatCountdown(start, Date.now())}`),
       element('span', '', `${dayAndClock(start)}, up to ${Math.round(visible.peak.elevation_deg)}° in the ${compassPoint(visible.peak.azimuth_deg)}.`),
+      element('span', 'pass-caveat', SIGHTING_CAVEAT),
     );
   } else if (!tonight.dark_start) {
     summary.append(element('strong', '', 'No dark sky soon'), element('span', '', 'The Sun stays too high for the next 24 hours.'));
   } else {
-    summary.append(element('strong', '', `No visible passes in the next ${PLAN_HOURS} hours`), element('span', '', `The next dark sky starts ${dayAndClock(Date.parse(tonight.dark_start))}.`));
+    summary.append(element('strong', '', `No viewing windows in the next ${PLAN_HOURS} hours`), element('span', '', `The next dark sky starts ${dayAndClock(Date.parse(tonight.dark_start))}.`));
   }
   return summary;
 }
@@ -495,6 +558,7 @@ function renderPassesContent(container) {
   }
   const { visible, passes } = state.plan;
   if (state.planError) container.append(element('p', 'note is-warning', `Could not update this list: ${state.planError}`));
+  for (const warning of state.plan.warnings ?? []) container.append(element('p', 'note is-warning plan-warning', warning.message));
   container.append(passSummary(), element('h2', 'eyebrow section-title', `Next ${PLAN_HOURS} hours · ${zoneLabel(state.utc)} time`));
   if (!passes.length) {
     container.append(element('p', 'note', 'No passes above your horizon in this period.'));
@@ -517,14 +581,14 @@ function renderPassesContent(container) {
       element('span', 'pass-elevation', `${Math.round(pass.maximum_elevation_deg)}°`),
       element('span', 'pass-detail', `${compassPoint(pass.start_azimuth_deg)} to ${compassPoint(pass.end_azimuth_deg)} · ${formatDuration(end - start)}${cloudText}`),
     );
-    if (pass.visible) button.append(element('span', 'badge', 'Visible'));
+    if (pass.visible) button.append(element('span', 'badge', 'Window'));
     button.addEventListener('click', () => choosePass(pass));
     container.append(button);
     if (isActive) container.append(renderActivePass());
   }
   container.append(element('p', 'note', forecast
-    ? 'Visible means sunlit, in a dark sky and at least 10° high. Brightness is not considered.'
-    : 'Visible means sunlit, in a dark sky and at least 10° high. Weather and brightness are not considered.'));
+    ? 'A viewing window means the satellite is sunlit, your sky is dark and it is at least 10° high. Brightness is not considered, so a faint satellite may not be seen.'
+    : 'A viewing window means the satellite is sunlit, your sky is dark and it is at least 10° high. Weather and brightness are not considered, so a faint satellite may not be seen.'));
   if (liveDataOn) container.append(cloudCheck());
 }
 
@@ -627,17 +691,20 @@ async function refreshPlan(force = false) {
     const tonight = await api.tonight(id, state.observer, Date.now());
     // Each answer covers one dark period, so keep asking until the list's end.
     const visible = [...tonight.data.passes];
+    const answers = [tonight];
     let night = tonight.data;
     const horizon = Date.now() + PLAN_HOURS * 3600000;
     while (night.dark_end && !night.dark_end_clipped && Date.parse(night.dark_end) < horizon) {
       const next = await api.tonight(id, state.observer, night.dark_end);
       if (state.planFor !== key) return;
       visible.push(...next.data.passes);
+      answers.push(next);
       night = next.data;
     }
     const passes = await passesRequest;
     if (state.planFor !== key) return;
-    state.plan = { tonight: tonight.data, visible, passes: passes.data.passes };
+    // Old or saved elements make every pass less certain, so their warnings stay with the plan.
+    state.plan = { tonight: tonight.data, visible, passes: passes.data.passes, warnings: planWarnings([passes, ...answers]) };
     if (state.activePass && !state.plan.passes.some((pass) => passesOverlap(state.activePass.pass, pass))) state.activePass = null;
   } catch (error) {
     if (isAbort(error) || state.planFor !== key) return;
@@ -678,15 +745,7 @@ function renderWhy(explanation) {
       mark.setAttribute('aria-describedby', 'orbit-why-legend');
       row.append(' ', mark);
     }
-    for (const source of item.sources) {
-      const link = element('a', 'why-source', source.label);
-      link.href = source.url;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      link.title = source.title;
-      link.setAttribute('aria-label', `Source: ${source.title} (${source.label}, opens in a new tab)`);
-      row.append(' ', link);
-    }
+    appendSources(element, row, item.sources);
     return row;
   }));
 }
@@ -777,13 +836,15 @@ function renderHeadline() {
     const start = Date.parse(visible.start.at);
     const started = Date.now() >= start;
     headline.append(
-      element('p', 'headline-title', `${started ? 'Visible now' : 'Next visible pass'} · ${entry.name}`),
+      element('p', 'headline-title', `${started ? 'Viewing window now' : 'Next viewing window'} · ${entry.name}`),
       element('p', 'headline-main', `${dayAndClock(start).slice(0, -3)}${started ? '' : ` · ${formatCountdown(start, Date.now())}`}`),
       element('p', 'headline-sub', `Up to ${Math.round(visible.peak.elevation_deg)}° in the ${compassPoint(visible.peak.azimuth_deg)}, starting in the ${compassPoint(visible.start.azimuth_deg)}.`),
+      element('p', 'headline-sub plan-warning', [SIGHTING_CAVEAT, ...(state.plan.warnings ?? []).map((warning) => warning.message)].join(' ')),
     );
     return;
   }
-  headline.append(element('p', 'headline-title', entry.name), element('p', 'headline-main', state.plan.tonight.dark_start ? `No visible passes in the next ${PLAN_HOURS} hours` : 'No dark sky soon'));
+  headline.append(element('p', 'headline-title', entry.name), element('p', 'headline-main', state.plan.tonight.dark_start ? `No viewing windows in the next ${PLAN_HOURS} hours` : 'No dark sky soon'));
+  headline.append(element('p', 'headline-sub plan-warning', [SIGHTING_CAVEAT, ...(state.plan.warnings ?? []).map((warning) => warning.message)].join(' ')));
 }
 
 function renderStatus() {
@@ -1048,6 +1109,29 @@ function wireLayersPanel() {
   });
 }
 
+// Lessons pick a satellite and turn the camera themselves, so the new satellite is not framed.
+function showSatellite(id) {
+  return addSatellite(id, undefined, { frame: false });
+}
+
+function faceGlobe(lat, lon, distance = null) {
+  if (!globe) return;
+  globe.face(lat, lon, distance);
+  setFollow(false);
+}
+
+// Learn takes the satellite list's column while it is open; the globe stays in view.
+function setLearnOpen(open) {
+  byId('learn-panel').hidden = !open;
+  document.querySelector('.catalog').hidden = open;
+  byId('learn-open').setAttribute('aria-pressed', String(open));
+  if (open) learnHub.render();
+}
+
+function wireLearn() {
+  byId('learn-open').addEventListener('click', () => setLearnOpen(byId('learn-panel').hidden));
+}
+
 function wireDataDialog() {
   const dialog = byId('data-dialog');
   byId('data-open').addEventListener('click', openDataDialog);
@@ -1126,7 +1210,8 @@ function showTab(name, focus = false) {
   }
   if (name === 'passes') refreshPlan();
   if (name === 'orbit') refreshReport();
-  if (DOSSIER_TABS.includes(name)) dossier.open(name);
+  if (name === 'data') dataTab.render();
+  for (const section of openSections()) dossier.open(section);
 }
 
 function wireTabs() {
@@ -1134,7 +1219,6 @@ function wireTabs() {
     const button = byId(`tab-${name}`);
     button.addEventListener('click', () => showTab(name));
     button.addEventListener('keydown', (event) => {
-      // Hidden tabs are skipped, so the arrow keys never reach Sees for a satellite without scenes.
       const shown = TABS.filter((tab) => !byId(`tab-${tab}`).hidden);
       const position = shown.indexOf(name);
       if (event.key === 'ArrowRight') showTab(shown[(position + 1) % shown.length], true);
@@ -1176,15 +1260,22 @@ function wireControls() {
     renderInspector();
     renderStatus();
     // Scene times are the only dossier text that depends on the zone. This reuses the saved response.
-    if (state.tab === 'sees') dossier.open('sees');
+    if (openSections().includes('sees')) dossier.open('sees');
   });
-  byId('group-select').addEventListener('change', (event) => {
-    byId('filter-input').value = '';
-    loadGroup(event.target.value);
+  groupPicker = createGroupPicker({
+    element,
+    button: byId('group-button'),
+    popover: byId('group-popover'),
+    input: byId('group-search'),
+    list: byId('group-options'),
+    onChoose(name) {
+      byId('filter-input').value = '';
+      loadGroup(name);
+    },
   });
   byId('filter-input').addEventListener('input', () => {
     if (state.isSearchResult) {
-      loadGroup(byId('group-select').value);
+      loadGroup(groupPicker.current());
       return;
     }
     renderCatalog();
@@ -1201,7 +1292,7 @@ function setFollow(value) {
   globe?.setFollowing(value);
 }
 
-// Sees rows call these. Both are safe without WebGL, when there is no globe.
+// Scene rows call these. Both are safe without WebGL, when there is no globe.
 function focusScene(point) {
   if (!globe) return;
   globe.showPoint(point.lat, point.lon);
@@ -1248,6 +1339,41 @@ async function start() {
     focusScene,
     clearScene,
   });
+  // Each section asks its provider only when the user opens it.
+  for (const section of Object.keys(SECTIONS)) {
+    byId(`section-${section}`).addEventListener('toggle', (event) => {
+      if (event.target.open) dossier.open(section);
+    });
+  }
+  const resizers = createResizers({ root: document.querySelector('.app'), handles: { catalog: byId('resize-catalog'), inspector: byId('resize-inspector') }, storage });
+  window.addEventListener('resize', () => resizers.fit());
+  lessonPlayer = createLessonPlayer({
+    api,
+    element,
+    card: byId('lesson-card'),
+    list: element('div'),
+    layers: () => layersPanel,
+    showSatellite,
+    face: faceGlobe,
+    onChange() {
+      byId('headline').hidden = Boolean(lessonPlayer.current());
+      syncUrl();
+    },
+  });
+  learnHub = createLearnHub({
+    api,
+    element,
+    panel: byId('learn-panel'),
+    layers: () => layersPanel,
+    showSatellite: (id) => addSatellite(id),
+    startLesson: (id) => lessonPlayer.start(id),
+    startStory: (id) => lessonPlayer.start(id),
+    onClose: () => {
+      setLearnOpen(false);
+      byId('learn-open').focus();
+    },
+  });
+  dataTab = createDataTab({ api, element, panel: byId('data-measures'), selectedEntry, dataFailure, layers: () => layersPanel, startLesson: (id) => lessonPlayer.start(id) });
   try {
     globe = createGlobe(byId('scene'), {
       onPick(point) {
@@ -1281,7 +1407,13 @@ async function start() {
     globe,
     dataAge,
   });
-  layers.start();
+  layersPanel = layers;
+  // The Data tab's "show on the globe" buttons appear once the views are known.
+  layers.start().then(() => {
+    if (state.tab === 'data') dataTab.render();
+    // A shared lesson link starts once the views are known, so its pictures can show.
+    if (initialLesson) lessonPlayer.start(initialLesson.id, initialLesson.step);
+  });
   skyBar = createSkyBar({
     api,
     element,
@@ -1298,6 +1430,7 @@ async function start() {
   wireControls();
   wireObserver();
   wireDataDialog();
+  wireLearn();
   wireLayersPanel();
   renderObserverLabel();
   renderSliderLabels();
@@ -1317,7 +1450,8 @@ async function start() {
     select(initial.selected);
   }
   await groupsLoaded;
-  if (!initial.ids.length && !state.tracked.size) {
+  // A shared lesson link chooses its own satellites.
+  if (!initial.ids.length && !state.tracked.size && !initialLesson) {
     const first = state.items.find((item) => canonicalId(item.norad_id) === DEFAULT_ID) ?? state.items[0];
     if (first) addSatellite(first.norad_id, first.name);
   }

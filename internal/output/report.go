@@ -5,6 +5,8 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"github.com/Mohammed-Ashour/khonsu/internal/knowledge"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,6 +29,26 @@ type ReportData struct {
 	// Explanation is published through the v1 record only, so the legacy
 	// report JSON keeps its original shape.
 	Explanation *orbit.Explanation `json:"-"`
+	// Measures says what the satellite measures, when Khonsu describes it. Like
+	// Explanation, it stays out of the legacy JSON.
+	Measures *knowledge.Profile `json:"-"`
+}
+
+// measuresFor returns nil for satellites Khonsu does not describe.
+func measuresFor(noradID string) *knowledge.Profile {
+	base, err := knowledge.Load()
+	if err != nil {
+		return nil
+	}
+	number, err := strconv.Atoi(noradID)
+	if err != nil {
+		return nil
+	}
+	profile, ok := base.ForSatellite(strconv.Itoa(number))
+	if !ok {
+		return nil
+	}
+	return &profile
 }
 
 // explanationFor returns nil when the elements cannot be explained; the rest
@@ -44,7 +66,7 @@ func BuildReportAt(element tle.TLE, position orbit.Position, orb orbit.OrbitInfo
 	if err != nil {
 		return ReportData{}, err
 	}
-	report := ReportData{Name: element.Name, NoradID: element.NoradID, Epoch: epoch, Generated: generated.UTC(), TLE: element.String(), Position: position, Orbit: orb, MapURL: mapURL}
+	report := ReportData{Name: element.Name, NoradID: element.NoradID, Epoch: epoch, Generated: generated.UTC(), TLE: element.String(), Position: position, Orbit: orb, MapURL: mapURL, Measures: measuresFor(element.NoradID)}
 	if record, err := elements.FromTLE(element); err == nil {
 		report.Explanation = explanationFor(record)
 	}
@@ -56,7 +78,7 @@ func BuildElementReportAt(element elements.Record, position orbit.Position, orb 
 	if err := element.Validate(); err != nil {
 		return ReportData{}, err
 	}
-	r := ReportData{Name: element.Name, NoradID: element.CatalogID, Epoch: element.Epoch.UTC(), Generated: generated.UTC(), Position: position, Orbit: orb, MapURL: mapURL, Explanation: explanationFor(element)}
+	r := ReportData{Name: element.Name, NoradID: element.CatalogID, Epoch: element.Epoch.UTC(), Generated: generated.UTC(), Position: position, Orbit: orb, MapURL: mapURL, Explanation: explanationFor(element), Measures: measuresFor(element.CatalogID)}
 	if element.LegacyTLE != nil {
 		r.TLE = element.LegacyTLE.String()
 	} else {
@@ -79,20 +101,63 @@ func formatExplanation(e *orbit.Explanation) string {
 		if s.Basis == orbit.BasisHeuristic {
 			mark = " (estimate)"
 		}
-		fmt.Fprintf(b, "- %s%s\n", s.Text, mark)
 		refs := make([]string, 0, len(s.Sources))
 		for _, src := range s.Sources {
-			refs = append(refs, fmt.Sprintf("%s, %s <%s>", src.Label, src.Title, src.URL))
+			refs = append(refs, sourceRef(src.Label, src.Title, src.URL))
 		}
-		if len(refs) > 0 {
-			fmt.Fprintf(b, "  Sources: %s\n", strings.Join(refs, "; "))
+		writeSourced(b, "", s.Text+mark, refs)
+	}
+	return b.String()
+}
+
+func sourceRef(label, title, url string) string {
+	return fmt.Sprintf("%s, %s <%s>", label, title, url)
+}
+
+func writeSourced(b *strings.Builder, indent, text string, refs []string) {
+	fmt.Fprintf(b, "%s- %s\n", indent, text)
+	if len(refs) > 0 {
+		fmt.Fprintf(b, "%s  Sources: %s\n", indent, strings.Join(refs, "; "))
+	}
+}
+
+// formatMeasures renders the "What it measures" section of a text report.
+func formatMeasures(p *knowledge.Profile) string {
+	if p == nil {
+		return ""
+	}
+	statement := func(b *strings.Builder, indent string, s knowledge.Statement) {
+		refs := make([]string, 0, len(s.Sources))
+		for _, src := range s.Sources {
+			refs = append(refs, sourceRef(src.Label, src.Title, src.URL))
+		}
+		writeSourced(b, indent, s.Text, refs)
+	}
+	kindNames := map[string]string{}
+	for _, kind := range p.Kinds {
+		kindNames[kind.ID] = strings.ToLower(kind.Name[:1]) + kind.Name[1:]
+	}
+	b := &strings.Builder{}
+	b.WriteString("\nWhat It Measures:\n")
+	b.WriteString("-----------------\n")
+	for _, s := range p.Statements {
+		statement(b, "", s)
+	}
+	for _, instrument := range p.Instruments {
+		names := make([]string, 0, len(instrument.Kinds))
+		for _, kind := range instrument.Kinds {
+			names = append(names, kindNames[kind])
+		}
+		fmt.Fprintf(b, "%s: %s\n", instrument.Name, strings.Join(names, ", "))
+		for _, s := range instrument.Statements {
+			statement(b, "  ", s)
 		}
 	}
 	return b.String()
 }
 
 func FormatReportText(r ReportData) string {
-	return formatReportText(r) + formatExplanation(r.Explanation)
+	return formatReportText(r) + formatExplanation(r.Explanation) + formatMeasures(r.Measures)
 }
 
 func formatReportText(r ReportData) string {

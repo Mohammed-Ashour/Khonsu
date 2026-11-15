@@ -90,3 +90,28 @@ func TestReportCarriesOrbitExplanationInV1AndTextOnly(t *testing.T) {
 		t.Errorf("empty explanation should be omitted: %s", v1)
 	}
 }
+
+func TestTextReportSaysWhatDescribedSatellitesMeasure(t *testing.T) {
+	record := elements.Record{Name: "SENTINEL-2A", CatalogID: "40697", Epoch: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC), SourceFormat: "gp-json",
+		MeanMotionRevDay: 14.3, Eccentricity: 0.0001, InclinationDeg: 98.6, Raw: []byte(`{}`)}
+	info, err := orbit.OrbitInfoFromElements(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := BuildElementReportAt(record, orbit.Position{}, info, "https://map", time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := FormatReportText(r)
+	if !strings.Contains(text, "What It Measures:") || !strings.Contains(text, "MultiSpectral Instrument (MSI): visible light, near infrared, shortwave infrared") ||
+		!strings.Contains(text, "    Sources: Copernicus SentiWiki, Sentinel-2 Mission <https://sentiwiki.copernicus.eu/web/s2-mission>") {
+		t.Errorf("text report lacks what it measures:\n%s", text)
+	}
+	if legacy, _ := FormatReportJSON(r); strings.Contains(string(legacy), "MultiSpectral") {
+		t.Errorf("legacy JSON changed shape: %s", legacy)
+	}
+	record.CatalogID = "12345"
+	if r, _ = BuildElementReportAt(record, orbit.Position{}, info, "https://map", time.Now()); strings.Contains(FormatReportText(r), "What It Measures") {
+		t.Error("an undescribed satellite got a What It Measures section")
+	}
+}

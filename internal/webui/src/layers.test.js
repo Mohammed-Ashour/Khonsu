@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createLayers } from './layers.js';
+import { createLessonPlayer } from './lesson.js';
 
 // A minimal stand-in for the DOM: enough for the panel's append, replaceChildren, attributes,
 // events, form state and textContent.
@@ -10,6 +11,7 @@ class FakeNode {
     this.className = className ?? '';
     this.children = [];
     this.attributes = {};
+    this.dataset = {};
     this.listeners = {};
     this.checked = false;
     this.value = '';
@@ -80,6 +82,9 @@ const LAYERS = [
   { id: 'goes-east', name: 'GOES East clouds', source_id: 'noaa', credit: 'NOAA', description: 'Near live', transparent: true },
   { id: 'goes-west', name: 'GOES West clouds', source_id: 'noaa', credit: 'NOAA', description: 'Near live', transparent: true },
   { id: 'himawari', name: 'Himawari clouds', source_id: 'jma', credit: 'JMA', description: 'Near live', transparent: true },
+  { id: 'night-lights', name: 'Earth at night', source_id: 'nasa', credit: 'NASA GIBS', description: 'Daily', transparent: false, topic: 'night_lights' },
+  { id: 'goes-east-infrared', name: 'GOES East infrared', source_id: 'noaa', credit: 'NOAA', description: 'Near live', transparent: true, topic: 'thermal_infrared' },
+  { id: 'snpp-night', name: 'Suomi NPP night lights', source_id: 'nasa', credit: 'NASA GIBS', description: 'Dated', transparent: false, topic: 'night_lights', story: true },
 ];
 
 const okAll = (stack) => Object.fromEntries(stack.map((layer) => [layer.id, 'ok']));
@@ -124,7 +129,7 @@ function fakeHead() {
   return head;
 }
 
-function setup({ catalog = { liveData: true, layers: LAYERS }, saved, storage, globe = undefined, respond } = {}) {
+function setup({ catalog = { liveData: true, layers: LAYERS }, saved, storage, globe = undefined, respond, fetchHead } = {}) {
   const panel = element('section');
   const credit = element('p');
   const store = storage ?? memoryStorage(saved);
@@ -137,11 +142,40 @@ function setup({ catalog = { liveData: true, layers: LAYERS }, saved, storage, g
     catalog: Promise.resolve(catalog),
     storage: store,
     globe: globeFake,
-    fetchHead: head,
+    fetchHead: fetchHead ?? head,
     dataAge: () => '3 h ago',
   });
   return { layers, panel, credit, store, globe: globeFake, head };
 }
+
+test('credits use the actual texture GET metadata without a relabelling HEAD request', async () => {
+  let heads = 0;
+  const meta = { pictureDate: '2026-11-07', fetchedAt: '2026-11-10T09:00:00Z', stale: true };
+  const { layers, credit } = setup({ respond: (stack) => Object.fromEntries(stack.map((layer) => [layer.id, { status: 'ok', meta }])), fetchHead: async () => { heads += 1; throw new Error('must not request another version'); } });
+  await layers.start();
+  layers.show('night-lights');
+  await flush();
+  assert.match(credit.textContent, /picture from 2026-11-07/);
+  assert.match(credit.textContent, /retrieved 3 h ago/);
+  assert.match(credit.textContent, /saved copy/);
+  assert.equal(heads, 0);
+});
+
+test('a quantitative view exposes its scale with the Layers panel closed', async () => {
+  const catalog = { liveData: true, layers: LAYERS.map((layer) => layer.id === 'goes-east-infrared' ? { ...layer, legend: { url: '/api/v1/imagery-legend?layer=goes-east-infrared', unit: '°C', description: 'Brightness temperature, not air temperature. Missing coverage is not a cold value.' } } : layer) };
+  const { layers, panel, credit } = setup({ catalog });
+  await layers.start();
+  panel.hidden = true;
+  layers.show('goes-east-infrared');
+  await flush();
+  const key = find(credit, (node) => node.tagName === 'details');
+  assert.ok(key);
+  assert.match(key.textContent, /scale.*°C/);
+  assert.match(key.textContent, /not air temperature/);
+  assert.equal(find(key, (node) => node.tagName === 'img').src, '/api/v1/imagery-legend?layer=goes-east-infrared');
+  assert.equal(panel.hidden, true);
+  assert.equal(credit.hidden, false);
+});
 
 test('the default makes no image request', async () => {
   const { layers, panel, credit, globe, head } = setup();
@@ -152,7 +186,7 @@ test('the default makes no image request', async () => {
   assert.deepEqual(head.urls, []);
   assert.equal(credit.hidden, true);
   assert.equal(panel.children[0].textContent, 'Layers');
-  assert.deepEqual(layers.selection(), { base: '', overlays: [], aurora: false });
+  assert.deepEqual(layers.selection(), { base: '', overlays: [], view: '', aurora: false });
 });
 
 test('a saved selection drops unknown ids and restores the stack', async () => {
@@ -160,7 +194,7 @@ test('a saved selection drops unknown ids and restores the stack', async () => {
   const { layers, globe } = setup({ saved });
   await layers.start();
   await flush();
-  assert.deepEqual(layers.selection(), { base: '', overlays: ['goes-east', 'himawari'], aurora: true });
+  assert.deepEqual(layers.selection(), { base: '', overlays: ['goes-east', 'himawari'], view: '', aurora: true });
   assert.deepEqual(globe.calls.layers, [['goes-east', 'himawari']]);
   assert.deepEqual(globe.calls.stacks[0][0], { id: 'goes-east', url: '/api/v1/imagery?layer=goes-east', transparent: true });
   assert.deepEqual(globe.calls.aurora, [null]);
@@ -173,21 +207,21 @@ test('presets set the expected stacks and save them', async () => {
 
   dispatch(button(panel, 'Clouds now'), 'click');
   await flush();
-  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: ['goes-east', 'goes-west', 'himawari'], aurora: false });
+  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: ['goes-east', 'goes-west', 'himawari'], view: '', aurora: false });
   assert.deepEqual(globe.calls.layers.at(-1), ['true-color', 'goes-east', 'goes-west', 'himawari']);
   assert.equal(radio(panel, 'true-color').checked, true);
   assert.equal(overlay(panel, 'goes-west').checked, true);
-  assert.deepEqual(JSON.parse(store.data.get('khonsu.layers')), { base: 'true-color', overlays: ['goes-east', 'goes-west', 'himawari'], aurora: false });
+  assert.deepEqual(JSON.parse(store.data.get('khonsu.layers')), { base: 'true-color', overlays: ['goes-east', 'goes-west', 'himawari'], view: '', aurora: false });
 
-  dispatch(button(panel, "Yesterday's Earth"), 'click');
+  dispatch(button(panel, 'Recent daily Earth'), 'click');
   await flush();
-  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: [], aurora: false });
+  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: [], view: '', aurora: false });
   assert.deepEqual(globe.calls.layers.at(-1), ['true-color']);
   assert.equal(overlay(panel, 'goes-east').checked, false);
 
   dispatch(button(panel, 'Plain'), 'click');
   await flush();
-  assert.deepEqual(layers.selection(), { base: '', overlays: [], aurora: false });
+  assert.deepEqual(layers.selection(), { base: '', overlays: [], view: '', aurora: false });
   assert.deepEqual(globe.calls.layers.at(-1), []);
   assert.equal(radio(panel, '').checked, true);
 });
@@ -222,7 +256,7 @@ test('a stale setLayers result is ignored', async () => {
   pending[0].resolve({ 'goes-east': new Error('late'), himawari: new Error('late') });
   await flush();
 
-  assert.deepEqual(creditLines(credit), ['GOES East clouds · NOAA · updated 3 h ago', 'Himawari clouds · JMA · updated 3 h ago']);
+  assert.deepEqual(creditLines(credit), ['GOES East clouds · NOAA · retrieved 3 h ago', 'Himawari clouds · JMA · retrieved 3 h ago']);
   assert.equal(warningOf(panel, 'goes-east').hidden, true);
   assert.equal(warningOf(panel, 'himawari').hidden, true);
 });
@@ -252,7 +286,7 @@ test('a failed layer is marked, and the mark clears after it loads', async () =>
   await flush();
   assert.equal(warningOf(panel, 'goes-east').hidden, true);
   assert.equal(warningOf(panel, 'goes-east').textContent, '');
-  assert.deepEqual(creditLines(credit), ['GOES East clouds · NOAA · updated 3 h ago']);
+  assert.deepEqual(creditLines(credit), ['GOES East clouds · NOAA · retrieved 3 h ago']);
 });
 
 test('the credit line lists only shown layers, then the aurora credit', async () => {
@@ -271,8 +305,8 @@ test('the credit line lists only shown layers, then the aurora credit', async ()
 
   assert.equal(credit.hidden, false);
   assert.deepEqual(creditLines(credit), [
-    'True colour · NASA GIBS · updated 3 h ago',
-    'GOES West clouds · NOAA · updated 3 h ago · saved copy',
+    'True colour · NASA GIBS · retrieved 3 h ago',
+    'GOES West clouds · NOAA · retrieved 3 h ago · saved copy',
     'Aurora estimated from NOAA SWPC Kp',
   ]);
 });
@@ -356,7 +390,7 @@ test('no globe shows only the note', async () => {
   assert.equal(panel.children[0].textContent, 'The globe is unavailable, so layers are turned off.');
   assert.equal(credit.hidden, true);
   layers.setKp(3);
-  assert.deepEqual(layers.selection(), { base: '', overlays: [], aurora: false });
+  assert.deepEqual(layers.selection(), { base: '', overlays: [], view: '', aurora: false });
 });
 
 test('storage that throws does not break the panel', async () => {
@@ -374,5 +408,186 @@ test('storage that throws does not break the panel', async () => {
   toggle(overlay(panel, 'goes-east'), true);
   await flush();
   assert.deepEqual(globe.calls.layers.at(-1), ['goes-east']);
-  assert.deepEqual(layers.selection(), { base: '', overlays: ['goes-east'], aurora: false });
+  assert.deepEqual(layers.selection(), { base: '', overlays: ['goes-east'], view: '', aurora: false });
+});
+
+const view = (panel, value) => find(panel, (node) => node.attributes.name === 'layer-view' && node.value === value);
+
+test('views have their own group and stay out of the everyday choices', async () => {
+  const started = setup();
+  await started.layers.start();
+  await flush();
+  assert.equal(radio(started.panel, 'night-lights'), null);
+  assert.equal(overlay(started.panel, 'goes-east-infrared'), null);
+  assert.ok(view(started.panel, 'night-lights'));
+  assert.ok(view(started.panel, ''));
+  assert.ok(find(started.panel, (node) => node.tagName === 'legend' && node.textContent === 'What satellites measure'));
+});
+
+test('show() replaces the clouds with one view, and presets clear it', async () => {
+  const { layers, panel, store, globe } = setup();
+  await layers.start();
+  await flush();
+  dispatch(button(panel, 'Clouds now'), 'click');
+  await flush();
+
+  assert.equal(layers.show('night-lights'), true);
+  await flush();
+  assert.deepEqual(globe.calls.layers.at(-1), ['night-lights']);
+  assert.equal(view(panel, 'night-lights').checked, true);
+  assert.equal(JSON.parse(store.data.get('khonsu.layers')).view, 'night-lights');
+
+  // A transparent view keeps the base picture under it, and the clouds stay off.
+  layers.show('goes-east-infrared');
+  await flush();
+  assert.deepEqual(globe.calls.layers.at(-1), ['true-color', 'goes-east-infrared']);
+  assert.equal(layers.viewOn(), 'goes-east-infrared');
+
+  dispatch(button(panel, 'Clouds now'), 'click');
+  await flush();
+  assert.equal(layers.viewOn(), '');
+  assert.deepEqual(globe.calls.layers.at(-1), ['true-color', 'goes-east', 'goes-west', 'himawari']);
+
+  assert.equal(layers.show('goes-east'), false, 'an everyday layer is not a view');
+  assert.equal(layers.show('nope'), false);
+});
+
+test('a transparent view on a plain globe gets true colour beneath it', async () => {
+  const { layers, globe } = setup();
+  await layers.start();
+  await flush();
+  layers.show('goes-east-infrared');
+  await flush();
+  assert.deepEqual(globe.calls.layers.at(-1), ['true-color', 'goes-east-infrared']);
+  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: [], view: 'goes-east-infrared', aurora: false });
+});
+
+test('a saved view is restored, and an unknown one dropped', async () => {
+  const restored = setup({ saved: { base: '', overlays: ['goes-east'], view: 'night-lights', aurora: false } });
+  await restored.layers.start();
+  await flush();
+  assert.deepEqual(restored.globe.calls.layers, [['night-lights']]);
+  const dropped = setup({ saved: { base: '', overlays: [], view: 'goes-east', aurora: false } });
+  await dropped.layers.start();
+  await flush();
+  assert.equal(dropped.layers.viewOn(), '');
+});
+
+test('show() does nothing before the panel starts', () => {
+  const { layers } = setup();
+  assert.equal(layers.show('night-lights'), false);
+});
+
+test('story layers stay out of the panel and need a date; dated views are not saved', async () => {
+  const { layers, panel, store, globe, credit } = setup();
+  await layers.start();
+  await flush();
+  assert.equal(view(panel, 'snpp-night'), null);
+  assert.equal(layers.views().some((item) => item.id === 'snpp-night'), false);
+  assert.equal(layers.show('snpp-night'), false, 'a story layer needs a date');
+  assert.equal(layers.show('snpp-night', '2017-09-20'), true);
+  await flush();
+  assert.equal(globe.calls.stacks.at(-1)[0].url, '/api/v1/imagery?layer=snpp-night&date=2017-09-20');
+  assert.match(credit.children.map((line) => line.textContent).join('\n'), /picture from 2017-09-20/);
+  assert.equal(JSON.parse(store.data.get('khonsu.layers')).view, '');
+  layers.show('night-lights');
+  await flush();
+  assert.equal(globe.calls.stacks.at(-1)[0].url, '/api/v1/imagery?layer=night-lights');
+});
+
+test('starting an actual lesson removes saved clouds, aurora and tried Kp without changing panel stacking rules', async () => {
+  const { layers, globe, panel } = setup({ saved: { base: 'true-color', overlays: ['goes-east'], aurora: true } });
+  await layers.start();
+  slider(panel).value = '6';
+  dispatch(slider(panel), 'input');
+  const player = createLessonPlayer({
+    api: { lessons: async () => ({ lessons: [{ id: 'colour', title: 'Colour', steps: [{ base: 'true-color', view: '' }] }] }) },
+    element, card: element('section'), list: element('div'), layers: () => layers,
+    showSatellite: () => true, face() {}, onChange() {},
+  });
+  assert.equal(await player.start('colour'), true);
+  await flush();
+  assert.deepEqual(layers.selection(), { base: 'true-color', overlays: [], view: '', aurora: false });
+  assert.deepEqual(globe.calls.layers.at(-1), ['true-color']);
+  assert.equal(globe.calls.aurora.at(-1), null);
+  assert.ok(paragraph(panel, 'Kp is not available yet'), 'the tried value was cleared');
+  toggle(overlay(panel, 'goes-east'), true);
+  layers.setBase('true-color');
+  assert.deepEqual(globe.calls.layers.at(-1), ['true-color', 'goes-east'], 'ordinary base changes still retain cloud choices');
+});
+
+test('explicit lesson bases do not depend on a preceding transparent view', async () => {
+  const { layers, globe } = setup();
+  await layers.start();
+  layers.show('goes-east-infrared', '', null, { base: 'true-color' });
+  layers.show('goes-east-infrared', '', null, { base: '' });
+  assert.deepEqual(globe.calls.layers.at(-1), ['goes-east-infrared']);
+  assert.equal(layers.selection().base, '');
+});
+
+const headResponse = (values) => ({ ok: true, headers: { get: (name) => values[name] ?? null } });
+
+test('automatic daily fallback credits its actual picture date separately from retrieval age', async () => {
+  const urls = [];
+  const { layers, credit, globe } = setup({ saved: { base: 'true-color' }, fetchHead: async (url) => {
+    urls.push(url);
+    return headResponse({ 'X-Khonsu-Picture-Date': '2026-11-12', 'X-Khonsu-Fetched-At': '2026-11-14T09:00:00Z', 'X-Khonsu-Stale': 'true' });
+  } });
+  await layers.start();
+  await flush();
+  assert.deepEqual(urls, [globe.calls.stacks.at(-1)[0].url]);
+  assert.deepEqual(creditLines(credit), ['True colour · picture from 2026-11-12 · NASA GIBS · retrieved 3 h ago · saved copy']);
+});
+
+test('explicit story date and crop get metadata from the exact displayed URL, not the daily image', async () => {
+  const urls = [];
+  const { layers, credit, globe } = setup({ fetchHead: async (url) => {
+    urls.push(url);
+    return headResponse({ 'X-Khonsu-Picture-Date': '2017-09-20', 'X-Khonsu-Fetched-At': '2026-11-14T09:00:00Z' });
+  } });
+  await layers.start();
+  layers.show('snpp-night', '2017-09-20', { minLat: 17, minLon: -68, maxLat: 19, maxLon: -65 }, { base: '' });
+  await flush();
+  assert.deepEqual(urls, [globe.calls.stacks.at(-1)[0].url]);
+  assert.equal(urls[0], '/api/v1/imagery?layer=snpp-night&date=2017-09-20&bbox=17%2C-68%2C19%2C-65');
+  assert.deepEqual(creditLines(credit), ['Suomi NPP night lights · picture from 2017-09-20 · NASA GIBS · retrieved 3 h ago']);
+});
+
+for (const change of ['date', 'bbox']) {
+  test(`a late HEAD for a different ${change} cannot replace current picture metadata`, async () => {
+    const pending = [];
+    const { layers, credit } = setup({ fetchHead: (url) => new Promise((resolve) => pending.push({ url, resolve })) });
+    await layers.start();
+    const box = { minLat: 17, minLon: -68, maxLat: 19, maxLon: -65 };
+    layers.show('snpp-night', '2017-09-20', box, { base: '' });
+    await flush();
+    const date = change === 'date' ? '2017-09-21' : '2017-09-20';
+    layers.show('snpp-night', date, change === 'bbox' ? { ...box, maxLat: 20 } : box, { base: '' });
+    await flush();
+    assert.equal(pending.length, 2);
+    assert.notEqual(pending[0].url, pending[1].url);
+    pending[1].resolve(headResponse({ 'X-Khonsu-Picture-Date': date, 'X-Khonsu-Fetched-At': '2026-11-14T09:00:00Z' }));
+    await flush();
+    const before = creditLines(credit);
+    pending[0].resolve(headResponse({ 'X-Khonsu-Picture-Date': '2000-01-01', 'X-Khonsu-Stale': 'true' }));
+    await flush();
+    assert.deepEqual(creditLines(credit), before);
+    assert.match(credit.textContent, new RegExp(`picture from ${date}`));
+    assert.doesNotMatch(credit.textContent, /2000-01-01|saved copy/);
+  });
+}
+
+test('a failed HEAD retains an explicit story date without borrowing automatic metadata', async () => {
+  let fail = false;
+  const { layers, credit } = setup({ fetchHead: async () => {
+    if (fail) throw new Error('offline');
+    return headResponse({ 'X-Khonsu-Picture-Date': '2026-11-12', 'X-Khonsu-Fetched-At': '2026-11-14T09:00:00Z' });
+  } });
+  await layers.start();
+  layers.show('snpp-night', '2017-09-20');
+  await flush();
+  fail = true;
+  layers.show('snpp-night', '2017-09-21');
+  await flush();
+  assert.deepEqual(creditLines(credit), ['Suomi NPP night lights · picture from 2017-09-21 · NASA GIBS']);
 });

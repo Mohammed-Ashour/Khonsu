@@ -6,7 +6,7 @@ Khonsu retrieves satellite elements, computes positions and pass estimates, and 
 
 ## Scope and Assumptions
 
-Verified on 2026-10-28 against the current repository, using the previous ARCHITECTURE.md baseline and inspecting the implemented packages. The core and executable extension system is implemented. GP JSON ingestion and direct SGP4 initialization are implemented. Runtime TUI/provider extensions remain outside the executable extension contract.
+Verified on 2026-10-28 against the current repository, using the previous ARCHITECTURE.md baseline and inspecting the implemented packages. The core and executable extension system is implemented. GP JSON ingestion and direct SGP4 initialization are implemented. Runtime TUI/provider extensions remain outside the executable extension contract. The Learn and imagery boundaries below were verified on 2026-11-14 while addressing the stacked PR reviews.
 
 ## System Overview
 
@@ -54,7 +54,7 @@ internal/sources holds one package per provider (swpc, wikidata, gcat and so on)
 - cmd/root.go owns the CLI; individual cmd files register native commands through init. cmd/run.go chooses native commands before external dispatch.
 - cmd/plugin.go exposes plugin list and plugin init. Initialization writes a new standalone Go or Python project from embedded templates without invoking external tools or overwriting existing directories.
 - cmd/tui.go calls pkg/tui.RunContext.
-- cmd/server.go calls pkg/server.Serve with context cancellation. The CLI defaults to 127.0.0.1:8080; --addr and --static-dir configure serving.
+- cmd/server.go calls pkg/server.Serve with context cancellation. It serves the JSON API only, at 127.0.0.1:8080 by default, with the web app's read-only, same-site and loopback-host checks. --static-dir opts in to serving files, such as the legacy public/ prototype. The web app is `khonsu web`.
 - cmd/web.go calls pkg/server.ServeApp with the embedded internal/webui files, or with a local element file instead of the live catalog. It binds first, prints the URL, then opens a browser.
 - pkg/server.NewHandler exposes the legacy API plus the versioned position, report, passes, tonight, track, look and search endpoints without registering on the global mux.
 - examples/ contains standalone Go examples and the independently packaged Python calendar extension.
@@ -68,10 +68,12 @@ internal/sources holds one package per provider (swpc, wikidata, gcat and so on)
 | internal/elements | Shared TLE line/payload validation and parsing, GP JSON records, exact catalog IDs and original source | Standard library and legacy TLE field types; no fetching or propagation |
 | internal/sgp4 | Direct mean-element initialization and near-Earth/deep-space propagation | Source-carried numerical engine with upstream license and provenance |
 | internal/orbit | UTC propagation, TEME vectors, geographic coordinates, vector speed, derived orbit estimates, observers, pass planning, and Sun and visibility estimates | Internal SGP4 engine and dependency coordinate conversions; no HTTP, filesystem, output encoding or terminal state |
-| internal/output | Legacy report encoding and explicit JSON v1 transport records | Orbit types and element records; no fetching or process execution |
+| internal/knowledge | Embedded sourced descriptions, instruments, lessons and event stories; validates references and scene/chart structure | Standard library; no provider requests or browser state |
+| internal/sources | Source registry, provider clients, dated imagery and observational records | Shared feed cache/request limits; GIBS owns provider palettes and exact picture dates |
+| internal/output | Legacy report encoding and explicit JSON v1 transport records | Orbit types, element records and curated knowledge; no fetching or process execution |
 | internal/extensions | PATH discovery, direct executable launch, streams, status, cancellation and embedded starter generation | Standard process/filesystem APIs; Windows cleanup uses the existing x/sys dependency |
 | pkg/tui | Screen/input state, settings, selected records with provenance, cancellable requests, tracking sessions and pass results | Core packages; old exported domain/report helpers remain wrappers |
-| pkg/server | HTTP request validation, response adapters and static serving | Shared catalog, orbit and output packages; depends on an element source interface, not a concrete store |
+| pkg/server | HTTP request validation, response adapters and static serving | Shared catalog, orbit, output, knowledge and provider packages; depends on an element source interface, not a concrete store |
 | internal/webui | Compiled browser app and its source | No Go logic beyond embedding; all orbital results come from the API, and the committed bundle is checked in CI |
 | pkg/visual, pkg/templates | Orbit sampling and embedded offline HTML export | Core orbital states, export validation and the pinned compiled viewer |
 | pkg/celestrak, pkg/tui/data | Historical public catalog APIs | Thin adapters to internal/catalog; mutable legacy URL/download configuration remains supported |
@@ -100,16 +102,21 @@ internal/output builds legacy reports with explicit generation time and encodes 
 
 For the web app, pkg/server wraps the store in a memo. A loaded group provides its satellites without further provider requests, expired elements are served at once and refreshed in the background, provider requests outlive the browser request that started them, and failures back off. The CLI, TUI and `khonsu server` read the store directly.
 
+The Learn data flow is `internal/knowledge/knowledge.json -> knowledge.Load -> pkg/server /api/v1/learn and /api/v1/lessons -> internal/webui/src/learn.js and lesson.js`. The Learn endpoint separates event stories from introductory lessons; both use one player and one source of curated data. Scene selection, navigation and catalog-request ordering remain browser responsibilities. The player resolves a destination's inherited scene, reports satellite-capacity refusal without evicting user tracks, and keeps lesson overlays separate from saved layer choices. Provider records for sea level and sea ice load only when a step needs them. Chart aggregation labels incomplete annual bins rather than representing them as complete years.
+
+Daily GIBS images use date-specific cache keys. `feed.Meta.PictureDate` identifies the product day independently of `FetchedAt`; the imagery adapter exposes it as `X-Khonsu-Picture-Date`. The renderer retains headers from the same GET as the image bytes, so a later metadata request cannot relabel an older reused texture. Images are decoded from short-lived blob URLs permitted by the image CSP and revoked after loading. Three recent days are tried before using a validated saved dated image from the preceding 30 days. Legacy undated cache files cannot establish a product date. Explicit story requests preserve their requested day and bounding box rather than substituting another day. Provider legend PNGs are embedded under `internal/sources/gibs/legends/` and served through an allowlisted local `/api/v1/imagery-legend` route, including without live providers. Legend descriptions distinguish variable, units, clipped bins and missing observations. Scientific textures use unlit materials so sunlight and the timeline do not alter their encoded colours.
+
 The web app requests a 25-hour sampled track for each satellite and interpolates markers between samples. It does not propagate in the browser. Its Sun direction comes from the track response, and Earth rotation from the same UTC-derived GMST as the orbit viewer. Passes, visibility and sky paths come from the same planners as the CLI.
 
 The viz command accepts a live catalog ID or a validated local TLE or GP JSON file. pkg/visual samples core states from one UTC start and atomically writes embedded data, renderer and CSS. Points are physical TEME kilometres with UTC times and metadata. The frontend maps axes into Three.js, rotates the globe using UTC-derived GMST, and interpolates only within the common sample interval. The viewer bundle has a separate Node build/check job; Go consumers do not need Node.
 
-The experimental public browser client owns one active selection request. New selections abort previous requests and reject their late responses. HTTP failures show a status message and preserve the last complete scene. Group changes clear old satellite choices, and empty choices remain disabled after failure.
+The legacy public/ browser prototype (served only with `khonsu server --static-dir public`) owns one active selection request. New selections abort previous requests and reject their late responses. HTTP failures show a status message and preserve the last complete scene. Group changes clear old satellite choices, and empty choices remain disabled after failure.
 
 Unknown valid top-level commands resolve to khonsu-command on PATH. Built-in names and aliases always win; invalid native flags do not trigger dispatch. Extensions inherit arguments, streams, environment and working directory. Discovery lists paths without executing code. plugin init creates standalone projects from internal/extensions/templates with a sample command, tests and installation instructions. docs/writing-extensions.md explains extension development. The Python calendar example consumes pass-plan JSON and emits an iCalendar file as an independent process.
 
 ## Module Ownership Boundaries
 
+- `internal/knowledge` owns curated claims and source references, not live scene acquisition or scientific analysis. A product citation and retrieval timestamp alone do not prove a scene's coverage, processing suitability or acquisition time. In particular, qualitative ENCC imagery cannot substantiate inter-night changes in electric lighting.
 - Core packages do not import cmd, pkg/tui or pkg/server. UI request state and rendering remain in the frontend.
 - internal/sgp4 owns numerical SGP4 calculations and direct initialization. Khonsu owns consistent time, units, input validation and output contracts. Changes to the source-carried numerical files require comparison with the pinned upstream revision and reference-vector validation.
 - Settings and recent-history persistence remain TUI concerns. Selection metadata, pass input identity and tracking session identity belong to the TUI. Report generation time is explicit in the reusable builder.

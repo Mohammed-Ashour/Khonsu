@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	UserAgent      = "Khonsu (+https://github.com/Mohammed-Ashour/Khonsu)"
+	UserAgent      = catalog.UserAgent
 	maxResponse    = 8 << 20
 	requestTimeout = 25 * time.Second
 	failurePause   = 15 * time.Minute
@@ -31,6 +31,9 @@ type Meta struct {
 	FetchedAt time.Time `json:"fetched_at"`
 	Stale     bool      `json:"stale"`
 	Warning   string    `json:"warning,omitempty"`
+	// PictureDate is the daily product's UTC date, not its retrieval time.
+	// Imagery clients derive it only from a date-specific cache key.
+	PictureDate string `json:"picture_date,omitempty"`
 }
 
 // Client fetches provider data politely. Each provider gets one request at a time,
@@ -54,7 +57,11 @@ type gate struct {
 
 // NewClient stores responses under cacheDir, or the user cache when it is empty.
 func NewClient(cacheDir string) *Client {
-	client := &Client{http: &http.Client{}, Clock: time.Now, gates: map[string]*gate{}}
+	// Some providers, such as NOAA's altimetry server, take close to ten seconds to finish a
+	// TLS handshake, which is the default limit. Each request still has its own timeout.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.TLSHandshakeTimeout = 30 * time.Second
+	client := &Client{http: &http.Client{Transport: transport}, Clock: time.Now, gates: map[string]*gate{}}
 	if cacheDir == "" {
 		cacheDir, client.dirErr = catalog.DefaultCacheDir()
 	}
@@ -65,6 +72,11 @@ func NewClient(cacheDir string) *Client {
 // ErrCredentialsRejected is wrapped by a Prepare error when the provider refused the
 // user's account. That waits longestPause, while other Prepare errors wait failurePause.
 var ErrCredentialsRejected = errors.New("credentials rejected")
+
+// ErrNoData is wrapped by a Validate error when the provider answered properly but
+// has nothing for this request, such as a daily image that is not ready yet. It
+// does not count as a provider failure, so other requests are not paused.
+var ErrNoData = errors.New("no data for this request")
 
 // Request describes one provider response to fetch or reuse.
 type Request struct {
@@ -129,8 +141,10 @@ func (c *Client) Fetch(ctx context.Context, r Request) ([]byte, Meta, error) {
 		body, pause, err = c.download(ctx, r)
 		if err == nil {
 			if err = r.Validate(body); err != nil {
+				if !errors.Is(err, ErrNoData) {
+					pause = failurePause
+				}
 				err = fmt.Errorf("unexpected response: %w", err)
-				pause = failurePause
 			}
 		}
 		if err == nil {
@@ -250,6 +264,15 @@ func writeSaved(path string, body []byte) error {
 		return err
 	}
 	return os.Rename(file.Name(), path)
+}
+
+// Cached reads and validates an exact saved response without contacting its provider.
+// It does not imply freshness; callers choosing a fallback must mark it stale.
+func (c *Client) Cached(r Request) ([]byte, Meta, bool) {
+	if c.dirErr != nil {
+		return nil, Meta{}, false
+	}
+	return c.readSaved(r.savedPath(c.dir), r)
 }
 
 // Now returns the client's current time.

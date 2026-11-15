@@ -1,0 +1,3257 @@
+{
+ "sources": {
+  "earthdata-spectrum": {
+   "label": "NASA Earthdata",
+   "title": "Electromagnetic Spectrum",
+   "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/electromagnetic-spectrum"
+  },
+  "earthdata-active": {
+   "label": "NASA Earthdata",
+   "title": "Active Instruments",
+   "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing/active-instruments"
+  },
+  "earthdata-passive": {
+   "label": "NASA Earthdata",
+   "title": "Passive Instruments",
+   "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing/passive-instruments"
+  },
+  "earthdata-resolution": {
+   "label": "NASA Earthdata",
+   "title": "Remote Sensing Resolution",
+   "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/remote-sensing-resolution"
+  },
+  "earthdata-sar": {
+   "label": "NASA Earthdata",
+   "title": "What is Synthetic Aperture Radar?",
+   "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar"
+  },
+  "eo-false-color": {
+   "label": "NASA Earth Observatory",
+   "title": "How to Interpret a False-Color Satellite Image",
+   "url": "https://science.nasa.gov/earth/earth-observatory/how-to-interpret-a-false-color-satellite-image"
+  },
+  "nesdis-abi": {
+   "label": "NOAA NESDIS",
+   "title": "Advanced Baseline Imager (ABI)",
+   "url": "https://www.nesdis.noaa.gov/our-satellites/currently-flying/goes-east-west/advanced-baseline-imager-abi"
+  },
+  "nesdis-abi-channels": {
+   "label": "NOAA NESDIS",
+   "title": "ABI Scan Mode Information and Channel Summary",
+   "url": "https://www.nesdis.noaa.gov/our-satellites/currently-flying/goes-east-west/abi-scan-mode-information-and-channel-summary"
+  },
+  "nesdis-geo": {
+   "label": "NOAA NESDIS",
+   "title": "Geostationary Satellites",
+   "url": "https://www.nesdis.noaa.gov/our-satellites/currently-flying/geostationary-satellites"
+  },
+  "jma-ahi": {
+   "label": "JMA Meteorological Satellite Center",
+   "title": "Advanced Himawari Imager (AHI)",
+   "url": "https://www.data.jma.go.jp/mscweb/en/himawari89/space_segment/spsg_ahi.html"
+  },
+  "jma-satellites": {
+   "label": "Japan Meteorological Agency",
+   "title": "Meteorological Satellites",
+   "url": "https://www.jma.go.jp/jma/jma-eng/satellite/"
+  },
+  "earthdata-viirs": {
+   "label": "NASA Earthdata",
+   "title": "VIIRS",
+   "url": "https://www.earthdata.nasa.gov/data/instruments/viirs"
+  },
+  "earthdata-viirs-bands": {
+   "label": "NASA Earthdata",
+   "title": "VIIRS Spectral Bands",
+   "url": "https://www.earthdata.nasa.gov/data/instruments/viirs/spectral-bands"
+  },
+  "black-marble": {
+   "label": "NASA",
+   "title": "Black Marble",
+   "url": "https://blackmarble.gsfc.nasa.gov/"
+  },
+  "earthdata-modis": {
+   "label": "NASA Earthdata",
+   "title": "MODIS",
+   "url": "https://www.earthdata.nasa.gov/data/instruments/modis"
+  },
+  "aqua-modis": {
+   "label": "NASA Science",
+   "title": "Aqua: MODIS",
+   "url": "https://science.nasa.gov/mission/aqua/modis"
+  },
+  "terra": {
+   "label": "NASA",
+   "title": "Terra",
+   "url": "https://terra.nasa.gov/"
+  },
+  "mod11": {
+   "label": "NASA Earthdata",
+   "title": "MODIS/Terra Land Surface Temperature/Emissivity Daily (MOD11A1)",
+   "url": "https://www.earthdata.nasa.gov/data/catalog/lpcloud-mod11a1-061"
+  },
+  "mur": {
+   "label": "NASA Earthdata",
+   "title": "GHRSST Level 4 MUR Global Foundation Sea Surface Temperature Analysis (v4.1)",
+   "url": "https://www.earthdata.nasa.gov/data/catalog/pocloud-mur-jpl-l4-glob-v4.1-4.1"
+  },
+  "s1": {
+   "label": "Copernicus SentiWiki",
+   "title": "Sentinel-1 Mission",
+   "url": "https://sentiwiki.copernicus.eu/web/s1-mission"
+  },
+  "s2": {
+   "label": "Copernicus SentiWiki",
+   "title": "Sentinel-2 Mission",
+   "url": "https://sentiwiki.copernicus.eu/web/s2-mission"
+  },
+  "s3": {
+   "label": "Copernicus SentiWiki",
+   "title": "Sentinel-3 Mission",
+   "url": "https://sentiwiki.copernicus.eu/web/s3-mission"
+  },
+  "s5p": {
+   "label": "Copernicus SentiWiki",
+   "title": "Sentinel-5P Mission",
+   "url": "https://sentiwiki.copernicus.eu/web/s5p-mission"
+  },
+  "usgs-landsat-bands": {
+   "label": "USGS",
+   "title": "What are the band designations for the Landsat satellites?",
+   "url": "https://www.usgs.gov/faqs/what-are-band-designations-landsat-satellites"
+  },
+  "landsat9": {
+   "label": "NASA Science",
+   "title": "Landsat 9",
+   "url": "https://science.nasa.gov/mission/landsat-9"
+  },
+  "smap": {
+   "label": "NASA JPL",
+   "title": "SMAP Mission Description",
+   "url": "https://smap.jpl.nasa.gov/mission/description/"
+  },
+  "swot": {
+   "label": "NASA JPL",
+   "title": "SWOT Mission Overview",
+   "url": "https://swot.jpl.nasa.gov/mission/overview/"
+  },
+  "iss": {
+   "label": "NASA",
+   "title": "International Space Station",
+   "url": "https://www.nasa.gov/international-space-station/"
+  },
+  "ecostress": {
+   "label": "NASA JPL",
+   "title": "ECOSTRESS",
+   "url": "https://ecostress.jpl.nasa.gov/"
+  },
+  "gedi": {
+   "label": "University of Maryland",
+   "title": "GEDI",
+   "url": "https://gedi.umd.edu/"
+  },
+  "emit": {
+   "label": "NASA JPL",
+   "title": "EMIT",
+   "url": "https://earth.jpl.nasa.gov/emit/"
+  },
+  "esa-orbits": {
+   "label": "ESA",
+   "title": "Types of orbits",
+   "url": "https://www.esa.int/Enabling_Support/Space_Transportation/Types_of_orbits"
+  },
+  "celestrak-geo": {
+   "label": "CelesTrak",
+   "title": "Basics of the Geostationary Orbit",
+   "url": "https://celestrak.org/columns/v04n07/"
+  },
+  "nhc-maria": {
+   "label": "NOAA NHC",
+   "title": "Tropical Cyclone Report: Hurricane Maria",
+   "url": "https://www.nhc.noaa.gov/data/tcr/AL152017_Maria.pdf"
+  },
+  "eo-maria": {
+   "label": "NASA Earth Observatory",
+   "title": "Pinpointing Where the Lights Went Out in Puerto Rico",
+   "url": "https://science.nasa.gov/earth/earth-observatory/pinpointing-where-lights-went-out-in-puerto-rico-91044"
+  },
+  "nesdis-la-fires": {
+   "label": "NOAA NESDIS",
+   "title": "NOAA Satellites Monitor Raging Wildfires in California",
+   "url": "https://www.nesdis.noaa.gov/news/noaa-satellites-monitor-raging-wildfires-california"
+  },
+  "earthdata-opera-helene": {
+   "label": "NASA Earthdata",
+   "title": "OPERA: Mapping Flood Waters in the Face of the Storm",
+   "url": "https://www.earthdata.nasa.gov/learn/data-in-action/opera-mapping-flood-waters-face-storm"
+  },
+  "eo-no2-china": {
+   "label": "NASA Earth Observatory",
+   "title": "Airborne Nitrogen Dioxide Plummets Over China",
+   "url": "https://science.nasa.gov/earth/earth-observatory/airborne-nitrogen-dioxide-plummets-over-china-146362"
+  },
+  "esa-no2-europe": {
+   "label": "ESA",
+   "title": "Air pollution remains low as Europeans stay at home",
+   "url": "https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-5P/Air_pollution_remains_low_as_Europeans_stay_at_home"
+  },
+  "eo-lake-mead": {
+   "label": "NASA Earth Observatory",
+   "title": "Lake Mead Keeps Dropping",
+   "url": "https://science.nasa.gov/earth/earth-observatory/lake-mead-keeps-dropping-150111"
+  },
+  "jpl-sea-level-30": {
+   "label": "NASA Science / JPL-Caltech",
+   "title": "30 Years of Sea Level Rise, 17 March 2023",
+   "url": "https://science.nasa.gov/photojournal/30-years-of-sea-level-rise/"
+  },
+  "jpl-pia26189": {
+   "label": "NASA Science / JPL-Caltech",
+   "title": "Satellite Record of Sea Level Rise From 1993 to 2024, 13 March 2025",
+   "url": "https://science.nasa.gov/photojournal/satellite-record-of-sea-level-rise-from-1993-to-2024/"
+  },
+  "noaa-lsa": {
+   "label": "NOAA LSA",
+   "title": "Laboratory for Satellite Altimetry: Sea Level Rise",
+   "url": "https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/"
+  },
+  "svs-sea-ice-2025": {
+   "label": "NASA SVS",
+   "title": "Arctic Sea Ice Minimum 2025",
+   "url": "https://svs.gsfc.nasa.gov/5583"
+  },
+  "svs-sea-ice-2012": {
+   "label": "NASA SVS",
+   "title": "Arctic Sea Ice Minimum 1979–2012",
+   "url": "https://svs.gsfc.nasa.gov/11081/"
+  },
+  "eo-sea-ice-2025": {
+   "label": "NASA Earth Observatory",
+   "title": "Arctic Sea Ice Ties for 10th Lowest on Record",
+   "url": "https://science.nasa.gov/earth/earth-observatory/arctic-sea-ice-ties-for-10th-lowest-on-record-154807/"
+  },
+  "nsidc-g02135": {
+   "label": "NSIDC",
+   "title": "Sea Ice Index, Version 4 (G02135)",
+   "url": "https://nsidc.org/data/g02135/versions/4"
+  },
+  "goes-band2": {
+   "label": "NOAA",
+   "title": "ABI Band 2 Quick Guide",
+   "url": "https://www.goes.noaa.gov/documents/ABIQuickGuide_Band02.pdf"
+  },
+  "goes-abi-bands": {
+   "label": "NOAA",
+   "title": "ABI Spectral Attributes",
+   "url": "https://www.goes.noaa.gov/abispectralattributes.php"
+  },
+  "eo-remote-sensing": {
+   "label": "NASA Earth Observatory",
+   "title": "Remote Sensing",
+   "url": "https://science.nasa.gov/earth/earth-observatory/remote-sensing"
+  },
+  "wmo-mwir": {
+   "label": "WMO OSCAR",
+   "title": "Mid-wave infrared observing missions",
+   "url": "https://space.oscar.wmo.int/observingmissions/view/39"
+  },
+  "nasa-ems-ir": {
+   "label": "NASA Science",
+   "title": "Infrared Waves",
+   "url": "https://science.nasa.gov/ems/07_infraredwaves/"
+  },
+  "clms-hrvpp": {
+   "label": "Copernicus",
+   "title": "CLMS releases HR-VPP product to assess ecosystems and biodiversity",
+   "url": "https://www.copernicus.eu/en/news/news/observer-clms-releases-hr-vpp-product-assess-ecosystems-and-biodiversity"
+  },
+  "usda-crop-casma": {
+   "label": "USDA NASS",
+   "title": "Crop-CASMA metadata",
+   "url": "https://www.nass.usda.gov/Research_and_Science/Cropland/metadata/metadata_cropcasma.htm"
+  },
+  "earthdata-black-marble": {
+   "label": "NASA Earthdata",
+   "title": "Black Marble",
+   "url": "https://www.earthdata.nasa.gov/data/projects/black-marble"
+  },
+  "landsat-bands-apps": {
+   "label": "NASA Science",
+   "title": "Landsat Spectral Bands and Applications",
+   "url": "https://science.nasa.gov/mission/landsat/spectral-bands-and-applications/"
+  },
+  "mtbs": {
+   "label": "MTBS (USGS and USDA Forest Service)",
+   "title": "Project Overview",
+   "url": "https://www.mtbs.gov/project-overview"
+  },
+  "usgs-nbr": {
+   "label": "USGS",
+   "title": "Landsat Normalized Burn Ratio",
+   "url": "https://www.usgs.gov/landsat-missions/landsat-normalized-burn-ratio"
+  },
+  "coastwatch-sst": {
+   "label": "NOAA CoastWatch",
+   "title": "Sea Surface Temperature",
+   "url": "https://coastwatch.noaa.gov/cwn/product-families/sea-surface-temperature.html"
+  },
+  "firms": {
+   "label": "NASA Earthdata",
+   "title": "FIRMS",
+   "url": "https://www.earthdata.nasa.gov/data/tools/firms"
+  },
+  "coral-reef-watch": {
+   "label": "NOAA Coral Reef Watch",
+   "title": "Daily 5km Satellite Coral Bleaching Heat Stress Monitoring",
+   "url": "https://coralreefwatch.noaa.gov/product/5km/index.php"
+  },
+  "nasa-smap-launch": {
+   "label": "NASA",
+   "title": "NASA Launches Groundbreaking Soil Moisture Mapping Satellite",
+   "url": "https://www.nasa.gov/news-release/nasa-launches-groundbreaking-soil-moisture-mapping-satellite-2/"
+  },
+  "ecmwf-allsky": {
+   "label": "ECMWF",
+   "title": "Recent progress in all-sky radiance assimilation",
+   "url": "https://www.ecmwf.int/en/newsletter/161/meteorology/recent-progress-all-sky-radiance-assimilation"
+  },
+  "nesdis-atms": {
+   "label": "NOAA NESDIS",
+   "title": "Advanced Technology Microwave Sounder (ATMS)",
+   "url": "https://www.nesdis.noaa.gov/our-satellites/currently-flying/joint-polar-satellite-system/advanced-technology-microwave-sounder-atms"
+  },
+  "cems-gfm": {
+   "label": "Copernicus",
+   "title": "Copernicus Emergency Management Service week 2021",
+   "url": "https://www.copernicus.eu/en/news/news/observer-copernicus-emergency-management-service-week-2021"
+  },
+  "egms": {
+   "label": "Copernicus Land Monitoring Service",
+   "title": "European Ground Motion Service",
+   "url": "https://land.copernicus.eu/en/products/european-ground-motion-service"
+  },
+  "copernicus-s6-marine": {
+   "label": "Copernicus",
+   "title": "How Sentinel-6 Michael Freilich improves Copernicus Marine Service ocean data",
+   "url": "https://www.copernicus.eu/en/news/news/observer-how-sentinel-6-michael-freilich-improves-copernicus-marine-service-ocean-data"
+  },
+  "earthdata-swot": {
+   "label": "NASA Earthdata",
+   "title": "SWOT",
+   "url": "https://www.earthdata.nasa.gov/data/platforms/space-based-platforms/swot"
+  },
+  "icesat2-lasers": {
+   "label": "NASA GSFC",
+   "title": "ICESat-2: Space Lasers",
+   "url": "https://icesat-2.gsfc.nasa.gov/space-lasers"
+  },
+  "cams-no2": {
+   "label": "Copernicus CAMS",
+   "title": "CAMS global forecasting system introduces operational use of Sentinel-5P NO2",
+   "url": "https://atmosphere.copernicus.eu/successful-upgrade-cams-global-forecasting-system-introduces-operational-use-sentinel-5p-no2"
+  },
+  "sacs": {
+   "label": "BIRA-IASB",
+   "title": "Support to Aviation Control Service",
+   "url": "https://sacs.aeronomie.be/"
+  },
+  "svs-oco2": {
+   "label": "NASA SVS",
+   "title": "OCO-2 carbon dioxide",
+   "url": "https://svs.gsfc.nasa.gov/5115"
+  },
+  "earthdata-sar-bands": {
+   "label": "NASA Earthdata",
+   "title": "What is Synthetic Aperture Radar?",
+   "url": "https://www.earthdata.nasa.gov/learn/earth-observation-data-basics/sar"
+  },
+  "viirs-dnb-laads": {
+   "label": "NASA LAADS",
+   "title": "VIIRS Day/Night Band (VJ102DNB)",
+   "url": "https://ladsweb.modaps.eosdis.nasa.gov/missions-and-measurements/products/VJ102DNB"
+  },
+  "ncc-viirs": {
+   "label": "NOAA NCC",
+   "title": "About VIIRS",
+   "url": "https://ncc.nesdis.noaa.gov/VIIRS/aboutVIIRS.php"
+  },
+  "modis-transition": {
+   "label": "NASA Earthdata",
+   "title": "Transition from MODIS to VIIRS",
+   "url": "https://www.earthdata.nasa.gov/data/alerts-outages/transition-from-modis-viirs"
+  },
+  "usgs-landsat9": {
+   "label": "USGS",
+   "title": "Landsat 9",
+   "url": "https://www.usgs.gov/landsat-missions/landsat-9"
+  },
+  "usgs-landsat-pair": {
+   "label": "USGS",
+   "title": "Landsat 8 and Landsat 9 satellite constellation",
+   "url": "https://www.usgs.gov/media/videos/landsat-8-and-landsat-9-satellite-constellation"
+  },
+  "smap-specs": {
+   "label": "NASA JPL",
+   "title": "SMAP Observatory Specifications",
+   "url": "https://smap.jpl.nasa.gov/observatory/specifications/"
+  },
+  "tropomi-no2": {
+   "label": "TROPOMI mission team",
+   "title": "Nitrogen dioxide",
+   "url": "https://www.tropomi.eu/data-products/nitrogen-dioxide"
+  },
+  "aviso-swot": {
+   "label": "AVISO (CNES)",
+   "title": "SWOT",
+   "url": "https://www.aviso.altimetry.fr/en/missions/current-missions/swot"
+  },
+  "worldview-viirs-false-color": {
+   "label": "NASA GIBS / Worldview",
+   "title": "NOAA-20 VIIRS corrected reflectance, bands M11-I2-I1",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/noaa20/VIIRS_NOAA20_CorrectedReflectance_BandsM11-I2-I1.md"
+  },
+  "worldview-viirs-true-color": {
+   "label": "NASA GIBS / Worldview",
+   "title": "NOAA-20 VIIRS corrected reflectance, true color",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/noaa20/VIIRS_NOAA20_CorrectedReflectance_TrueColor.md"
+  },
+  "worldview-encc": {
+   "label": "NASA GIBS / Worldview",
+   "title": "Suomi NPP VIIRS Day/Night Band ENCC limitations",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/snpp/VIIRS_SNPP_DayNightBand_ENCC.md"
+  },
+  "worldview-opera": {
+   "label": "NASA GIBS / Worldview",
+   "title": "OPERA Sentinel-1 dynamic surface water extent",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/multi-mission/opera/OPERA_L3_Dynamic_Surface_Water_Extent-Sentinel-1.md"
+  },
+  "worldview-ice": {
+   "label": "NASA GIBS / Worldview",
+   "title": "AMSR-E/AMSR2 sea ice concentration, 12 km",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/amsr2/AMSRU2_Sea_Ice_Concentration_12km.md"
+  },
+  "worldview-modis-true-color": {
+   "label": "NASA GIBS / Worldview",
+   "title": "Terra MODIS corrected reflectance, true color",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/modis/terra/MODIS_Terra_CorrectedReflectance_TrueColor.md"
+  },
+  "worldview-modis-false-color": {
+   "label": "NASA GIBS / Worldview",
+   "title": "Terra MODIS corrected reflectance, bands 7-2-1",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/modis/terra/MODIS_Terra_CorrectedReflectance_Bands721.md"
+  },
+  "worldview-fires": {
+   "label": "NASA GIBS / Worldview",
+   "title": "NOAA-20 VIIRS thermal anomalies, 375 m",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/noaa20/VIIRS_NOAA20_Thermal_Anomalies_375m_All.md"
+  },
+  "worldview-omi": {
+   "label": "NASA GIBS / Worldview",
+   "title": "Aura OMI tropospheric nitrogen dioxide column",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/omi/OMI_Nitrogen_Dioxide_Tropo_Column.md"
+  },
+  "worldview-hls": {
+   "label": "NASA GIBS / Worldview",
+   "title": "HLS Landsat 8/9 OLI adjusted reflectance",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/multi-mission/hls/HLS_L30_Nadir_BRDF_Adjusted_Reflectance.md"
+  },
+  "smap-anomaly": {
+   "label": "NASA JPL",
+   "title": "SMAP Team Investigating Radar Instrument Anomaly, updated 5 August 2015",
+   "url": "https://smap.jpl.nasa.gov/news/1244/smap-team-investigating-radar-instrument-anomaly/"
+  },
+  "wmo-nir": {
+   "label": "WMO OSCAR",
+   "title": "Instruments covering 700-1300 nm",
+   "url": "https://space.oscar.wmo.int/observingmissions/view/37"
+  },
+  "wmo-swir": {
+   "label": "WMO OSCAR",
+   "title": "Instruments covering 1300-3000 nm",
+   "url": "https://space.oscar.wmo.int/observingmissions/view/38"
+  },
+  "worldview-modis-lst": {
+   "label": "NASA GIBS / Worldview",
+   "title": "Terra MODIS daytime land surface temperature",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/modis/terra/MODIS_Terra_Land_Surface_Temp_Day.md"
+  },
+  "worldview-goes-ir": {
+   "label": "NASA GIBS / Worldview",
+   "title": "GOES East ABI band 13 clean infrared",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/goes/GOES-East_ABI_Band13_Clean_Infrared.md"
+  },
+  "worldview-noaa20-dnb": {
+   "label": "NASA GIBS / Worldview",
+   "title": "NOAA-20 VIIRS Day/Night Band display limitations",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/noaa20/VIIRS_NOAA20_DayNightBand.md"
+  },
+  "noaa-lsa-csv": {
+   "label": "NOAA LSA",
+   "title": "Global mean sea level anomaly, annual signals removed, CSV",
+   "url": "https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/slr/slr_sla_gbl_free_ref_90.csv"
+  },
+  "nsidc-september-csv": {
+   "label": "NSIDC",
+   "title": "Sea Ice Index V4, northern September monthly extent, CSV",
+   "url": "https://noaadata.apps.nsidc.org/NOAA/G02135/north/monthly/data/N_09_extent_v4.0.csv"
+  }
+ },
+ "kinds": [
+  {
+   "id": "visible",
+   "name": "Visible light",
+   "statements": [
+    {
+     "text": "Visible light is the part of the spectrum our eyes can see. True-colour images combine red, green and blue light to resemble human vision.",
+     "sources": [
+      "earthdata-spectrum",
+      "eo-false-color"
+     ]
+    },
+    {
+     "text": "On GOES, ABI's two visible channels track clouds, fog, haze, dust, snow cover and volcanic ash.",
+     "sources": [
+      "nesdis-abi"
+     ]
+    }
+   ],
+   "layers": [
+    "goes-east-visible",
+    "true-color"
+   ],
+   "conditions": [
+    {
+     "label": "Daytime only",
+     "value": false,
+     "text": "Visible bands record reflected sunlight; NOAA lists ABI's red band as daytime only.",
+     "sources": [
+      "eo-false-color",
+      "goes-band2"
+     ]
+    },
+    {
+     "label": "Blocked by cloud",
+     "value": false,
+     "text": "Observations hidden by clouds and their shadows have to be thrown away.",
+     "sources": [
+      "clms-hrvpp"
+     ]
+    }
+   ],
+   "uses": [
+    {
+     "text": "The Copernicus Land Monitoring Service maps vegetation seasons across Europe at 10 m from Sentinel-2.",
+     "sources": [
+      "clms-hrvpp"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "near_infrared",
+   "name": "Near infrared",
+   "statements": [
+    {
+     "text": "Plants reflect near-infrared light very strongly, so images that use it make vegetated land stand out.",
+     "sources": [
+      "eo-false-color"
+     ]
+    }
+   ],
+   "layers": [
+    "false-color"
+   ],
+   "conditions": [
+    {
+     "label": "Daytime only",
+     "value": false,
+     "text": "Near infrared is reflected sunlight, like visible light.",
+     "sources": [
+      "eo-false-color"
+     ]
+    },
+    {
+     "label": "Sees through haze",
+     "value": true,
+     "text": "Near infrared can penetrate haze, which helps in smoky or hazy scenes.",
+     "sources": [
+      "eo-false-color"
+     ]
+    }
+   ],
+   "uses": [
+    {
+     "text": "The US Department of Agriculture's Crop-CASMA tool uses MODIS data to provide vegetation index maps, such as NDVI, for crops across the continental US.",
+     "sources": [
+      "usda-crop-casma",
+      "eo-false-color"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shortwave_infrared",
+   "name": "Shortwave infrared",
+   "statements": [
+    {
+     "text": "Newly burned land reflects strongly in shortwave infrared, which makes it valuable for mapping fire damage.",
+     "sources": [
+      "eo-false-color"
+     ]
+    },
+    {
+     "text": "This VIIRS false-colour view displays shortwave infrared as red, near infrared as green and visible red light as blue. Vegetation looks bright green, burns red and thick snow or ice sky blue. High ice clouds can also look blue.",
+     "sources": [
+      "worldview-viirs-false-color"
+     ]
+    },
+    {
+     "text": "ABI's 3.9 µm infrared band is sensitive to the hottest part of a fire pixel. ABI often detects fires before people spot them on the ground.",
+     "sources": [
+      "nesdis-abi"
+     ]
+    }
+   ],
+   "layers": [
+    "false-color"
+   ],
+   "conditions": [
+    {
+     "label": "Less affected by smoke and dust",
+     "value": true,
+     "text": "Shortwave infrared is less affected by scattering from fog, dust and smoke than visible light.",
+     "sources": [
+      "landsat-bands-apps"
+     ]
+    }
+   ],
+   "uses": [
+    {
+     "text": "Water absorbs shortwave infrared at 1,400, 1,900 and 2,400 nm, so it helps estimate how much water is in plants and soil.",
+     "sources": [
+      "eo-false-color"
+     ]
+    },
+    {
+     "text": "The US Monitoring Trends in Burn Severity programme maps large fires from Landsat, and USGS measures burns with the Normalized Burn Ratio of near and shortwave infrared.",
+     "sources": [
+      "mtbs",
+      "usgs-nbr"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "thermal_infrared",
+   "name": "Thermal infrared",
+   "statements": [
+    {
+     "text": "Warm surfaces emit thermal infrared radiation. Energy absorbed by the ocean, for example, returns to the atmosphere as infrared.",
+     "sources": [
+      "earthdata-spectrum",
+      "eo-false-color"
+     ]
+    },
+    {
+     "text": "NOAA likens its infrared channels to night-vision goggles, because they see by day and by night.",
+     "sources": [
+      "nesdis-abi"
+     ]
+    },
+    {
+     "text": "Forecasters use cloud-top temperatures as predictors of rainfall intensity and flash flooding.",
+     "sources": [
+      "nesdis-abi"
+     ]
+    }
+   ],
+   "layers": [
+    "goes-east-infrared",
+    "land-temperature",
+    "sea-temperature"
+   ],
+   "conditions": [
+    {
+     "label": "Works at night",
+     "value": true,
+     "text": "The ground gives off thermal infrared, so it can be observed day and night.",
+     "sources": [
+      "eo-false-color"
+     ]
+    },
+    {
+     "label": "Blocked by cloud",
+     "value": false,
+     "text": "Infrared sensors cannot see through cloud, which typically limits sea surface temperature to about 20 percent of the ocean.",
+     "sources": [
+      "coastwatch-sst"
+     ]
+    }
+   ],
+   "uses": [
+    {
+     "text": "NASA's FIRMS delivers MODIS and VIIRS fire detections worldwide within 3 hours of the satellite passing over.",
+     "sources": [
+      "firms"
+     ]
+    },
+    {
+     "text": "NOAA CoastWatch makes operational sea surface temperature maps from VIIRS, ABI and AHI, among others.",
+     "sources": [
+      "coastwatch-sst"
+     ]
+    },
+    {
+     "text": "NOAA Coral Reef Watch monitors heat stress that bleaches corals, worldwide at 5 km.",
+     "sources": [
+      "coral-reef-watch"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "water_vapour",
+   "name": "Water vapour",
+   "statements": [
+    {
+     "text": "GOES has three infrared bands, at 6.2, 6.9 and 7.3 µm, that track water vapour in the upper, middle and lower atmosphere.",
+     "sources": [
+      "nesdis-abi-channels"
+     ]
+    }
+   ],
+   "layers": [],
+   "conditions": [],
+   "uses": []
+  },
+  {
+   "id": "night_lights",
+   "name": "Light at night",
+   "statements": [
+    {
+     "text": "The VIIRS Day/Night Band is a single wide band, sensitive to visible and near-infrared light, that records Earth's lights at night.",
+     "sources": [
+      "black-marble"
+     ]
+    },
+    {
+     "text": "Its signal includes city lights, lightning, fishing fleet lights, gas flares, lava flows and even auroras.",
+     "sources": [
+      "black-marble"
+     ]
+    },
+    {
+     "text": "Moonlight reflected off ice, snow and other bright surfaces shows up too.",
+     "sources": [
+      "black-marble"
+     ]
+    }
+   ],
+   "layers": [
+    "night-lights"
+   ],
+   "conditions": [
+    {
+     "label": "Works at night",
+     "value": true,
+     "text": "The Day/Night Band captures low-light images of Earth at night, down to quarter-moon light.",
+     "sources": [
+      "earthdata-black-marble",
+      "viirs-dnb-laads"
+     ]
+    }
+   ],
+   "uses": [
+    {
+     "text": "NASA's Black Marble night lights are used to assess disruptions and recovery after disasters.",
+     "sources": [
+      "earthdata-black-marble"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "passive_microwave",
+   "name": "Passive microwave",
+   "statements": [
+    {
+     "text": "SMAP measures liquid water in the surface soil of unfrozen land not covered by water. Its observations cover the globe every 2 to 3 days.",
+     "sources": [
+      "smap"
+     ]
+    }
+   ],
+   "layers": [],
+   "conditions": [
+    {
+     "label": "Works at night",
+     "value": true,
+     "text": "SMAP measures the top 5 cm of soil through clouds and moderate vegetation, day and night.",
+     "sources": [
+      "nasa-smap-launch"
+     ]
+    },
+    {
+     "label": "Sees through cloud",
+     "value": true,
+     "text": "Microwave sensors see through clouds, except heavy rain, but with coarse pixels of about 20 to 50 km.",
+     "sources": [
+      "coastwatch-sst"
+     ]
+    }
+   ],
+   "uses": [
+    {
+     "text": "ECMWF feeds microwave measurements of humidity, cloud and rain into its weather forecasts; in 2019 they gave around 15 percent of the impact of all observations.",
+     "sources": [
+      "ecmwf-allsky"
+     ]
+    },
+    {
+     "text": "NOAA's ATMS sounder measures temperature and moisture through the atmosphere, and can see inside storms, including hurricanes.",
+     "sources": [
+      "nesdis-atms"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "radar",
+   "name": "Imaging radar",
+   "statements": [
+    {
+     "text": "Radar is an active instrument: it sends out pulses of energy and measures what is reflected back.",
+     "sources": [
+      "earthdata-active"
+     ]
+    },
+    {
+     "text": "How far radar reaches into a forest depends on its wavelength: a C-band signal only gets into the top layers of the canopy.",
+     "sources": [
+      "earthdata-sar"
+     ]
+    }
+   ],
+   "layers": [],
+   "conditions": [
+    {
+     "label": "Works at night",
+     "value": true,
+     "text": "Radar makes its own pulses, so it images night or day.",
+     "sources": [
+      "earthdata-sar"
+     ]
+    },
+    {
+     "label": "Sees through cloud",
+     "value": true,
+     "text": "Radar imaging works regardless of weather conditions.",
+     "sources": [
+      "earthdata-sar"
+     ]
+    }
+   ],
+   "uses": [
+    {
+     "text": "In 2021, Copernicus announced a Global Flood Monitoring service using Sentinel-1 radar. It aimed to map floods worldwide less than 8 hours after image acquisition, regardless of cloud or daylight.",
+     "sources": [
+      "cems-gfm"
+     ]
+    },
+    {
+     "text": "The European Ground Motion Service measures ground movement across Europe to the millimetre, from Sentinel-1 radar interferometry.",
+     "sources": [
+      "egms"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "altimetry",
+   "name": "Altimetry",
+   "statements": [
+    {
+     "text": "Altimeters are active instruments: they send pulses down to the surface and use the reflections to measure its height.",
+     "sources": [
+      "earthdata-active"
+     ]
+    },
+    {
+     "text": "Satellite altimeters measure sea surface height over the oceans and coasts.",
+     "sources": [
+      "s3"
+     ]
+    }
+   ],
+   "layers": [],
+   "conditions": [],
+   "uses": [
+    {
+     "text": "Sentinel-6 Michael Freilich is the reference mission for the Copernicus Marine Service, which combines every altimeter flying to monitor sea level.",
+     "sources": [
+      "copernicus-s6-marine"
+     ]
+    },
+    {
+     "text": "SWOT measures rivers wider than 100 m and lakes of 15 acres or more.",
+     "sources": [
+      "earthdata-swot"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "atmospheric_composition",
+   "name": "Gases in the air",
+   "statements": [
+    {
+     "text": "Sentinel-5P measures the atmosphere for air quality, ozone and UV radiation, and climate monitoring and forecasting.",
+     "sources": [
+      "s5p"
+     ]
+    }
+   ],
+   "layers": [],
+   "conditions": [
+    {
+     "label": "Needs sunlight",
+     "value": false,
+     "text": "NASA's OCO-2 measures reflected sunlight. Its carbon dioxide data have gaps without sunlight or where clouds or aerosols are too thick.",
+     "sources": [
+      "svs-oco2"
+     ]
+    }
+   ],
+   "uses": [
+    {
+     "text": "The Copernicus Atmosphere Monitoring Service has fed TROPOMI's nitrogen dioxide into its forecasts since October 2021.",
+     "sources": [
+      "cams-no2"
+     ]
+    },
+    {
+     "text": "The Support to Aviation Control Service sends volcanic sulphur dioxide and ash alerts to aviation, using TROPOMI and other instruments.",
+     "sources": [
+      "sacs"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "laser_ranging",
+   "name": "Laser ranging",
+   "statements": [
+    {
+     "text": "Laser altimeters are active instruments: they send out pulses of light and measure what is reflected back.",
+     "sources": [
+      "earthdata-active"
+     ]
+    },
+    {
+     "text": "GEDI uses laser ranging to measure Earth's forests and topography in high resolution.",
+     "sources": [
+      "gedi"
+     ]
+    }
+   ],
+   "layers": [],
+   "conditions": [
+    {
+     "label": "Blocked by cloud",
+     "value": false,
+     "text": "Clouds and particles in the air can skew a laser altimeter's ground data.",
+     "sources": [
+      "icesat2-lasers"
+     ]
+    }
+   ],
+   "uses": []
+  },
+  {
+   "id": "imaging_spectroscopy",
+   "name": "Imaging spectroscopy",
+   "statements": [
+    {
+     "text": "Spectral resolution is an instrument's ability to tell finer wavelengths apart, with more and narrower bands.",
+     "sources": [
+      "earthdata-resolution"
+     ]
+    },
+    {
+     "text": "EMIT uses this to map the minerals on Earth's surface in the regions that produce dust.",
+     "sources": [
+      "emit"
+     ]
+    }
+   ],
+   "layers": [],
+   "conditions": [],
+   "uses": []
+  }
+ ],
+ "instruments": [
+  {
+   "id": "abi",
+   "name": "Advanced Baseline Imager (ABI)",
+   "kinds": [
+    "visible",
+    "shortwave_infrared",
+    "water_vapour",
+    "thermal_infrared"
+   ],
+   "statements": [
+    {
+     "text": "ABI detects visible and infrared light in 16 spectral bands.",
+     "sources": [
+      "nesdis-abi"
+     ]
+    },
+    {
+     "text": "It can capture a full-disk image every 10 minutes, the US mainland every five minutes, and smaller areas every 30 to 60 seconds.",
+     "sources": [
+      "nesdis-abi"
+     ]
+    },
+    {
+     "text": "Band 2 sees red visible light at 0.64 µm, and band 13, the clean longwave window, sees infrared at 10.3 µm.",
+     "sources": [
+      "nesdis-abi-channels"
+     ]
+    }
+   ],
+   "short": "ABI",
+   "bands": [
+    {
+     "name": "Band 2 centre",
+     "from_um": 0.64,
+     "to_um": 0.64
+    },
+    {
+     "name": "Band 7 centre",
+     "from_um": 3.9,
+     "to_um": 3.9
+    },
+    {
+     "name": "Band 13 centre",
+     "from_um": 10.3,
+     "to_um": 10.3
+    }
+   ],
+   "resolution_m": 500,
+   "revisit_days": 0.00694,
+   "specs": {
+    "text": "ABI band 2 resolves 500 m at the point directly below the satellite. A full-disk scan takes 10 minutes. Spectrum markers show the cited band centres, not band edges.",
+    "sources": [
+     "goes-band2",
+     "nesdis-abi",
+     "nesdis-abi-channels"
+    ]
+   }
+  },
+  {
+   "id": "ahi",
+   "name": "Advanced Himawari Imager (AHI)",
+   "kinds": [
+    "visible",
+    "thermal_infrared"
+   ],
+   "statements": [
+    {
+     "text": "AHI has 16 bands and scans the full disk every 10 minutes.",
+     "sources": [
+      "jma-ahi"
+     ]
+    }
+   ],
+   "short": "AHI",
+   "resolution_m": 500,
+   "revisit_days": 0.00694,
+   "specs": {
+    "text": "AHI: band 3 at 0.5 km, and a full-disk scan every 10 minutes.",
+    "sources": [
+     "jma-ahi"
+    ]
+   }
+  },
+  {
+   "id": "viirs",
+   "name": "Visible Infrared Imaging Radiometer Suite (VIIRS)",
+   "kinds": [
+    "visible",
+    "near_infrared",
+    "shortwave_infrared",
+    "thermal_infrared",
+    "night_lights"
+   ],
+   "statements": [
+    {
+     "text": "VIIRS measures 22 spectral bands from 0.402 to 12.49 µm, with pixels of 375 m and 750 m.",
+     "sources": [
+      "earthdata-viirs",
+      "earthdata-viirs-bands"
+     ]
+    },
+    {
+     "text": "VIIRS false colour combines shortwave infrared in M11, near infrared in I2 and visible red light in I1. NASA assigns these to the display's red, green and blue channels, respectively.",
+     "sources": [
+      "earthdata-viirs-bands",
+      "worldview-viirs-false-color"
+     ]
+    },
+    {
+     "text": "It flies on Suomi NPP, NOAA-20 and NOAA-21.",
+     "sources": [
+      "earthdata-viirs"
+     ]
+    }
+   ],
+   "short": "VIIRS",
+   "bands": [
+    {
+     "name": "I1",
+     "from_um": 0.6,
+     "to_um": 0.68
+    },
+    {
+     "name": "I2",
+     "from_um": 0.85,
+     "to_um": 0.88
+    },
+    {
+     "name": "M11",
+     "from_um": 2.23,
+     "to_um": 2.28
+    },
+    {
+     "name": "Day/Night Band",
+     "from_um": 0.5,
+     "to_um": 0.9
+    }
+   ],
+   "resolution_m": 375,
+   "revisit_days": 0.5,
+   "specs": {
+    "text": "VIIRS has 375 m imaging bands and 750 m moderate-resolution bands. It observes Earth twice daily, but reflected-light images need daylight and clear skies. The band table gives measured wavelength ranges.",
+    "sources": [
+     "earthdata-viirs",
+     "ncc-viirs",
+     "earthdata-viirs-bands"
+    ]
+   }
+  },
+  {
+   "id": "modis",
+   "name": "Moderate Resolution Imaging Spectroradiometer (MODIS)",
+   "kinds": [
+    "visible",
+    "near_infrared",
+    "shortwave_infrared",
+    "thermal_infrared"
+   ],
+   "statements": [
+    {
+     "text": "MODIS sees every point on Earth every 1 to 2 days, in 36 spectral bands from 0.4 to 14.4 µm.",
+     "sources": [
+      "earthdata-modis"
+     ]
+    },
+    {
+     "text": "Its daily land surface temperature product has pixels 1 km across.",
+     "sources": [
+      "mod11"
+     ]
+    }
+   ],
+   "short": "MODIS",
+   "resolution_m": 250,
+   "revisit_days": 1.5,
+   "specs": {
+    "text": "MODIS has 250 m bands and global coverage every 1 to 2 days. The chart uses 1.5 days to represent that range. Clouds can prevent valid surface observations.",
+    "sources": [
+     "earthdata-modis"
+    ]
+   }
+  },
+  {
+   "id": "msi",
+   "name": "MultiSpectral Instrument (MSI)",
+   "kinds": [
+    "visible",
+    "near_infrared",
+    "shortwave_infrared"
+   ],
+   "statements": [
+    {
+     "text": "MSI samples 13 spectral bands, from visible and near infrared to shortwave infrared: four at 10 m, six at 20 m and three at 60 m.",
+     "sources": [
+      "s2"
+     ]
+    },
+    {
+     "text": "Its images serve land management, agriculture, forestry, disaster control and humanitarian relief.",
+     "sources": [
+      "s2"
+     ]
+    }
+   ],
+   "short": "MSI",
+   "bands": [
+    {
+     "name": "B4 (about)",
+     "from_um": 0.649,
+     "to_um": 0.682
+    },
+    {
+     "name": "B8 (about)",
+     "from_um": 0.774,
+     "to_um": 0.892
+    },
+    {
+     "name": "B11 (about)",
+     "from_um": 1.564,
+     "to_um": 1.658
+    },
+    {
+     "name": "B12 (about)",
+     "from_um": 2.095,
+     "to_um": 2.292
+    }
+   ],
+   "resolution_m": 10,
+   "revisit_days": 5,
+   "specs": {
+    "text": "MSI has 10 m bands. The nominal two-satellite Sentinel-2 constellation revisits the equator every 5 days. This is not a cloud-free coverage guarantee. Approximate band edges span the S2A, S2B and S2C centre wavelengths plus or minus half their bandwidths.",
+    "sources": [
+     "s2"
+    ]
+   }
+  },
+  {
+   "id": "oli",
+   "name": "Operational Land Imager (OLI)",
+   "kinds": [
+    "visible",
+    "near_infrared",
+    "shortwave_infrared"
+   ],
+   "statements": [
+    {
+     "text": "OLI captures Earth's surface in visible, near infrared and shortwave infrared light.",
+     "sources": [
+      "landsat9"
+     ]
+    }
+   ],
+   "short": "OLI",
+   "bands": [
+    {
+     "name": "B4",
+     "from_um": 0.64,
+     "to_um": 0.67
+    },
+    {
+     "name": "B5",
+     "from_um": 0.85,
+     "to_um": 0.88
+    },
+    {
+     "name": "B6",
+     "from_um": 1.57,
+     "to_um": 1.65
+    },
+    {
+     "name": "B7",
+     "from_um": 2.11,
+     "to_um": 2.29
+    }
+   ],
+   "resolution_m": 30,
+   "revisit_days": 8,
+   "specs": {
+    "text": "OLI's listed multispectral bands have 30 m pixels. Landsat 8 and 9 together provide 8-day repeat coverage; clouds can block the view.",
+    "sources": [
+     "usgs-landsat9",
+     "usgs-landsat-pair",
+     "usgs-landsat-bands"
+    ]
+   }
+  },
+  {
+   "id": "tirs",
+   "name": "Thermal Infrared Sensor (TIRS)",
+   "kinds": [
+    "thermal_infrared"
+   ],
+   "statements": [
+    {
+     "text": "TIRS measures two thermal infrared bands, 10.6–11.19 µm and 11.50–12.51 µm, with 100 m pixels.",
+     "sources": [
+      "usgs-landsat-bands"
+     ]
+    }
+   ],
+   "short": "TIRS",
+   "bands": [
+    {
+     "name": "Band 10",
+     "from_um": 10.6,
+     "to_um": 11.19
+    },
+    {
+     "name": "Band 11",
+     "from_um": 11.5,
+     "to_um": 12.51
+    }
+   ],
+   "resolution_m": 100,
+   "revisit_days": 8,
+   "specs": {
+    "text": "TIRS has 100 m pixels. Landsat 8 and 9 together provide 8-day repeat coverage; clouds can block the view.",
+    "sources": [
+     "usgs-landsat-bands",
+     "usgs-landsat-pair"
+    ]
+   }
+  },
+  {
+   "id": "c_sar",
+   "name": "C-band Synthetic Aperture Radar (C-SAR)",
+   "kinds": [
+    "radar"
+   ],
+   "statements": [
+    {
+     "text": "It works at 5.405 GHz, a wavelength of about 5.55 cm, and images Earth day and night, regardless of the weather.",
+     "sources": [
+      "s1"
+     ]
+    },
+    {
+     "text": "Its images are used to identify sea ice, detect oil spills and measure ground movement from earthquakes, volcanoes and landslides.",
+     "sources": [
+      "s1"
+     ]
+    }
+   ],
+   "short": "C-SAR",
+   "bands": [
+    {
+     "name": "Centre at 5.405 GHz",
+     "from_um": 55465.76466234968,
+     "to_um": 55465.76466234968
+    }
+   ],
+   "resolution_m": 5,
+   "revisit_days": 6,
+   "specs": {
+    "text": "C-SAR has 5 m by 20 m spatial resolution in Interferometric Wide swath mode. The chart uses the finer 5 m dimension, not square pixels or product pixel spacing. The nominal two-satellite repeat cycle is 6 days, not a guarantee of an image everywhere every 6 days. The spectrum marker shows the 5.405 GHz centre; programmable bandwidth reaches 100 MHz.",
+    "sources": [
+     "s1"
+    ]
+   }
+  },
+  {
+   "id": "tropomi",
+   "name": "TROPOspheric Monitoring Instrument (TROPOMI)",
+   "kinds": [
+    "atmospheric_composition"
+   ],
+   "statements": [
+    {
+     "text": "TROPOMI looks across a swath about 2,600 km wide.",
+     "sources": [
+      "s5p"
+     ]
+    },
+    {
+     "text": "Its products include nitrogen dioxide and methane.",
+     "sources": [
+      "s5p"
+     ]
+    }
+   ],
+   "short": "TROPOMI",
+   "resolution_m": 3500,
+   "revisit_days": 1,
+   "specs": {
+    "text": "TROPOMI: 3.5 by 5.5 km pixels since August 2019, and daily coverage.",
+    "sources": [
+     "tropomi-no2",
+     "s5p"
+    ]
+   }
+  },
+  {
+   "id": "smap_radiometer",
+   "name": "SMAP radiometer",
+   "kinds": [
+    "passive_microwave"
+   ],
+   "statements": [
+    {
+     "text": "SMAP launched on 31 January 2015 with a radar and a radiometer. The radar stopped transmitting on 7 July 2015. JPL's 5 August update traced the fault to its amplifier power supply. The radiometer continued collecting data.",
+     "sources": [
+      "smap-anomaly"
+     ]
+    }
+   ],
+   "short": "SMAP",
+   "bands": [
+    {
+     "name": "Centre at 1.41 GHz",
+     "from_um": 212618.7645390071,
+     "to_um": 212618.7645390071
+    }
+   ],
+   "resolution_m": 38000,
+   "revisit_days": 2.5,
+   "specs": {
+    "text": "SMAP's radiometer has a 38 km by 49 km footprint. The chart uses its finer 38 km dimension and a representative 2.5 days from the 2 to 3 day coverage range. Soil moisture measurements apply to unfrozen land not covered by water. The spectrum marker shows the 1.41 GHz centre, not the whole L band.",
+    "sources": [
+     "smap-specs",
+     "smap"
+    ]
+   }
+  },
+  {
+   "id": "olci",
+   "name": "Ocean and Land Colour Instrument (OLCI)",
+   "kinds": [
+    "visible"
+   ],
+   "statements": [
+    {
+     "text": "OLCI measures the colour of the ocean and land in 21 bands, with 300 m pixels.",
+     "sources": [
+      "s3"
+     ]
+    }
+   ],
+   "short": "OLCI",
+   "resolution_m": 300,
+   "revisit_days": 1.9,
+   "specs": {
+    "text": "OLCI has 300 m pixels. Two satellites provide ocean-colour looks less than 1.9 days apart at the equator. The chart uses 1.9 days as an upper bound; clouds can still block the view.",
+    "sources": [
+     "s3"
+    ]
+   }
+  },
+  {
+   "id": "slstr",
+   "name": "Sea and Land Surface Temperature Radiometer (SLSTR)",
+   "kinds": [
+    "thermal_infrared"
+   ],
+   "statements": [
+    {
+     "text": "SLSTR measures global sea surface temperature to better than 0.3 K.",
+     "sources": [
+      "s3"
+     ]
+    },
+    {
+     "text": "Sentinel-3 also makes fire monitoring products, such as fire radiated power and burned area.",
+     "sources": [
+      "s3"
+     ]
+    }
+   ],
+   "short": "SLSTR",
+   "resolution_m": 500,
+   "revisit_days": 0.9,
+   "specs": {
+    "text": "SLSTR has 500 m visible pixels and 1 km thermal infrared pixels. Two satellites provide dual-view observations 0.9 days apart at the equator. Clouds can still block the view.",
+    "sources": [
+     "s3"
+    ]
+   }
+  },
+  {
+   "id": "sral",
+   "name": "SAR Radar Altimeter (SRAL)",
+   "kinds": [
+    "altimetry"
+   ],
+   "statements": [
+    {
+     "text": "SRAL is a dual-frequency Ku- and C-band radar altimeter that measures sea surface height for oceans and coasts.",
+     "sources": [
+      "s3"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "swot_interferometer",
+   "name": "SWOT radar interferometer",
+   "kinds": [
+    "altimetry"
+   ],
+   "statements": [
+    {
+     "text": "SWOT is making the first global survey of Earth's surface water and measuring how water bodies change over time.",
+     "sources": [
+      "swot"
+     ]
+    },
+    {
+     "text": "Its 120 km wide swath gives overlapping measurements over most of the globe, revisiting on average every 11 days.",
+     "sources": [
+      "swot"
+     ]
+    }
+   ],
+   "short": "SWOT",
+   "specs": {
+    "text": "SWOT can observe rivers wider than 100 m. That width is not a pixel size, so SWOT is absent from the resolution chart. Its exact repeat cycle is about 21 days; overlapping swaths allow more frequent observations in some places.",
+    "sources": [
+     "aviso-swot",
+     "earthdata-swot"
+    ]
+   }
+  },
+  {
+   "id": "ecostress",
+   "name": "ECOSTRESS",
+   "kinds": [
+    "thermal_infrared"
+   ],
+   "statements": [
+    {
+     "text": "ECOSTRESS makes high-resolution images of the temperature of Earth's surface, to learn how much water plants use and when they become stressed.",
+     "sources": [
+      "ecostress"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "gedi",
+   "name": "Global Ecosystem Dynamics Investigation (GEDI)",
+   "kinds": [
+    "laser_ranging"
+   ],
+   "statements": [
+    {
+     "text": "GEDI measures Earth's forests and topography with high-resolution laser ranging from the ISS.",
+     "sources": [
+      "gedi"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "emit",
+   "name": "Earth Surface Mineral Dust Source Investigation (EMIT)",
+   "kinds": [
+    "imaging_spectroscopy"
+   ],
+   "statements": [
+    {
+     "text": "EMIT is an imaging spectrometer that maps the composition of minerals on Earth's surface where dust comes from.",
+     "sources": [
+      "emit"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "s6_altimeter",
+   "name": "Radar altimeter (Sentinel-6 Michael Freilich)",
+   "kinds": [
+    "altimetry"
+   ],
+   "statements": [
+    {
+     "text": "Sentinel-6 Michael Freilich launched in November 2020. It contributes to the satellite record of global sea level that began in 1993.",
+     "sources": [
+      "jpl-pia26189"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "amsr2",
+   "name": "Advanced Microwave Scanning Radiometer 2 (AMSR2)",
+   "kinds": [
+    "passive_microwave"
+   ],
+   "statements": [
+    {
+     "text": "NASA's maps of the 2025 Arctic sea ice minimum were made from AMSR2 on JAXA's GCOM-W1 satellite.",
+     "sources": [
+      "svs-sea-ice-2025"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "omi",
+   "name": "Ozone Monitoring Instrument (OMI)",
+   "kinds": [
+    "atmospheric_composition"
+   ],
+   "statements": [
+    {
+     "text": "OMI on NASA's Aura satellite measures nitrogen dioxide, as TROPOMI does.",
+     "sources": [
+      "eo-no2-china"
+     ]
+    }
+   ]
+  }
+ ],
+ "satellites": [
+  {
+   "norad_id": "25544",
+   "name": "ISS",
+   "instruments": [
+    "ecostress",
+    "gedi",
+    "emit"
+   ],
+   "statements": [
+    {
+     "text": "The ISS is an orbiting laboratory. 2 November 2025 marked 25 years of continuous human presence aboard it.",
+     "sources": [
+      "iss"
+     ]
+    },
+    {
+     "text": "Earth-observing instruments mounted on the station include ECOSTRESS, GEDI and EMIT.",
+     "sources": [
+      "ecostress",
+      "gedi",
+      "emit"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "25994",
+   "name": "Terra",
+   "instruments": [
+    "modis"
+   ],
+   "statements": [
+    {
+     "text": "The first MODIS was launched on Terra in December 1999.",
+     "sources": [
+      "aqua-modis"
+     ]
+    },
+    {
+     "text": "Since 2020, Terra has been drifting to an earlier equator crossing time, with no manoeuvres planned to hold it.",
+     "sources": [
+      "terra"
+     ]
+    },
+    {
+     "text": "NASA expects Terra and Aqua, which carry MODIS, to begin shutting down in late 2026 or early 2027.",
+     "sources": [
+      "modis-transition"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "27424",
+   "name": "Aqua",
+   "instruments": [
+    "modis"
+   ],
+   "statements": [
+    {
+     "text": "The second MODIS was launched on Aqua in May 2002.",
+     "sources": [
+      "aqua-modis"
+     ]
+    },
+    {
+     "text": "NASA expects Terra and Aqua, which carry MODIS, to begin shutting down in late 2026 or early 2027.",
+     "sources": [
+      "modis-transition"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "43013",
+   "name": "NOAA 20",
+   "instruments": [
+    "viirs"
+   ],
+   "statements": [
+    {
+     "text": "NOAA-20 is part of NOAA's Joint Polar Satellite System.",
+     "sources": [
+      "earthdata-viirs"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "54234",
+   "name": "NOAA 21",
+   "instruments": [
+    "viirs"
+   ],
+   "statements": [
+    {
+     "text": "NOAA-21 is part of NOAA's Joint Polar Satellite System.",
+     "sources": [
+      "earthdata-viirs"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "37849",
+   "name": "Suomi NPP",
+   "instruments": [
+    "viirs"
+   ],
+   "statements": [
+    {
+     "text": "Suomi NPP is no longer delivering new data. Its VIIRS record runs from 28 October 2011 to 2 November 2026.",
+     "sources": [
+      "earthdata-viirs"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "60133",
+   "name": "GOES 19",
+   "instruments": [
+    "abi"
+   ],
+   "statements": [
+    {
+     "text": "GOES-19 operates as NOAA's GOES East satellite.",
+     "sources": [
+      "nesdis-geo"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "51850",
+   "name": "GOES 18",
+   "instruments": [
+    "abi"
+   ],
+   "statements": [
+    {
+     "text": "GOES-18 is NOAA's operational GOES West satellite.",
+     "sources": [
+      "nesdis-geo"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "41866",
+   "name": "GOES 16",
+   "instruments": [
+    "abi"
+   ],
+   "statements": [
+    {
+     "text": "GOES-16 now serves as an on-orbit backup.",
+     "sources": [
+      "nesdis-geo"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "41836",
+   "name": "Himawari-9",
+   "instruments": [
+    "ahi"
+   ],
+   "statements": [
+    {
+     "text": "Himawari-9 took over the main operational role on 13 December 2022, about 35,800 km above the equator near 140.7°E.",
+     "sources": [
+      "jma-satellites"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "40267",
+   "name": "Himawari-8",
+   "instruments": [
+    "ahi"
+   ],
+   "statements": [
+    {
+     "text": "Himawari-8 has been Himawari-9's backup since 13 December 2022.",
+     "sources": [
+      "jma-satellites"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "39634",
+   "name": "Sentinel-1A",
+   "instruments": [
+    "c_sar"
+   ],
+   "statements": []
+  },
+  {
+   "norad_id": "62261",
+   "name": "Sentinel-1C",
+   "instruments": [
+    "c_sar"
+   ],
+   "statements": []
+  },
+  {
+   "norad_id": "66315",
+   "name": "Sentinel-1D",
+   "instruments": [
+    "c_sar"
+   ],
+   "statements": []
+  },
+  {
+   "norad_id": "40697",
+   "name": "Sentinel-2A",
+   "instruments": [
+    "msi"
+   ],
+   "statements": [
+    {
+     "text": "Sentinel-2's nominal two-satellite constellation revisits the equator every 5 days. Revisit means another observing opportunity, not guaranteed cloud-free coverage.",
+     "sources": [
+      "s2"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "42063",
+   "name": "Sentinel-2B",
+   "instruments": [
+    "msi"
+   ],
+   "statements": [
+    {
+     "text": "Sentinel-2's nominal two-satellite constellation revisits the equator every 5 days. Revisit means another observing opportunity, not guaranteed cloud-free coverage.",
+     "sources": [
+      "s2"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "60989",
+   "name": "Sentinel-2C",
+   "instruments": [
+    "msi"
+   ],
+   "statements": [
+    {
+     "text": "Sentinel-2's nominal two-satellite constellation revisits the equator every 5 days. Revisit means another observing opportunity, not guaranteed cloud-free coverage.",
+     "sources": [
+      "s2"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "41335",
+   "name": "Sentinel-3A",
+   "instruments": [
+    "olci",
+    "slstr",
+    "sral"
+   ],
+   "statements": [
+    {
+     "text": "Sentinel-3 measures sea surface height, sea and land surface temperature, and the colour of the ocean and land.",
+     "sources": [
+      "s3"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "43437",
+   "name": "Sentinel-3B",
+   "instruments": [
+    "olci",
+    "slstr",
+    "sral"
+   ],
+   "statements": [
+    {
+     "text": "Sentinel-3 measures sea surface height, sea and land surface temperature, and the colour of the ocean and land.",
+     "sources": [
+      "s3"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "42969",
+   "name": "Sentinel-5P",
+   "instruments": [
+    "tropomi"
+   ],
+   "statements": []
+  },
+  {
+   "norad_id": "39084",
+   "name": "Landsat 8",
+   "instruments": [
+    "oli",
+    "tirs"
+   ],
+   "statements": [
+    {
+     "text": "Landsat 8 and Landsat 9 each carry two sensors, OLI and TIRS.",
+     "sources": [
+      "usgs-landsat-bands"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "49260",
+   "name": "Landsat 9",
+   "instruments": [
+    "oli",
+    "tirs"
+   ],
+   "statements": [
+    {
+     "text": "Landsat 8 and Landsat 9 each carry two sensors, OLI and TIRS.",
+     "sources": [
+      "usgs-landsat-bands"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "40376",
+   "name": "SMAP",
+   "instruments": [
+    "smap_radiometer"
+   ],
+   "statements": []
+  },
+  {
+   "norad_id": "54754",
+   "name": "SWOT",
+   "instruments": [
+    "swot_interferometer"
+   ],
+   "statements": []
+  },
+  {
+   "norad_id": "46984",
+   "name": "Sentinel-6A",
+   "instruments": [
+    "s6_altimeter"
+   ],
+   "statements": []
+  },
+  {
+   "norad_id": "38337",
+   "name": "GCOM-W1",
+   "instruments": [
+    "amsr2"
+   ],
+   "statements": [
+    {
+     "text": "Passive microwave satellites have tracked Arctic sea ice continuously since 1979.",
+     "sources": [
+      "svs-sea-ice-2025"
+     ]
+    }
+   ]
+  },
+  {
+   "norad_id": "28376",
+   "name": "Aura",
+   "instruments": [
+    "omi"
+   ],
+   "statements": []
+  }
+ ],
+ "lessons": [
+  {
+   "id": "light-and-heat",
+   "title": "Light or heat?",
+   "summary": "Compare reflected sunlight with the infrared energy that clouds emit.",
+   "kinds": [
+    "visible",
+    "thermal_infrared"
+   ],
+   "steps": [
+    {
+     "satellite": "60133",
+     "view": "goes-east-visible",
+     "camera": {
+      "lat": 5,
+      "lon": -75
+     },
+     "text": [
+      {
+       "text": "GOES-19 operates as GOES East. Its Advanced Baseline Imager, or ABI, measures light in 16 wavelength bands.",
+       "sources": [
+        "nesdis-geo",
+        "nesdis-abi"
+       ]
+      },
+      {
+       "text": "Band 2 measures reflected red light at 0.64 µm. A single band shows shades of grey, not a true-colour view.",
+       "sources": [
+        "nesdis-abi-channels",
+        "eo-false-color"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "Which band can observe clouds on Earth's night side?",
+      "choices": [
+       "Visible band 2",
+       "Infrared band 13"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "Thermal infrared records energy emitted by clouds and the surface. It does not need sunlight.",
+       "sources": [
+        "nesdis-abi",
+        "eo-false-color"
+       ]
+      }
+     }
+    },
+    {
+     "view": "goes-east-infrared",
+     "text": [
+      {
+       "text": "Band 13 measures infrared near 10.3 µm. Warm objects emit infrared energy, so the instrument can observe them by day or night.",
+       "sources": [
+        "nesdis-abi-channels",
+        "eo-false-color"
+       ]
+      },
+      {
+       "text": "This image represents brightness temperature, the temperature inferred from radiation reaching the sensor. Clouds can hide the ground, so it is not a map of ground temperature everywhere.",
+       "sources": [
+        "worldview-goes-ir",
+        "earthdata-passive"
+       ]
+      }
+     ],
+     "hint": "Compare the cloud patterns in the two views."
+    },
+    {
+     "compare": [
+      "goes-east-visible",
+      "goes-east-infrared"
+     ],
+     "text": [
+      {
+       "text": "Forecasters use infrared cloud-top temperatures to help assess heavy rain and flash flooding.",
+       "sources": [
+        "nesdis-abi"
+       ]
+      },
+      {
+       "text": "ABI can scan the full disk every 10 minutes. That scan rate does not guarantee the age of an image delivered here.",
+       "sources": [
+        "nesdis-abi"
+       ]
+      }
+     ],
+     "hint": "Switch between visible and infrared."
+    }
+   ]
+  },
+  {
+   "id": "colours-you-cannot-see",
+   "title": "Colours you can't see",
+   "summary": "Read the colours in NOAA-20's infrared and visible-light combination.",
+   "kinds": [
+    "near_infrared",
+    "shortwave_infrared"
+   ],
+   "steps": [
+    {
+     "satellite": "43013",
+     "base": "true-color",
+     "view": "",
+     "camera": {
+      "lat": 5,
+      "lon": 20
+     },
+     "text": [
+      {
+       "text": "NOAA-20 carries VIIRS, an instrument with 22 bands from 0.402 to 12.49 µm.",
+       "sources": [
+        "earthdata-viirs",
+        "earthdata-viirs-bands"
+       ]
+      },
+      {
+       "text": "The true-colour layer combines red, green and blue measurements to resemble human vision. It is a daily composite, not a photograph of the whole Earth at one instant.",
+       "sources": [
+        "worldview-viirs-true-color"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "NASA assigns near infrared to green in the next view. What display colour does its metadata give for vegetation?",
+      "choices": [
+       "Bright green",
+       "Pink",
+       "Sky blue"
+      ],
+      "answer": 0,
+      "explain": {
+       "text": "Vegetation reflects near infrared strongly. Assigning that band to green makes vegetation look bright green in this specific composite.",
+       "sources": [
+        "worldview-viirs-false-color"
+       ]
+      }
+     }
+    },
+    {
+     "view": "false-color",
+     "text": [
+      {
+       "text": "False colour assigns measured wavelengths to colours on a screen. Here, shortwave infrared M11 becomes red, near infrared I2 becomes green and visible red I1 becomes blue.",
+       "sources": [
+        "worldview-viirs-false-color"
+       ]
+      },
+      {
+       "text": "M11 spans 2.23 to 2.28 µm, I2 spans 0.85 to 0.88 µm and I1 spans 0.60 to 0.68 µm.",
+       "sources": [
+        "earthdata-viirs-bands"
+       ]
+      },
+      {
+       "text": "Vegetation looks bright green in this recipe. Bare soil often looks pink, and burns can look deep or bright red.",
+       "sources": [
+        "worldview-viirs-false-color"
+       ]
+      }
+     ],
+     "hint": "Compare vegetated land with the Sahara."
+    },
+    {
+     "view": "false-color",
+     "camera": {
+      "lat": 72,
+      "lon": -40
+     },
+     "question": {
+      "prompt": "Can a blue patch alone prove that the surface is covered in ice?",
+      "choices": [
+       "Yes, only surface ice looks blue",
+       "No, high ice clouds can look blue too"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "NASA's layer metadata gives blue or turquoise colours for both snow or ice and high ice clouds.",
+       "sources": [
+        "worldview-viirs-false-color"
+       ]
+      }
+     },
+     "text": [
+      {
+       "text": "Thick snow and ice reflect visible red light but absorb much of the near and shortwave infrared used here. They look sky blue in this composite.",
+       "sources": [
+        "worldview-viirs-false-color"
+       ]
+      },
+      {
+       "text": "Water clouds usually look white. High clouds made of ice crystals can also look blue or turquoise, so blue alone does not identify surface ice.",
+       "sources": [
+        "worldview-viirs-false-color"
+       ]
+      }
+     ],
+     "hint": "Look around Greenland, then turn the globe to another sunlit region."
+    }
+   ]
+  },
+  {
+   "id": "orbit-decides-the-data",
+   "title": "How orbit shapes the view",
+   "summary": "Compare GOES's fixed view with Terra's repeated strips of Earth.",
+   "kinds": [
+    "thermal_infrared",
+    "visible"
+   ],
+   "steps": [
+    {
+     "satellite": "60133",
+     "view": "goes-east-infrared",
+     "camera": {
+      "lat": 0,
+      "lon": -75
+     },
+     "text": [
+      {
+       "text": "A geostationary satellite stays above one point on the equator. It circles Earth in the same time that Earth turns.",
+       "sources": [
+        "esa-orbits",
+        "celestrak-geo"
+       ]
+      },
+      {
+       "text": "That orbit lets GOES-19 watch the same region continuously. ABI's scanning system can image the full disk every 10 minutes. The satellite cannot see Earth's far side.",
+       "sources": [
+        "esa-orbits",
+        "celestrak-geo",
+        "nesdis-abi"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "How often can MODIS observe a place as its polar-orbiting satellites circle Earth?",
+      "choices": [
+       "Every 10 minutes",
+       "Every 1 to 2 days",
+       "Only once a month"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "MODIS covers Earth every 1 to 2 days. This is an observing opportunity, not a promise of a cloud-free image.",
+       "sources": [
+        "earthdata-modis",
+        "earthdata-passive"
+       ]
+      }
+     }
+    },
+    {
+     "satellite": "25994",
+     "view": "land-temperature",
+     "camera": {
+      "lat": 20,
+      "lon": 10
+     },
+     "text": [
+      {
+       "text": "Terra follows a near-polar orbit. Earth turns beneath it, bringing new strips of the surface into view.",
+       "sources": [
+        "esa-orbits",
+        "terra"
+       ]
+      },
+      {
+       "text": "This daily Terra MODIS layer maps daytime land surface temperature at 1 km resolution, in kelvin. Clouds prevent valid ground-temperature readings and leave gaps. Surface temperature differs from air temperature.",
+       "sources": [
+        "worldview-modis-lst",
+        "mod11"
+       ]
+      }
+     ]
+    },
+    {
+     "text": [
+      {
+       "text": "A viewing strip is called a swath. A finer-resolution instrument may need a narrower swath, so it can take longer to cover Earth. Orbit and instrument design both affect the data.",
+       "sources": [
+        "earthdata-resolution"
+       ]
+      }
+     ],
+     "hint": "Open Orbit to compare the satellites' paths."
+    }
+   ]
+  },
+  {
+   "id": "puerto-rico-goes-dark",
+   "story": true,
+   "title": "The night Puerto Rico went dark",
+   "when": "September 2017",
+   "where": "Puerto Rico",
+   "summary": "Read NASA's findings after Maria, with night images that cannot measure outages.",
+   "kinds": [
+    "night_lights"
+   ],
+   "steps": [
+    {
+     "satellite": "37849",
+     "picture": {
+      "layer": "story-night-lights",
+      "date": "2017-07-24",
+      "box": {
+       "min_lat": 17.6,
+       "min_lon": -67.6,
+       "max_lat": 18.8,
+       "max_lon": -65.2
+      }
+     },
+     "camera": {
+      "lat": 18.2,
+      "lon": -66.5,
+      "distance": 1.07
+     },
+     "text": [
+      {
+       "text": "These ENCC night images are qualitative illustrations only. Their brightness values are not comparable across nights. Cloud, moonlight and viewing conditions can change the image, so do not infer power outages from this comparison.",
+       "sources": [
+        "worldview-encc"
+       ]
+      },
+      {
+       "text": "The selected archive date is 24 July 2017. The layer uses the Day/Night Band on Suomi NPP's VIIRS instrument. ENCC means Enhanced Near Constant Contrast. It adjusts each scan's brightness separately for display.",
+       "sources": [
+        "worldview-encc"
+       ]
+      },
+      {
+       "text": "NASA's published outage study used a different, corrected comparison. It combined 27 and 28 September observations and accounted for moonlight and atmospheric effects. These app images do not reproduce that analysis.",
+       "sources": [
+        "eo-maria"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "According to NOAA's hurricane report, how widespread was the power loss after Maria?",
+      "choices": [
+       "Only a few neighbourhoods",
+       "Essentially all of Puerto Rico's residents",
+       "No widespread loss"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "Maria knocked down 80 percent of utility poles and all transmission lines. Essentially all 3.4 million residents lost power.",
+       "sources": [
+        "nhc-maria"
+       ]
+      }
+     }
+    },
+    {
+     "pictures": [
+      {
+       "layer": "story-night-lights",
+       "date": "2017-07-24",
+       "box": {
+        "min_lat": 17.6,
+        "min_lon": -67.6,
+        "max_lat": 18.8,
+        "max_lon": -65.2
+       },
+       "label": "24 July 2017 · ENCC illustration"
+      },
+      {
+       "layer": "story-night-lights",
+       "date": "2017-09-27",
+       "box": {
+        "min_lat": 17.6,
+        "min_lon": -67.6,
+        "max_lat": 18.8,
+        "max_lon": -65.2
+       },
+       "label": "27 September 2017 · ENCC illustration"
+      }
+     ],
+     "text": [
+      {
+       "text": "These ENCC night images are qualitative illustrations only. Their brightness values are not comparable across nights. Cloud, moonlight and viewing conditions can change the image, so do not infer power outages from this comparison.",
+       "sources": [
+        "worldview-encc"
+       ]
+      },
+      {
+       "text": "Maria reached Puerto Rico near Yabucoa at about 10:15 UTC on 20 September 2017.",
+       "sources": [
+        "nhc-maria"
+       ]
+      },
+      {
+       "text": "NASA's corrected published comparison found outages around San Juan, including hospitals and transport routes. That result comes from NASA's analysis, not from comparing the brightness of these ENCC images.",
+       "sources": [
+        "eo-maria"
+       ]
+      }
+     ],
+     "hint": "Switch between the archive images, then open NASA's source."
+    },
+    {
+     "text": [
+      {
+       "text": "NOAA reported that electricity had returned to about 65 percent of the island by the end of January 2018.",
+       "sources": [
+        "nhc-maria"
+       ]
+      },
+      {
+       "text": "NASA discontinued the ENCC layer in July 2023. Its archived images remain display products, not corrected outage measurements.",
+       "sources": [
+        "worldview-encc"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "los-angeles-fires",
+   "story": true,
+   "title": "Los Angeles fires, January 2025",
+   "when": "January 2025",
+   "where": "Los Angeles County, California",
+   "summary": "Compare Terra's smoke and burn views with NOAA-20's heat detections.",
+   "kinds": [
+    "shortwave_infrared",
+    "thermal_infrared"
+   ],
+   "steps": [
+    {
+     "satellite": "25994",
+     "picture": {
+      "layer": "story-true-color",
+      "date": "2025-01-08",
+      "box": {
+       "min_lat": 33.7,
+       "min_lon": -119,
+       "max_lat": 34.5,
+       "max_lon": -117.4
+      }
+     },
+     "camera": {
+      "lat": 34.1,
+      "lon": -118.3,
+      "distance": 1.045
+     },
+     "text": [
+      {
+       "text": "The Palisades Fire began on the morning of 7 January 2025. The Eaton Fire started soon afterwards and grew beyond 200 acres within an hour.",
+       "sources": [
+        "nesdis-la-fires"
+       ]
+      },
+      {
+       "text": "This app requests Terra MODIS true colour for 8 January. True colour combines visible bands to resemble human vision.",
+       "sources": [
+        "worldview-modis-true-color"
+       ]
+      }
+     ],
+     "hint": "Look along the coast, then switch to the next view.",
+     "question": {
+      "prompt": "Which ABI band is sensitive to the hottest part of a fire pixel?",
+      "choices": [
+       "Red visible light at 0.64 µm",
+       "Infrared at 3.9 µm",
+       "Water vapour at 6.2 µm"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "ABI's 3.9 µm infrared band helps detect hot fire pixels. NOAA calls it a shortwave window; the spectrum shown here places 3.9 µm in mid-wave infrared.",
+       "sources": [
+        "nesdis-abi",
+        "nesdis-abi-channels",
+        "wmo-mwir"
+       ]
+      }
+     }
+    },
+    {
+     "pictures": [
+      {
+       "layer": "story-true-color",
+       "date": "2025-01-08",
+       "box": {
+        "min_lat": 33.7,
+        "min_lon": -119,
+        "max_lat": 34.5,
+        "max_lon": -117.4
+       },
+       "label": "True colour"
+      },
+      {
+       "layer": "story-false-color",
+       "date": "2025-01-08",
+       "box": {
+        "min_lat": 33.7,
+        "min_lon": -119,
+        "max_lat": 34.5,
+        "max_lon": -117.4
+       },
+       "label": "Shortwave infrared"
+      }
+     ],
+     "text": [
+      {
+       "text": "The second Terra view displays shortwave infrared band 7 as red, near infrared band 2 as green and visible red band 1 as blue.",
+       "sources": [
+        "worldview-modis-false-color"
+       ]
+      },
+      {
+       "text": "Burn scars can look red in this combination. This view uses reflected light from fire-affected land. It does not directly measure fire temperature or total burned area.",
+       "sources": [
+        "worldview-modis-false-color"
+       ]
+      }
+     ],
+     "hint": "Switch between the two Terra views."
+    },
+    {
+     "pictures": [
+      {
+       "layer": "story-fires",
+       "date": "2024-12-30",
+       "box": {
+        "min_lat": 33.7,
+        "min_lon": -119,
+        "max_lat": 34.5,
+        "max_lon": -117.4
+       },
+       "label": "30 December 2024"
+      },
+      {
+       "layer": "story-fires",
+       "date": "2025-01-08",
+       "box": {
+        "min_lat": 33.7,
+        "min_lon": -119,
+        "max_lat": 34.5,
+        "max_lon": -117.4
+       },
+       "label": "8 January 2025"
+      }
+     ],
+     "text": [
+      {
+       "text": "The view now uses NOAA-20 VIIRS thermal detections. Each point marks roughly the centre of a 375 m sensor pixel with an unusual heat signal. A point is not the size or boundary of a fire.",
+       "sources": [
+        "worldview-fires"
+       ]
+      },
+      {
+       "text": "VIIRS can detect relatively small fires. GOES West also supplied forecasters with one-minute observations during this event.",
+       "sources": [
+        "nesdis-la-fires",
+        "worldview-fires"
+       ]
+      },
+      {
+       "text": "By 21 January, the Palisades Fire had burned 23,713 acres and the Eaton Fire 14,021 acres. NOAA reported more than 12,000 destroyed structures.",
+       "sources": [
+        "nesdis-la-fires"
+       ]
+      }
+     ],
+     "satellite": "43013"
+    }
+   ]
+  },
+  {
+   "id": "helene-flood-radar",
+   "story": true,
+   "title": "Mapping a flood through the clouds",
+   "when": "September 2024",
+   "where": "Florida's Big Bend coast",
+   "summary": "See how Sentinel-1 radar helped NASA map water during Hurricane Helene.",
+   "kinds": [
+    "radar"
+   ],
+   "steps": [
+    {
+     "satellite": "39634",
+     "picture": {
+      "layer": "story-radar-water",
+      "date": "2024-09-14",
+      "box": {
+       "min_lat": 28.6,
+       "min_lon": -84,
+       "max_lat": 29.9,
+       "max_lon": -81.4
+      }
+     },
+     "camera": {
+      "lat": 29.14,
+      "lon": -83.03,
+      "distance": 1.07
+     },
+     "text": [
+      {
+       "text": "Hurricane Helene struck Florida's Big Bend coast in September 2024. NASA used Sentinel-1 radar to map water during the storm.",
+       "sources": [
+        "earthdata-opera-helene"
+       ]
+      },
+      {
+       "text": "This app requests an OPERA surface-water map for 14 September. OPERA turns radar observations into water classes at 30 m resolution.",
+       "sources": [
+        "earthdata-opera-helene",
+        "worldview-opera"
+       ]
+      },
+      {
+       "text": "The map separates open water, inundated vegetation and non-water. Masked areas have no usable classification, not necessarily dry land.",
+       "sources": [
+        "worldview-opera"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "Which instrument can gather surface observations through cloud and without sunlight?",
+      "choices": [
+       "A visible-light camera",
+       "Sentinel-1 radar"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "Radar sends its own microwave pulses and measures their reflections. Cloud and darkness do not block it as they block visible-light imaging.",
+       "sources": [
+        "earthdata-sar",
+        "earthdata-opera-helene"
+       ]
+      }
+     }
+    },
+    {
+     "pictures": [
+      {
+       "layer": "story-radar-water",
+       "date": "2024-09-14",
+       "box": {
+        "min_lat": 28.6,
+        "min_lon": -84,
+        "max_lat": 29.9,
+        "max_lon": -81.4
+       },
+       "label": "14 September 2024"
+      },
+      {
+       "layer": "story-radar-water",
+       "date": "2024-09-26",
+       "box": {
+        "min_lat": 28.6,
+        "min_lon": -84,
+        "max_lat": 29.9,
+        "max_lon": -81.4
+       },
+       "label": "26 September 2024"
+      }
+     ],
+     "text": [
+      {
+       "text": "NASA's article compares water maps dated 14 and 26 September 2024 to show storm-related flooding. The dates here follow that published comparison.",
+       "sources": [
+        "earthdata-opera-helene"
+       ]
+      },
+      {
+       "text": "Each OPERA image classifies surface water, not the amount of newly flooded land. Permanent water is included. Masking and observation coverage limit what the two maps can show.",
+       "sources": [
+        "worldview-opera"
+       ]
+      }
+     ],
+     "hint": "Switch between the dates and inspect the coast."
+    }
+   ]
+  },
+  {
+   "id": "cleaner-air-2020",
+   "story": true,
+   "title": "Cleaner air during the 2020 lockdowns",
+   "when": "Early 2020",
+   "where": "China and Europe",
+   "summary": "Compare published nitrogen dioxide findings with two illustrative daily maps.",
+   "kinds": [
+    "atmospheric_composition"
+   ],
+   "steps": [
+    {
+     "satellite": "28376",
+     "picture": {
+      "layer": "story-no2",
+      "date": "2020-01-15",
+      "box": {
+       "min_lat": 22,
+       "min_lon": 102,
+       "max_lat": 38,
+       "max_lon": 134
+      }
+     },
+     "camera": {
+      "lat": 30.6,
+      "lon": 114.3,
+      "distance": 1.8
+     },
+     "text": [
+      {
+       "text": "Nitrogen dioxide is a gas released by vehicles, power plants and industry. NASA found lower levels over China during the early 2020 lockdowns.",
+       "sources": [
+        "eo-no2-china"
+       ]
+      },
+      {
+       "text": "NASA's published TROPOMI comparison averages 1 to 20 January and 10 to 25 February 2020. This app instead shows a single-day OMI map from Aura. It does not reproduce that comparison.",
+       "sources": [
+        "eo-no2-china",
+        "worldview-omi"
+       ]
+      },
+      {
+       "text": "OMI maps the amount of nitrogen dioxide in a column of the lower atmosphere, not the pollution concentration at street level.",
+       "sources": [
+        "worldview-omi"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "NASA compared early 2020 with the same season in 2005 to 2019. How much lower was nitrogen dioxide over eastern and central China?",
+      "choices": [
+       "It was unchanged",
+       "10 to 30 percent lower",
+       "It had almost disappeared"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "NASA described a preliminary decrease of 10 to 30 percent. Researchers judged it larger than a normal holiday or weather effect.",
+       "sources": [
+        "eo-no2-china"
+       ]
+      }
+     }
+    },
+    {
+     "satellite": "28376",
+     "pictures": [
+      {
+       "layer": "story-no2",
+       "date": "2020-01-15",
+       "box": {
+        "min_lat": 22,
+        "min_lon": 102,
+        "max_lat": 38,
+        "max_lon": 134
+       },
+       "label": "15 January 2020"
+      },
+      {
+       "layer": "story-no2",
+       "date": "2020-02-20",
+       "box": {
+        "min_lat": 22,
+        "min_lon": 102,
+        "max_lat": 38,
+        "max_lon": 134
+       },
+       "label": "20 February 2020"
+      }
+     ],
+     "text": [
+      {
+       "text": "These are daily OMI illustrations for 15 January and 20 February. Two daily maps alone cannot establish a lockdown effect. NASA's result used longer averages and historical comparisons.",
+       "sources": [
+        "eo-no2-china",
+        "worldview-omi"
+       ]
+      },
+      {
+       "text": "Weather changes nitrogen dioxide from day to day. ESA averaged a month for its European comparison and estimated about 15 percent uncertainty from weather variability.",
+       "sources": [
+        "esa-no2-europe"
+       ]
+      }
+     ],
+     "hint": "Switch between the daily maps, then read the published comparisons."
+    },
+    {
+     "satellite": "42969",
+     "chart": {
+      "dataset": "bars",
+      "title": "Approximate nitrogen dioxide decrease in spring 2020",
+      "unit": "%",
+      "bars": [
+       {
+        "label": "Madrid",
+        "value": 45
+       },
+       {
+        "label": "Milan",
+        "value": 45
+       },
+       {
+        "label": "Rome",
+        "value": 45
+       },
+       {
+        "label": "Paris",
+        "value": 54
+       }
+      ],
+      "source": {
+       "text": "ESA reported decreases of about 45 percent in Madrid, Milan and Rome and 54 percent in Paris. These are approximate published values, with about 15 percent uncertainty from weather variability.",
+       "sources": [
+        "esa-no2-europe"
+       ]
+      }
+     },
+     "text": [
+      {
+       "text": "The bars show ESA's Sentinel-5P results for 13 March to 13 April 2020 compared with March and April 2019. They do not come from the two daily OMI maps above.",
+       "sources": [
+        "esa-no2-europe"
+       ]
+      },
+      {
+       "text": "Monthly averaging reduces day-to-day weather effects. ESA still estimated about 15 percent weather-related uncertainty.",
+       "sources": [
+        "esa-no2-europe"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "lake-mead-shrinks",
+   "story": true,
+   "title": "Lake Mead shrinks",
+   "when": "2000 and 2022",
+   "where": "Nevada and Arizona, USA",
+   "summary": "Compare a broad Terra overview with NASA's account of the reservoir's decline.",
+   "kinds": [
+    "visible"
+   ],
+   "steps": [
+    {
+     "satellite": "25994",
+     "picture": {
+      "layer": "story-true-color",
+      "date": "2000-07-06",
+      "box": {
+       "min_lat": 35.9,
+       "min_lon": -115,
+       "max_lat": 36.5,
+       "max_lon": -113.8
+      }
+     },
+     "camera": {
+      "lat": 36.1,
+      "lon": -114.4,
+      "distance": 1.035
+     },
+     "text": [
+      {
+       "text": "NASA's published comparison uses Landsat images from 6 July 2000 and 3 July 2022. The app requests the same dates from Terra MODIS for a broader, coarser overview.",
+       "sources": [
+        "eo-lake-mead",
+        "worldview-modis-true-color"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "According to NASA, how full was Lake Mead in July 2022?",
+      "choices": [
+       "About three-quarters",
+       "About half",
+       "About one-quarter"
+      ],
+      "answer": 2,
+      "explain": {
+       "text": "On 18 July 2022, Lake Mead was 27 percent full. Its surface stood 317.4 m above sea level, the lowest level since 1937.",
+       "sources": [
+        "eo-lake-mead"
+       ]
+      }
+     }
+    },
+    {
+     "pictures": [
+      {
+       "layer": "story-true-color",
+       "date": "2000-07-06",
+       "box": {
+        "min_lat": 35.9,
+        "min_lon": -115,
+        "max_lat": 36.5,
+        "max_lon": -113.8
+       },
+       "label": "6 July 2000"
+      },
+      {
+       "layer": "story-true-color",
+       "date": "2022-07-03",
+       "box": {
+        "min_lat": 35.9,
+        "min_lon": -115,
+        "max_lat": 36.5,
+        "max_lon": -113.8
+       },
+       "label": "3 July 2022"
+      }
+     ],
+     "text": [
+      {
+       "text": "Lake Mead supplies water to millions of people across seven states, tribal lands and northern Mexico.",
+       "sources": [
+        "eo-lake-mead"
+       ]
+      },
+      {
+       "text": "These MODIS overviews are not NASA's sharper Landsat comparison. They show the reservoir at a broader scale and do not measure its water volume.",
+       "sources": [
+        "eo-lake-mead",
+        "worldview-modis-true-color"
+       ]
+      }
+     ],
+     "hint": "Switch between the two July dates."
+    },
+    {
+     "picture": {
+      "layer": "story-landsat",
+      "date": "2022-07-03",
+      "box": {
+       "min_lat": 35.9,
+       "min_lon": -115,
+       "max_lat": 36.5,
+       "max_lon": -113.8
+      }
+     },
+     "camera": {
+      "lat": 36.1,
+      "lon": -114.4,
+      "distance": 1.025
+     },
+     "text": [
+      {
+       "text": "This closer view requests the HLS Landsat product for 3 July 2022. HLS is a project that makes Landsat and Sentinel-2 data easier to compare. This L30 layer uses Landsat 8 and 9, not Sentinel-2.",
+       "sources": [
+        "worldview-hls"
+       ]
+      },
+      {
+       "text": "NASA describes light-coloured shoreline fringes as mineralised lakeshore. This app's HLS view is not the original Landsat image processing used in NASA's article.",
+       "sources": [
+        "eo-lake-mead",
+        "worldview-hls"
+       ]
+      }
+     ],
+     "satellite": "39084"
+    }
+   ]
+  },
+  {
+   "id": "rising-seas",
+   "story": true,
+   "title": "Three decades of rising seas",
+   "when": "Satellite record since 1993",
+   "where": "The global ocean",
+   "summary": "Read a sea-level record built by successive radar-altimeter missions.",
+   "kinds": [
+    "altimetry"
+   ],
+   "steps": [
+    {
+     "satellite": "46984",
+     "chart": {
+      "dataset": "sea-level",
+      "title": "Annual means of NOAA's global sea-level anomalies",
+      "unit": "mm"
+     },
+     "text": [
+      {
+       "text": "A radar altimeter measures the height of the sea surface using reflected pulses. Successive missions have maintained a global sea-level record since 1993.",
+       "sources": [
+        "earthdata-active",
+        "noaa-lsa"
+       ]
+      },
+      {
+       "text": "NASA's March 2023 analysis reported a 9.1 cm rise from 1993 through 2022. That dated finding is separate from the NOAA series plotted here.",
+       "sources": [
+        "jpl-sea-level-30"
+       ]
+      },
+      {
+       "text": "The chart averages NOAA's sea-level anomalies by year. An anomaly is a difference from a reference level, not ocean depth. NOAA's series removes annual signals and does not apply a glacial-isostatic adjustment for the Earth's response to past ice sheets.",
+       "sources": [
+        "noaa-lsa-csv"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "What did NASA's March 2025 analysis find about the rate of sea-level rise since 1993?",
+      "choices": [
+       "It stayed constant",
+       "It more than doubled",
+       "It slowed down"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "NASA reported that the rate more than doubled over three decades. Its estimate for 2024 was 0.59 cm per year, compared with an expected 0.43 cm per year.",
+       "sources": [
+        "jpl-pia26189"
+       ]
+      }
+     }
+    },
+    {
+     "text": [
+      {
+       "text": "In NASA's analysis, warming seawater supplied about two-thirds of the 2024 rise. Water expands as it warms. In recent years before 2024, melting land ice supplied the larger share.",
+       "sources": [
+        "jpl-pia26189"
+       ]
+      },
+      {
+       "text": "Sentinel-6 Michael Freilich launched in November 2020 and contributes to this record. It did not measure the entire record by itself.",
+       "sources": [
+        "jpl-pia26189"
+       ]
+      },
+      {
+       "text": "The plotted series has its own observation dates and processing. A partial year's mean is not a full-year average, and this chart does not reproduce NASA's 2024 analysis.",
+       "sources": [
+        "noaa-lsa-csv"
+       ]
+      }
+     ],
+     "hint": "Open Orbit to inspect Sentinel-6's path."
+    }
+   ]
+  },
+  {
+   "id": "arctic-sea-ice-minimum",
+   "story": true,
+   "title": "Arctic sea ice at its summer low",
+   "when": "September 2012 and 2025",
+   "where": "The Arctic Ocean",
+   "summary": "Separate daily ice concentration maps from September's average ice extent.",
+   "kinds": [
+    "passive_microwave"
+   ],
+   "steps": [
+    {
+     "satellite": "38337",
+     "picture": {
+      "layer": "story-sea-ice",
+      "date": "2012-09-16",
+      "box": {
+       "min_lat": 60,
+       "min_lon": -180,
+       "max_lat": 90,
+       "max_lon": 180
+      },
+      "plain": true
+     },
+     "camera": {
+      "lat": 88,
+      "lon": 0,
+      "distance": 1.75
+     },
+     "text": [
+      {
+       "text": "Passive microwave satellites have tracked Arctic sea ice continuously since 1979.",
+       "sources": [
+        "svs-sea-ice-2025"
+       ]
+      },
+      {
+       "text": "This app requests the daily AMSR2 concentration layer for 16 September 2012. AMSR2 flies on GCOM-W1. Concentration means the percentage of each 12 km grid cell covered by ice.",
+       "sources": [
+        "worldview-ice"
+       ]
+      },
+      {
+       "text": "Arctic sea ice reached its record-low extent on 16 September 2012. NASA's 2025 account still identifies 2012 as the record low.",
+       "sources": [
+        "svs-sea-ice-2012",
+        "eo-sea-ice-2025"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "How does NASA define sea ice extent?",
+      "choices": [
+       "Only the ice-covered fraction of each cell",
+       "The total area of cells with at least 15 percent ice",
+       "The thickness of the ice"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "Extent counts the area of ocean cells with at least 15 percent ice. It differs from the percentage concentration shown on these daily maps.",
+       "sources": [
+        "eo-sea-ice-2025",
+        "worldview-ice"
+       ]
+      }
+     }
+    },
+    {
+     "pictures": [
+      {
+       "layer": "story-sea-ice",
+       "date": "2012-09-16",
+       "label": "16 September 2012",
+       "box": {
+        "min_lat": 60,
+        "min_lon": -180,
+        "max_lat": 90,
+        "max_lon": 180
+       },
+       "plain": true
+      },
+      {
+       "layer": "story-sea-ice",
+       "date": "2025-09-01",
+       "label": "1 September 2025",
+       "box": {
+        "min_lat": 60,
+        "min_lon": -180,
+        "max_lat": 90,
+        "max_lon": 180
+       },
+       "plain": true
+      }
+     ],
+     "text": [
+      {
+       "text": "The second picture requests 1 September 2025. It is not a map of the 2025 minimum.",
+       "sources": [
+        "worldview-ice"
+       ]
+      },
+      {
+       "text": "NASA reported a likely daily minimum on 10 September 2025 of 4.60 million square kilometres. It tied 2008 for tenth lowest in the satellite record.",
+       "sources": [
+        "svs-sea-ice-2025",
+        "eo-sea-ice-2025"
+       ]
+      },
+      {
+       "text": "The daily concentration maps here differ from NASA's 2025 minimum animation, which uses a three-day running minimum and 10 km data.",
+       "sources": [
+        "worldview-ice",
+        "svs-sea-ice-2025"
+       ]
+      }
+     ],
+     "hint": "Switch between the dated concentration maps."
+    },
+    {
+     "chart": {
+      "dataset": "sea-ice",
+      "title": "September mean Arctic sea ice extent",
+      "hemisphere": "north",
+      "month": 9,
+      "highlight": [
+       2012
+      ],
+      "unit": "million km²"
+     },
+     "text": [
+      {
+       "text": "NSIDC's Sea Ice Index gives monthly mean extent for September since 1979. A monthly mean averages daily extent across the month; it is not the single lowest day.",
+       "sources": [
+        "nsidc-g02135"
+       ]
+      },
+      {
+       "text": "The September means are 7.05 million square kilometres in 1979, 3.57 in 2012 and 4.75 in 2025. Do not substitute the 2025 daily minimum of 4.60 for its monthly mean.",
+       "sources": [
+        "nsidc-september-csv",
+        "eo-sea-ice-2025"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "regions": [
+  {
+   "label": "Visible",
+   "from_um": 0.4,
+   "to_um": 0.7
+  },
+  {
+   "label": "NIR",
+   "from_um": 0.7,
+   "to_um": 1.1
+  },
+  {
+   "label": "SWIR",
+   "from_um": 1.1,
+   "to_um": 3
+  },
+  {
+   "label": "MWIR",
+   "from_um": 3,
+   "to_um": 5
+  },
+  {
+   "label": "Thermal IR",
+   "from_um": 8,
+   "to_um": 15
+  },
+  {
+   "label": "Microwave",
+   "from_um": 1000,
+   "to_um": 300000
+  }
+ ],
+ "regions_sources": [
+  {
+   "text": "Visible light is 0.4 to 0.7 µm, and microwaves 1 mm to 1 m.",
+   "sources": [
+    "eo-remote-sensing"
+   ]
+  },
+  {
+   "text": "NASA puts near infrared at 0.7 to 1.1 µm and shortwave infrared at 1.1 to 3 µm. WMO instead puts their boundary at 1.3 µm.",
+   "sources": [
+    "eo-false-color",
+    "wmo-nir",
+    "wmo-swir"
+   ]
+  },
+  {
+   "text": "Mid-wave infrared, 3 to 5 µm, holds an atmospheric window for surface temperature and clouds.",
+   "sources": [
+    "wmo-mwir"
+   ]
+  },
+  {
+   "text": "Earth scientists call 8 to 15 µm thermal infrared.",
+   "sources": [
+    "nasa-ems-ir"
+   ]
+  },
+  {
+   "text": "Radar C band is 4 to 8 GHz, 3.8 to 7.5 cm, and L band 1 to 2 GHz, 15 to 30 cm.",
+   "sources": [
+    "earthdata-sar-bands"
+   ]
+  }
+ ],
+ "sharp_statements": [
+  {
+   "text": "Finer spatial resolution can require a narrower viewing strip and longer waits between observations. The chart mixes selected bands, modes and satellite configurations. Read each specification before comparing points.",
+   "sources": [
+    "earthdata-resolution"
+   ]
+  }
+ ]
+}

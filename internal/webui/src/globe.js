@@ -1,5 +1,5 @@
 // The 3D scene. It knows TEME positions and times, not the rest of the app.
-import { AmbientLight, BufferAttribute, BufferGeometry, CanvasTexture, DirectionalLight, Float32BufferAttribute, Group, Line, LineBasicMaterial, LineDashedMaterial, LineSegments, Mesh, MeshBasicMaterial, MeshPhongMaterial, PerspectiveCamera, Points, PointsMaterial, Raycaster, Scene, SphereGeometry, SRGBColorSpace, Texture, Vector2, Vector3, WebGLRenderer, BackSide } from 'three';
+import { LessEqualDepth, AmbientLight, BufferAttribute, BufferGeometry, CanvasTexture, DirectionalLight, Float32BufferAttribute, Group, Line, LineBasicMaterial, LineDashedMaterial, LineSegments, Mesh, MeshBasicMaterial, MeshPhongMaterial, PerspectiveCamera, Points, PointsMaterial, Raycaster, Scene, SphereGeometry, SRGBColorSpace, Texture, Vector2, Vector3, WebGLRenderer, BackSide } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import land from '../../../pkg/templates/earth-land.json';
 import { gmstAt, sampleAt } from '../../../pkg/templates/viewer-state.js';
@@ -27,6 +27,9 @@ function segments(paths, color, opacity) {
   geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
   return new LineSegments(geometry, new LineBasicMaterial({ color, transparent: true, opacity }));
 }
+
+// Pictures draw after the Earth's sphere, which writes the depth they are tested against.
+const LAYER_ORDER = 1;
 
 function earthGroup() {
   const group = new Group();
@@ -83,7 +86,12 @@ export function createGlobe(container, { onPick, onSelect }) {
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
   controls.enablePan = false;
-  controls.minDistance = 1.2;
+  controls.minDistance = 1.02;
+  // A place the camera stays over as the Earth turns. Dragging the globe lets it go.
+  let anchor = null;
+  controls.addEventListener('start', () => {
+    anchor = null;
+  });
   controls.maxDistance = 60;
 
   scene.add(stars());
@@ -121,16 +129,13 @@ export function createGlobe(container, { onPick, onSelect }) {
   let imageryStack = [];
   let layerRequest = 0;
 
-  // Layers sit above the Earth and below the coastlines (1.002). The cap keeps them there.
-  const LAYER_BASE_RADIUS = 1.001;
-  const LAYER_STEP = 0.0001;
-  const LAYER_TOP_RADIUS = 1.0019;
-
+  // Every picture uses the same sphere as the Earth, so its depth matches the Earth's exactly,
+  // and stacks by draw order instead of radius. Spheres a hair apart z-fight: their flat facets
+  // sag about 0.0005 between vertices, more than any gap small enough to stay under the
+  // coastlines, so the pictures and lines broke through each other in patches.
   function restackLayers() {
     imageryStack.forEach((entry, index) => {
-      if (!entry.mesh) return;
-      entry.mesh.scale.setScalar(Math.min(LAYER_TOP_RADIUS, LAYER_BASE_RADIUS + LAYER_STEP * (index + 1)));
-      entry.mesh.renderOrder = index;
+      if (entry.mesh) entry.mesh.renderOrder = LAYER_ORDER + index;
     });
   }
 
@@ -143,12 +148,28 @@ export function createGlobe(container, { onPick, onSelect }) {
     entry.mesh = null;
   }
 
-  function loadImage(url) {
+  async function loadImage(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`The image request failed (${response.status}).`);
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
     return new Promise((resolve, reject) => {
       const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error('The image could not be loaded.'));
-      image.src = url;
+      image.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        // Keep the metadata with these exact bytes, including when the texture is reused.
+        image.imageryMeta = {
+          pictureDate: response.headers.get('X-Khonsu-Picture-Date') || '',
+          fetchedAt: response.headers.get('X-Khonsu-Fetched-At') || '',
+          stale: response.headers.get('X-Khonsu-Stale') === 'true',
+        };
+        resolve(image);
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('The image could not be loaded.'));
+      };
+      image.src = objectUrl;
     });
   }
 
@@ -181,12 +202,26 @@ export function createGlobe(container, { onPick, onSelect }) {
     const image = await loadImage(url);
     const texture = transparent ? new CanvasTexture(featherEdges(image)) : new Texture(image);
     texture.colorSpace = SRGBColorSpace;
+    texture.userData.imageryMeta = image.imageryMeta;
     texture.needsUpdate = true;
     return texture;
   }
 
+  // A picture of one area is draped on a piece of sphere with the same latitudes and
+  // longitudes. Three's sphere starts at phi 0 on longitude -180 and theta 0 at the north
+  // pole, matching an equirectangular picture. The piece sits just above the whole-Earth
+  // pictures, finely divided so its facets stay clear of theirs and below the coastlines.
+  const PATCH_RADIUS = 1.001;
+  function layerGeometry(box) {
+    if (!box) return new SphereGeometry(1, 96, 64);
+    const degrees = Math.PI / 180;
+    const across = Math.max(8, Math.ceil((box.maxLon - box.minLon) / 0.5));
+    const down = Math.max(8, Math.ceil((box.maxLat - box.minLat) / 0.5));
+    return new SphereGeometry(1, Math.min(256, across), Math.min(256, down), (box.minLon + 180) * degrees, (box.maxLon - box.minLon) * degrees, (90 - box.maxLat) * degrees, (box.maxLat - box.minLat) * degrees);
+  }
+
   function startLayer(layer, request) {
-    const entry = { id: layer.id, url: layer.url, transparent: layer.transparent, request, status: null, texture: null, mesh: null };
+    const entry = { id: layer.id, url: layer.url, transparent: layer.transparent, box: layer.box ?? null, request, status: null, texture: null, mesh: null };
     entry.status = layerTexture(layer.url, layer.transparent).then((texture) => {
       // A newer setLayers call that dropped this layer makes this load stale.
       if (entry.request !== layerRequest) {
@@ -194,10 +229,13 @@ export function createGlobe(container, { onPick, onSelect }) {
         return new Error('This layer was replaced before it loaded.');
       }
       entry.texture = texture;
+      entry.meta = texture.userData.imageryMeta;
       entry.mesh = new Mesh(
-        new SphereGeometry(1, 96, 64),
-        new MeshPhongMaterial({ map: texture, transparent: layer.transparent, depthWrite: !layer.transparent, specular: 0x111111, shininess: 6 }),
+        layerGeometry(entry.box),
+        // Keep provider colours unchanged by sunlight, highlights and tone mapping.
+        new MeshBasicMaterial({ map: texture, transparent: layer.transparent, depthWrite: false, depthFunc: LessEqualDepth, toneMapped: false }),
       );
+      if (entry.box) entry.mesh.scale.setScalar(PATCH_RADIUS);
       earth.add(entry.mesh);
       restackLayers();
       return 'ok';
@@ -221,7 +259,7 @@ export function createGlobe(container, { onPick, onSelect }) {
         kept.request = request;
         next.push(kept);
       } else {
-        next.push(startLayer({ id: layer.id, url: layer.url, transparent }, request));
+        next.push(startLayer({ id: layer.id, url: layer.url, transparent, box: layer.box }, request));
       }
     }
     for (const entry of previous) {
@@ -229,7 +267,7 @@ export function createGlobe(container, { onPick, onSelect }) {
     }
     imageryStack = next;
     restackLayers();
-    return Promise.all(next.map((entry) => entry.status.then((status) => [entry.id, status]))).then(Object.fromEntries);
+    return Promise.all(next.map((entry) => entry.status.then((status) => [entry.id, status === 'ok' && entry.meta ? { status, meta: entry.meta } : status]))).then(Object.fromEntries);
   }
 
   // The rings are children of Earth, so they turn with it. Replaced on each call.
@@ -255,6 +293,7 @@ export function createGlobe(container, { onPick, onSelect }) {
 
   // Puts the camera on the side of Earth facing a direction, from a distance that keeps it in frame.
   function frameDirection(direction) {
+    anchor = null;
     // Include the orbit's height, so high satellites stay in frame.
     const distance = Math.max(3.6, Math.min(controls.maxDistance, direction.length() * 2.6));
     camera.position.copy(direction.normalize().add(new Vector3(0, 0.35, 0)).normalize().multiplyScalar(distance));
@@ -282,6 +321,22 @@ export function createGlobe(container, { onPick, onSelect }) {
     // The point is a child of Earth, so its world position depends on the rotation for this time.
     earth.updateMatrixWorld(true);
     frameDirection(pointMarker.getWorldPosition(new Vector3()));
+  }
+
+  // Turns to face a point on Earth at the current time, without marking it. A distance in
+  // Earth radii from the centre flies in close, such as 1.4 for a region a few hundred km wide.
+  function face(lat, lon, distance = null) {
+    setFollowing(false);
+    earth.updateMatrixWorld(true);
+    const point = surfacePoint(lat, lon, 1).applyMatrix4(earth.matrixWorld);
+    if (!Number.isFinite(distance)) {
+      frameDirection(point);
+      return;
+    }
+    camera.position.copy(point.normalize().multiplyScalar(Math.max(controls.minDistance, Math.min(controls.maxDistance, distance))));
+    controls.target.set(0, 0, 0);
+    controls.update();
+    anchor = { lat, lon };
   }
 
   function clearPoint() {
@@ -338,6 +393,12 @@ export function createGlobe(container, { onPick, onSelect }) {
         body.line.geometry.setDrawRange(range.first, range.count);
         body.rangeAt = time;
       }
+    }
+    // A close view of a place turns with the Earth, so the place stays in front of the camera.
+    if (anchor) {
+      earth.updateMatrixWorld(true);
+      const point = surfacePoint(anchor.lat, anchor.lon, 1).applyMatrix4(earth.matrixWorld);
+      camera.position.copy(point.normalize().multiplyScalar(camera.position.length()));
     }
     if (following && bodies.has(selected)) {
       const target = bodies.get(selected).marker.position;
@@ -463,6 +524,7 @@ export function createGlobe(container, { onPick, onSelect }) {
     selectedScreenPosition,
     home,
     showPoint,
+    face,
     clearPoint,
     select(id) {
       selected = id;

@@ -10,13 +10,17 @@ import (
 	"time"
 
 	"github.com/Mohammed-Ashour/khonsu/internal/catalog"
+	"github.com/Mohammed-Ashour/khonsu/internal/knowledge"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/celestraksw"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/donki"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/earthsearch"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/feed"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/gcat"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/gibs"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/launchlibrary"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/noaalsa"
+	"github.com/Mohammed-Ashour/khonsu/internal/sources/nsidc"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/openmeteo"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/satnogs"
 	"github.com/Mohammed-Ashour/khonsu/internal/sources/spacetrack"
@@ -43,6 +47,10 @@ func registerDataRoutes(mux *http.ServeMux, client *sources.Hub) {
 	c := client
 	mux.HandleFunc("/api/v1/sources", d.catalog)
 	mux.HandleFunc("/api/v1/imagery", d.imagery)
+	mux.HandleFunc("/api/v1/imagery-legend", imageryLegend)
+	mux.HandleFunc("/api/v1/satellite-data", satelliteData)
+	mux.HandleFunc("/api/v1/lessons", lessons)
+	mux.HandleFunc("/api/v1/learn", learn)
 	mux.Handle("/api/v1/space-weather", feedRoute(d, swpc.ID, dataTimeout, func(ctx context.Context, _ *http.Request) (swpc.Conditions, feed.Meta, error) {
 		return c.SWPC.Conditions(ctx)
 	}))
@@ -61,6 +69,17 @@ func registerDataRoutes(mux *http.ServeMux, client *sources.Hub) {
 			return nil, feed.Meta{}, err
 		}
 		return c.OpenMeteo.Clouds(ctx, lat, lon)
+	}))
+	mux.Handle("/api/v1/sea-ice", feedRoute(d, nsidc.ID, dataTimeout, func(ctx context.Context, r *http.Request) ([]nsidc.Year, feed.Meta, error) {
+		month, err := strconv.Atoi(r.URL.Query().Get("month"))
+		hemisphere := r.URL.Query().Get("hemisphere")
+		if err != nil || month < 1 || month > 12 || (hemisphere != "north" && hemisphere != "south") {
+			return nil, feed.Meta{}, badRequest("provide hemisphere north or south and month 1 to 12")
+		}
+		return c.SeaIce.Monthly(ctx, hemisphere == "north", month)
+	}))
+	mux.Handle("/api/v1/sea-level", feedRoute(d, noaalsa.ID, dataTimeout, func(ctx context.Context, _ *http.Request) (noaalsa.Series, feed.Meta, error) {
+		return c.SeaLevel.SeaLevel(ctx)
 	}))
 	mux.Handle("/api/v1/satellite-details", perSatellite(d, wikidata.ID, dataTimeout, func(ctx context.Context, id string) ([]wikidata.Entry, feed.Meta, error) {
 		return c.Wikidata.Lookup(ctx, id)
@@ -84,7 +103,67 @@ func (d dataAPI) catalog(w http.ResponseWriter, _ *http.Request) {
 	if d.client != nil {
 		groups = d.client.Catalog()
 	}
-	writeJSON(w, map[string]any{"live_data": d.client != nil, "categories": groups, "imagery_layers": sources.Layers(), "imaging_satellites": earthsearch.ImagingIDs()})
+	writeJSON(w, map[string]any{"live_data": d.client != nil, "categories": groups, "imagery_layers": append(sources.Layers(), sources.StoryLayers()...), "imaging_satellites": earthsearch.ImagingIDs()})
+}
+
+// satelliteData says what a satellite measures, from Khonsu's own curated notes, so
+// it makes no provider request and works while serving a local file.
+func satelliteData(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("norad_id")
+	if err := catalog.ValidateNoradID(id); err != nil {
+		writeFailure(w, badRequest("%s", err.Error()))
+		return
+	}
+	base, err := knowledge.Load()
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
+	number, _ := strconv.Atoi(id)
+	profile, described := base.ForSatellite(strconv.Itoa(number))
+	if !described {
+		writeJSON(w, map[string]any{"described": false, "profile": nil})
+		return
+	}
+	writeJSON(w, map[string]any{"described": true, "profile": profile})
+}
+
+// lessons lists the guided lessons, also from Khonsu's own notes.
+func lessons(w http.ResponseWriter, _ *http.Request) {
+	base, err := knowledge.Load()
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
+	writeJSON(w, map[string]any{"lessons": base.Lessons})
+}
+
+// learn gathers what the Learn panel shows: the kinds of data with the satellites that
+// collect them, the instruments, and the lessons. It also comes from Khonsu's notes.
+func learn(w http.ResponseWriter, _ *http.Request) {
+	base, err := knowledge.Load()
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
+	type kind struct {
+		knowledge.Kind
+		Satellites []knowledge.SatelliteLink `json:"satellites"`
+	}
+	kinds := make([]kind, 0, len(base.Kinds))
+	for _, k := range base.Kinds {
+		kinds = append(kinds, kind{k, base.Carriers(k.ID)})
+	}
+	lessons, stories := []knowledge.Lesson{}, []knowledge.Lesson{}
+	for _, lesson := range base.Lessons {
+		if lesson.Story {
+			stories = append(stories, lesson)
+		} else {
+			lessons = append(lessons, lesson)
+		}
+	}
+	writeJSON(w, map[string]any{"kinds": kinds, "instruments": base.Instruments, "lessons": lessons, "stories": stories,
+		"regions": base.Regions, "regions_sources": base.RegionsSources, "sharp_statements": base.SharpStatements})
 }
 
 func coordinates(r *http.Request) (float64, float64, error) {
@@ -136,6 +215,70 @@ func feedError(err error) error {
 	return requestError{http.StatusBadGateway, fmt.Errorf("could not get data from this source: %w", err)}
 }
 
+// imageryDate reads an optional past date for a daily or story layer. A story layer needs one.
+func imageryDate(value string, layer gibs.Layer, now time.Time) (time.Time, bool, error) {
+	if value == "" {
+		if layer.Story {
+			return time.Time{}, false, badRequest("this picture needs a date")
+		}
+		return time.Time{}, false, nil
+	}
+	if !layer.Daily {
+		return time.Time{}, false, badRequest("this picture has no dated versions")
+	}
+	day, err := time.Parse("2006-01-02", value)
+	if err != nil || day.Year() < 2000 || !day.Before(now.UTC().Truncate(24*time.Hour)) {
+		return time.Time{}, false, badRequest("date must be a past day, as YYYY-MM-DD, from 2000 on")
+	}
+	return day, true, nil
+}
+
+// imageryBox reads an optional area, as minLat,minLon,maxLat,maxLon, for a story layer.
+func imageryBox(value string, layer gibs.Layer) (gibs.Box, error) {
+	if value == "" {
+		return gibs.World, nil
+	}
+	if !layer.Story {
+		return gibs.Box{}, badRequest("only story pictures take an area")
+	}
+	parts := strings.Split(value, ",")
+	if len(parts) != 4 {
+		return gibs.Box{}, badRequest("bbox must be minLat,minLon,maxLat,maxLon")
+	}
+	numbers := make([]float64, 4)
+	for i, part := range parts {
+		number, err := strconv.ParseFloat(strings.TrimSpace(part), 64)
+		if err != nil {
+			return gibs.Box{}, badRequest("bbox must be minLat,minLon,maxLat,maxLon")
+		}
+		numbers[i] = number
+	}
+	box := gibs.Box{MinLat: numbers[0], MinLon: numbers[1], MaxLat: numbers[2], MaxLon: numbers[3]}
+	if !box.Valid() {
+		return gibs.Box{}, badRequest("bbox must be a rectangle on the globe")
+	}
+	return box, nil
+}
+
+// imageryLegend serves only bundled provider legends, including in local-file mode.
+func imageryLegend(w http.ResponseWriter, r *http.Request) {
+	layer, found := sources.FindLayer(r.URL.Query().Get("layer"))
+	if !found || layer.Legend == nil {
+		writeFailure(w, badRequest("unknown imagery legend"))
+		return
+	}
+	body, err := gibs.LegendImage(layer)
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	if r.Method != http.MethodHead {
+		_, _ = w.Write(body)
+	}
+}
+
 func (d dataAPI) imagery(w http.ResponseWriter, r *http.Request) {
 	layer, found := sources.FindLayer(r.URL.Query().Get("layer"))
 	if !found {
@@ -146,9 +289,25 @@ func (d dataAPI) imagery(w http.ResponseWriter, r *http.Request) {
 		writeFailure(w, errLiveDataOff)
 		return
 	}
+	day, dated, err := imageryDate(r.URL.Query().Get("date"), layer, time.Now())
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
+	box, err := imageryBox(r.URL.Query().Get("bbox"), layer)
+	if err != nil {
+		writeFailure(w, err)
+		return
+	}
 	ctx, cancel := context.WithTimeout(r.Context(), slowTimeout)
 	defer cancel()
-	image, meta, err := d.client.GIBS.Image(ctx, layer)
+	var image []byte
+	var meta feed.Meta
+	if dated {
+		image, meta, err = d.client.GIBS.ImageOn(ctx, layer, day, box)
+	} else {
+		image, meta, err = d.client.GIBS.Image(ctx, layer)
+	}
 	if err != nil {
 		writeFailure(w, feedError(err))
 		return
@@ -158,6 +317,9 @@ func (d dataAPI) imagery(w http.ResponseWriter, r *http.Request) {
 	headers.Set("Cache-Control", "no-store")
 	headers.Set("X-Khonsu-Fetched-At", meta.FetchedAt.Format(time.RFC3339))
 	headers.Set("X-Khonsu-Stale", strings.ToLower(strconv.FormatBool(meta.Stale)))
+	if meta.PictureDate != "" {
+		headers.Set("X-Khonsu-Picture-Date", meta.PictureDate)
+	}
 	if r.Method != http.MethodHead {
 		_, _ = w.Write(image)
 	}
