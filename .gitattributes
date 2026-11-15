@@ -1,3 +1,5 @@
 pkg/templates/viewer.bundle.js linguist-generated=true
 pkg/templates/earth-land.json linguist-vendored=true
 internal/webui/dist/* linguist-generated=true
+# The embedded upstream license is verified byte-for-byte on every platform.
+internal/tools/notices/licenses/go-localereader.txt text eol=lf
