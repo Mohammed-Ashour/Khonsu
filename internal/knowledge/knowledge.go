@@ -11,9 +11,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
+	"slices"
 	"sync"
 	"time"
 )
+
+// noradID is a catalog number without leading zeros.
+var noradID = regexp.MustCompile(`^[1-9][0-9]{0,8}$`)
 
 //go:embed knowledge.json
 var data []byte
@@ -85,7 +90,21 @@ type Lesson struct {
 	Story bool   `json:"story,omitempty"`
 	When  string `json:"when,omitempty"`
 	Where string `json:"where,omitempty"`
+	// Orbits are the orbit types and patterns a lesson explains, named as in the orbit
+	// explanation (internal/orbit), so the "Why is it up there?" card can offer it.
+	Orbits []string `json:"orbits,omitempty"`
 }
+
+// OrbitTopics are the names a lesson's Orbits may use: the orbit classes and the named
+// patterns of internal/orbit. A test keeps the two lists in step.
+var OrbitTopics = []string{"LEO", "MEO", "GEO", "GSO", "HEO", "Elliptical",
+	"sun_synchronous", "dawn_dusk", "molniya", "tundra", "polar", "near_equatorial", "retrograde"}
+
+// Tabs are the satellite panel's tabs a lesson step may open.
+var Tabs = []string{"now", "passes", "orbit", "data"}
+
+// Speeds are the timeline speeds a lesson step may play at, as offered by the app.
+var Speeds = []float64{1, 10, 60, 600}
 
 // Picture is a story layer for one past day, over an area when Box is set.
 type Picture struct {
@@ -139,6 +158,10 @@ type Step struct {
 	Text      []Statement `json:"text"`
 	Hint      string      `json:"hint,omitempty"`
 	Question  *Question   `json:"question,omitempty"`
+	// Tab opens a tab of the satellite panel, so the lesson can point at real values.
+	Tab string `json:"tab,omitempty"`
+	// Play runs the timeline at this many times real speed.
+	Play float64 `json:"play,omitempty"`
 }
 
 // Camera turns the globe to face a point.
@@ -229,6 +252,7 @@ type rawFile struct {
 		Story   bool     `json:"story"`
 		When    string   `json:"when"`
 		Where   string   `json:"where"`
+		Orbits  []string `json:"orbits"`
 		Steps   []struct {
 			Satellite string         `json:"satellite"`
 			Base      *string        `json:"base"`
@@ -240,6 +264,8 @@ type rawFile struct {
 			Camera    *Camera        `json:"camera"`
 			Text      []rawStatement `json:"text"`
 			Hint      string         `json:"hint"`
+			Tab       string         `json:"tab"`
+			Play      float64        `json:"play"`
 			Question  *struct {
 				Prompt  string       `json:"prompt"`
 				Choices []string     `json:"choices"`
@@ -415,7 +441,15 @@ func parse(body []byte) (*Base, error) {
 				return nil, fmt.Errorf("%s is repeated", owner)
 			}
 		}
-		lesson := Lesson{ID: raw.ID, Title: raw.Title, Summary: raw.Summary, Kinds: raw.Kinds, Story: raw.Story, When: raw.When, Where: raw.Where}
+		lesson := Lesson{ID: raw.ID, Title: raw.Title, Summary: raw.Summary, Kinds: append([]string{}, raw.Kinds...), Story: raw.Story, When: raw.When, Where: raw.Where, Orbits: raw.Orbits}
+		for _, topic := range raw.Orbits {
+			if !contains(OrbitTopics, topic) {
+				return nil, fmt.Errorf("%s: unknown orbit topic %q", owner, topic)
+			}
+		}
+		if len(raw.Kinds) == 0 && len(raw.Orbits) == 0 {
+			return nil, fmt.Errorf("%s needs kinds of data or orbit topics", owner)
+		}
 		for _, kind := range raw.Kinds {
 			if _, ok := base.kindByID[kind]; !ok {
 				return nil, fmt.Errorf("%s: unknown kind %q", owner, kind)
@@ -427,10 +461,18 @@ func parse(body []byte) (*Base, error) {
 			if err != nil {
 				return nil, err
 			}
+			// Data lessons pick described satellites. Orbit lessons may follow any satellite,
+			// since what they teach comes from its elements; tests check those IDs by name.
 			if rs.Satellite != "" {
-				if _, ok := base.satellites[rs.Satellite]; !ok {
+				if _, ok := base.satellites[rs.Satellite]; !ok && (len(raw.Orbits) == 0 || !noradID.MatchString(rs.Satellite)) {
 					return nil, fmt.Errorf("%s: satellite %q is not described", where, rs.Satellite)
 				}
+			}
+			if rs.Tab != "" && !contains(Tabs, rs.Tab) {
+				return nil, fmt.Errorf("%s: unknown tab %q", where, rs.Tab)
+			}
+			if rs.Play != 0 && !slices.Contains(Speeds, rs.Play) {
+				return nil, fmt.Errorf("%s: the timeline plays at 1, 10, 60 or 600 times real speed", where)
 			}
 			if len(rs.Compare) != 0 && len(rs.Compare) != 2 {
 				return nil, fmt.Errorf("%s: compare needs two views", where)
@@ -453,7 +495,7 @@ func parse(body []byte) (*Base, error) {
 					return nil, fmt.Errorf("%s: %w", where, err)
 				}
 			}
-			step := Step{Satellite: rs.Satellite, Base: rs.Base, View: rs.View, Compare: rs.Compare, Picture: rs.Picture, Pictures: rs.Pictures, Camera: rs.Camera, Text: text, Hint: rs.Hint}
+			step := Step{Satellite: rs.Satellite, Base: rs.Base, View: rs.View, Compare: rs.Compare, Picture: rs.Picture, Pictures: rs.Pictures, Camera: rs.Camera, Text: text, Hint: rs.Hint, Tab: rs.Tab, Play: rs.Play}
 			if rs.Chart != nil {
 				chart, err := checkChart(where, rs.Chart, statements)
 				if err != nil {
@@ -533,6 +575,20 @@ func checkChart(where string, raw *rawChart, statements func(string, []rawStatem
 		chart.Source = &source[0]
 	}
 	return chart, nil
+}
+
+// ForOrbit lists the lessons that explain any of the given orbit classes or patterns.
+func (b *Base) ForOrbit(topics []string) []LessonLink {
+	links := []LessonLink{}
+	for _, lesson := range b.Lessons {
+		for _, topic := range lesson.Orbits {
+			if slices.Contains(topics, topic) {
+				links = append(links, LessonLink{lesson.ID, lesson.Title})
+				break
+			}
+		}
+	}
+	return links
 }
 
 // Lesson returns a lesson by ID.

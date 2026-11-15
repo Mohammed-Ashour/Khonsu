@@ -221,14 +221,23 @@ func TestParseRejectsBrokenLessons(t *testing.T) {
 		"one compare":       `{"id":"l","title":"L","summary":"S","kinds":["k"],"steps":[{"compare":["a"],"text":[{"text":"x.","sources":["s"]}]}]}`,
 		"unknown kind":      `{"id":"l","title":"L","summary":"S","kinds":["nope"],"steps":[{"text":[{"text":"x.","sources":["s"]}]}]}`,
 		"off the globe":     `{"id":"l","title":"L","summary":"S","kinds":["k"],"steps":[{"camera":{"lat":95,"lon":0},"text":[{"text":"x.","sources":["s"]}]}]}`,
+		"no topic":          `{"id":"l","title":"L","summary":"S","steps":[{"text":[{"text":"x.","sources":["s"]}]}]}`,
+		"unknown orbit":     `{"id":"l","title":"L","summary":"S","orbits":["LEOO"],"steps":[{"text":[{"text":"x.","sources":["s"]}]}]}`,
+		"bad orbit sat":     `{"id":"l","title":"L","summary":"S","orbits":["LEO"],"steps":[{"satellite":"0255","text":[{"text":"x.","sources":["s"]}]}]}`,
+		"unknown tab":       `{"id":"l","title":"L","summary":"S","kinds":["k"],"steps":[{"tab":"sky","text":[{"text":"x.","sources":["s"]}]}]}`,
+		"odd speed":         `{"id":"l","title":"L","summary":"S","kinds":["k"],"steps":[{"play":5,"text":[{"text":"x.","sources":["s"]}]}]}`,
 	} {
 		if _, err := parse([]byte(head + lesson + "]}")); err == nil {
 			t.Errorf("%s: parse accepted it", name)
 		}
 	}
-	good := `{"id":"l","title":"L","summary":"S","kinds":["k"],"steps":[{"satellite":"1","text":[{"text":"x.","sources":["s"]}]}]}`
-	if _, err := parse([]byte(head + good + "]}")); err != nil {
-		t.Errorf("a valid lesson was rejected: %v", err)
+	for _, good := range []string{
+		`{"id":"l","title":"L","summary":"S","kinds":["k"],"steps":[{"satellite":"1","text":[{"text":"x.","sources":["s"]}]}]}`,
+		`{"id":"l","title":"L","summary":"S","orbits":["GEO","molniya"],"steps":[{"satellite":"25544","tab":"orbit","play":600,"text":[{"text":"x.","sources":["s"]}]}]}`,
+	} {
+		if _, err := parse([]byte(head + good + "]}")); err != nil {
+			t.Errorf("a valid lesson was rejected: %v", err)
+		}
 	}
 }
 

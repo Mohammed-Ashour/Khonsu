@@ -54,9 +54,23 @@ The notes also hold short lessons, in the same file. They follow the same rules:
 
 - **Sentences need sources.** Every sentence and every answer has a source.
 - **Hints are only directions.** A step's *hint* tells the reader what to do, such as "switch between the two views". It never states a fact.
-- **Tests check every lesson.** Each lesson must start by choosing a described satellite, use real views, and link from the kinds of data it teaches.
+- **Tests check every lesson.** Each lesson must start by choosing a satellite, use real views, and link from the kinds of data or the orbit types it teaches.
 
-| Lesson | Satellites | What it shows |
+Orbit lessons follow a live satellite and name the orbit types they explain, such as `GEO` or `molniya`, using the names of Khonsu's orbit explanation. The *Why is it up there?* card on the Orbit tab offers the lessons that match. Their satellites need not be described here, because what they teach comes from the satellite's elements; a test checks each one against the real elements used by the orbit tests. Steps can open a tab of the satellite panel and play the timeline.
+
+| Orbit lesson | Satellite | What it shows |
+|---|---|---|
+| What is an orbit? | ISS | Falling around Earth, 90 to 93 minute orbits, the 51.6° tilt and the westward shift of each pass |
+| Why do some satellites stay still? | GOES 19 | A geostationary orbit, the third of Earth it sees and its poor view of high latitudes |
+| Sun-synchronous orbits | Landsat 9 | The same local time at every equator crossing, and how Earth's bulge turns the orbit |
+| How GPS covers the planet | NAVSTAR 75 | Six planes at about 20,200 km, and why a receiver needs four satellites |
+| Why Molniya orbits are so stretched | Molniya 1-29 | A 12-hour ellipse that lingers over the north, and why 63.4° matters |
+| What is a TLE? | ISS | The two lines of elements, their epoch, and why they age |
+| Why orbits decay | ISS | Drag, the Sun's effect on it, reboosts and how long debris stays up |
+
+`khonsu learn` lists every lesson and story, `khonsu learn <lesson>` opens one in the web app, and `khonsu learn <lesson> --text` prints it in the terminal.
+
+| Data lesson | Satellites | What it shows |
 |---|---|---|
 | Light or heat? | GOES 19 | Visible band 2 against infrared band 13, and why infrared works at night |
 | Colours you can't see | NOAA 20 | True colour against shortwave infrared false colour: plants, burns, ice |
@@ -209,3 +223,27 @@ All views come from [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/), and
 - NASA GIBS / Worldview, [NOAA-20 VIIRS Day/Night Band display limitations](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/noaa20/VIIRS_NOAA20_DayNightBand.md)
 - NOAA LSA, [Global mean sea level anomaly, annual signals removed, CSV](https://www.star.nesdis.noaa.gov/socd/lsa/SeaLevelRise/slr/slr_sla_gbl_free_ref_90.csv)
 - NSIDC, [Sea Ice Index V4, northern September monthly extent, CSV](https://noaadata.apps.nsidc.org/NOAA/G02135/north/monthly/data/N_09_extent_v4.0.csv)
+- NASA, [Catalog of Earth Satellite Orbits](https://science.nasa.gov/earth/earth-observatory/catalog-of-earth-satellite-orbits/)
+- NASA, [Spot The Station](https://www.nasa.gov/spot-the-station/)
+- NASA Johnson Space Center, [Orbit Tutorial](https://eol.jsc.nasa.gov/Tools/orbitTutorial.htm)
+- NASA, [International Space Station Facts and Figures](https://www.nasa.gov/international-space-station/space-station-facts-and-figures/)
+- NASA, [International Space Station](https://www.nasa.gov/reference/international-space-station/)
+- NASA, [International Space Station Frequently Asked Questions](https://www.nasa.gov/international-space-station-frequently-asked-questions/)
+- NASA, [ISS Trajectory Operations (April 2025)](https://ntrs.nasa.gov/api/citations/20250003418/downloads/2025_April_POIWG_TOPO_final_rework.pdf)
+- NOAA NESDIS, [NOAA's GOES-19 Now Operational as GOES East](https://www.nesdis.noaa.gov/news/noaas-goes-19-now-operational-goes-east-providing-critical-new-data-forecasters)
+- NOAA, [Polar-orbiting and Geostationary Satellites](https://www.noaa.gov/heritage/resource-collections/polar-orbiting-and-geostationary-satellites-revolutionizing-earth-observations)
+- NASA Goddard, [GDC Orbit Primer](https://science.nasa.gov/wp-content/uploads/2023/05/GDC_OrbitPrimer.pdf)
+- GPS.gov, [Space Segment](https://www.gps.gov/space-segment)
+- GPS.gov, [GPS Standard Positioning Service Performance Standard (2020)](https://www.gps.gov/sites/default/files/2025-07/2020-SPS-performance-standard.pdf)
+- NASA Goddard, [Introduction to GPS and other Global Navigation Satellite Systems](https://ntrs.nasa.gov/api/citations/20120010317/downloads/20120010317.pdf)
+- Wikipedia, [Molniya orbit](https://en.wikipedia.org/wiki/Molniya_orbit)
+- CelesTrak, [SATCAT record for MOLNIYA 1-29](https://celestrak.org/satcat/records.php?CATNR=7780)
+- CelesTrak, [FAQs: Two-Line Element Set Format](https://celestrak.org/columns/v04n03/)
+- CelesTrak, [More Frequently Asked Questions](https://celestrak.org/columns/v04n05/)
+- CelesTrak, [A New Way to Obtain GP Data (aka TLEs)](https://celestrak.org/NORAD/documentation/gp-data-formats.php)
+- NOAA SWPC, [Satellite Drag](https://www.swpc.noaa.gov/impacts/satellite-drag)
+- NASA, [NASA, NOAA: Sun Reaches Maximum Phase in 11-Year Solar Cycle](https://science.nasa.gov/science-research/heliophysics/nasa-noaa-sun-reaches-maximum-phase-in-11-year-solar-cycle/)
+- NASA, [NASA, SpaceX CRS-33 Dragon Boost Space Station](https://www.nasa.gov/blogs/spacestation/2025/12/29/spacex-dragon-boosts-stations-orbit/)
+- NASA, [Station Orbiting Higher as Exercise Research and Maintenance Continue](https://www.nasa.gov/blogs/spacestation/2025/11/19/station-orbiting-higher-as-exercise-research-and-maintenance-continue/)
+- NASA Orbital Debris Program Office, [Frequently Asked Questions](https://orbitaldebris.jsc.nasa.gov/faq/)
+- ESA, [Reentry and collision avoidance](https://www.esa.int/Space_Safety/Space_Debris/Reentry_and_collision_avoidance)

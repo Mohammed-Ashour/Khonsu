@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
-import { CHAPTERS, createLearnHub, safeItems, sharpPoints, spectrumRows } from './learn.js';
+import { CHAPTERS, createLearnHub, safeItems, sharpPoints, spectrumRows, lessonGroups } from './learn.js';
 
 test('safeItems keeps text and https sources only', () => {
   assert.deepEqual(safeItems([{ text: 'A.', sources: [{ label: 'NASA', url: 'https://nasa.gov' }, { url: 'javascript:x' }] }, { text: ' ' }, null]), [
@@ -60,7 +60,7 @@ function localLearnResponse() {
     kinds: raw.kinds.map((kind) => ({
       ...kind,
       statements: statements(kind.statements), uses: statements(kind.uses), conditions: statements(kind.conditions),
-      lessons: raw.lessons.filter((lesson) => lesson.kinds.includes(kind.id)).map(({ id, title }) => ({ id, title })),
+      lessons: raw.lessons.filter((lesson) => (lesson.kinds ?? []).includes(kind.id)).map(({ id, title }) => ({ id, title })),
       satellites: raw.satellites.filter((satellite) => satellite.instruments.some((id) => raw.instruments.find((instrument) => instrument.id === id).kinds.includes(kind.id)))
         .map(({ norad_id, name }) => ({ norad_id, name })),
     })),
@@ -286,4 +286,9 @@ test('spectrum helpers retain centres, reject nonfinite numbers and keep panel e
   assert.match(charts[0].innerHTML, /Low centre/);
   assert.match(charts[0].innerHTML, /High centre/);
   assert.equal([...charts[0].innerHTML.matchAll(/class="chart-centre"/g)].length, 2);
+});
+
+test('lessonGroups puts orbit lessons first and keeps the rest in order', () => {
+  const groups = lessonGroups([{ id: 'a', kinds: ['visible'] }, { id: 'b', orbits: ['GEO'] }, { id: 'c' }]);
+  assert.deepEqual(groups.map(([title, list]) => [title, list.map((l) => l.id)]), [['How orbits work', ['b']], ['Reading the data', ['a', 'c']]]);
 });

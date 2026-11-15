@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createLessonPlayer, lessonFromUrl, withLesson } from './lesson.js';
+import { createLessonPlayer, lessonFromUrl, lessonsForOrbit, withLesson } from './lesson.js';
 
 class FakeNode {
   constructor(tag) {
@@ -105,6 +105,8 @@ function setup({ views = true, lessons = LESSONS, select = () => true, seaLevel 
       return true;
     },
     face: (lat, lon, distance) => { log.push(['face', lat, lon, distance]); scene.camera = [lat, lon, distance]; },
+    openTab: (name) => log.push(['tab', name]),
+    play: (speed) => log.push(['play', speed]),
     onChange: () => { changes += 1; },
   });
   return { player, card, list, log, scene, changes: () => changes };
@@ -312,4 +314,35 @@ test('sea-level charts label partial years, actual observation date, anomaly and
   assert.match(markup, /1992 partial/);
   assert.match(markup, /2025 partial/);
   assert.doesNotMatch(markup, /2024 partial/);
+});
+
+const ORBIT_LESSONS = [
+  { id: 'data', title: 'Data', summary: 'S', kinds: ['visible'], steps: [{ text: [{ text: 'x.', sources: [source] }] }] },
+  { id: 'still', title: 'Staying still', summary: 'S', orbits: ['GEO'], steps: [
+    { satellite: '60133', camera: { lat: 0, lon: -75, distance: 12 }, play: 600, text: [{ text: 'It hangs over one longitude.', sources: [source] }] },
+    { tab: 'orbit', text: [{ text: 'Read its period.', sources: [source] }] },
+    { text: [{ text: 'The end.', sources: [source] }] },
+  ] },
+  { id: 'molniya', title: 'Stretched', summary: 'S', orbits: ['molniya', 'Elliptical'], steps: [{ text: [{ text: 'x.', sources: [source] }] }] },
+];
+
+test('lessonsForOrbit matches the orbit class or any named pattern', () => {
+  assert.deepEqual(lessonsForOrbit(ORBIT_LESSONS, { regime: 'GEO', patterns: [] }).map((l) => l.id), ['still']);
+  assert.deepEqual(lessonsForOrbit(ORBIT_LESSONS, { regime: 'Elliptical', patterns: ['molniya'] }).map((l) => l.id), ['molniya']);
+  assert.deepEqual(lessonsForOrbit(ORBIT_LESSONS, { regime: 'LEO', patterns: ['sun_synchronous'] }), []);
+  assert.deepEqual(lessonsForOrbit(ORBIT_LESSONS, null), []);
+});
+
+test('an orbit lesson plays the timeline on its step and keeps the tab it opened', async () => {
+  const { player, log } = setup({ lessons: ORBIT_LESSONS });
+  assert.equal(await player.start('still'), true);
+  assert.deepEqual(log.filter(([kind]) => kind === 'play' || kind === 'tab'), [['play', 600]]);
+  assert.deepEqual(log.find(([kind]) => kind === 'face'), ['face', 0, -75, 12]);
+  log.length = 0;
+  await player.start('still', 1);
+  assert.deepEqual(log.filter(([kind]) => kind === 'play' || kind === 'tab'), [['tab', 'orbit']], 'only the step that asks plays');
+  log.length = 0;
+  await player.start('still', 2);
+  assert.deepEqual(log.filter(([kind]) => kind === 'tab'), [['tab', 'orbit']], 'a link to a later step restores the tab');
+  assert.deepEqual((await player.forOrbit({ regime: 'GEO', patterns: [] })).map((l) => l.id), ['still']);
 });

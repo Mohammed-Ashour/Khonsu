@@ -732,10 +732,31 @@ async function refreshReport() {
   renderOrbit();
 }
 
+// Lessons about this orbit, offered under the explanation. A newer render wins.
+let whyLessonsToken = 0;
+function renderWhyLessons(explanation) {
+  const row = byId('orbit-why-lessons');
+  const token = ++whyLessonsToken;
+  row.replaceChildren();
+  row.hidden = true;
+  if (!explanation || !lessonPlayer) return;
+  lessonPlayer.forOrbit(explanation).then((found) => {
+    if (token !== whyLessonsToken || !found.length) return;
+    row.replaceChildren(...found.map((lesson) => {
+      const button = element('button', 'text-button data-view', `Lesson: ${lesson.title}`);
+      button.type = 'button';
+      button.addEventListener('click', () => lessonPlayer.start(lesson.id));
+      return button;
+    }));
+    row.hidden = false;
+  });
+}
+
 function renderWhy(explanation) {
   const card = byId('orbit-why');
   const view = explanationView(explanation);
   card.hidden = !view;
+  renderWhyLessons(view ? explanation : null);
   if (!view) return;
   byId('orbit-why-chips').replaceChildren(...view.chips.map((label) => element('li', 'why-chip', label)));
   byId('orbit-why-list').replaceChildren(...view.items.map((item) => {
@@ -901,6 +922,15 @@ function setPlaying(value) {
   const label = value ? 'Pause timeline' : 'Play timeline';
   button.setAttribute('aria-label', label);
   button.title = label;
+}
+
+// Lessons play the timeline so the satellite moves along its track.
+function playTimeline(speed) {
+  const select = byId('speed-select');
+  if ([...select.options].some((option) => Number(option.value) === speed)) select.value = String(speed);
+  setLive(false);
+  if (state.time >= state.window.end) state.time = state.window.start;
+  setPlaying(true);
 }
 
 function jumpTo(time) {
@@ -1109,9 +1139,9 @@ function wireLayersPanel() {
   });
 }
 
-// Lessons pick a satellite and turn the camera themselves, so the new satellite is not framed.
-function showSatellite(id) {
-  return addSatellite(id, undefined, { frame: false });
+// Lessons that turn the camera themselves ask for the new satellite not to be framed.
+function showSatellite(id, { frame = false } = {}) {
+  return addSatellite(id, undefined, { frame });
 }
 
 function faceGlobe(lat, lon, distance = null) {
@@ -1355,6 +1385,8 @@ async function start() {
     layers: () => layersPanel,
     showSatellite,
     face: faceGlobe,
+    openTab: (name) => showTab(name),
+    play: playTimeline,
     onChange() {
       byId('headline').hidden = Boolean(lessonPlayer.current());
       syncUrl();

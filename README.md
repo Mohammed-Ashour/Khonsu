@@ -69,7 +69,7 @@ Pick a group from the searchable group list, then filter it by name or type a NO
 
 ### Understand why a satellite flies where it does
 
-Select a satellite and open **Orbit**. *Why is it up there?* explains its orbit in plain words: how high and how fast it flies, how far north and south it reaches, and patterns like sun-synchronous or Molniya. It also gives the local time it crosses the equator and how often its path repeats. Each sentence links to its source, and best guesses are tagged *estimate*.
+Select a satellite and open **Orbit**. *Why is it up there?* explains its orbit in plain words: how high and how fast it flies, how far north and south it reaches, and patterns like sun-synchronous or Molniya. It also gives the local time it crosses the equator and how often its path repeats. Each sentence links to its source, and best guesses are tagged *estimate*. When a lesson covers that kind of orbit, the card offers it.
 
 <table>
   <tr>
@@ -130,7 +130,16 @@ Press **Learn** to open four chapters next to the globe.
   - the Arctic sea ice minimum.
 
   Steps ask you to make a prediction, compare dated views or read a record. Illustrations are distinguished from the processed evidence in the cited studies. In particular, the Puerto Rico night images cannot establish changes in electric lighting.
-- **Lessons**: three short guided tours, such as comparing GOES East's visible and infrared views.
+- **Lessons**: ten short guided tours. Seven follow a live satellite to explain how orbits work:
+  - what an orbit is, with the ISS;
+  - why GOES-19 seems to stay still;
+  - how Landsat 9 crosses the equator at the same local time on every pass;
+  - how GPS covers the planet;
+  - why Molniya orbits are so stretched;
+  - what a TLE is;
+  - why orbits decay, and how the ISS climbs back up.
+
+  These steps open the Orbit tab and play the timeline, so you watch the real satellite move. Three more compare views of the data, such as GOES East's visible and infrared bands.
 
 <table>
   <tr>
@@ -163,6 +172,8 @@ The terminal app does the same tracking without a browser. You can browse groups
 
 ```bash
 khonsu tui --norad 25544      # open the ISS; press ? for keys
+khonsu learn                  # list the lessons and stories
+khonsu learn what-is-a-tle --text   # read a lesson here, with its sources
 ```
 
 ### Build on it
@@ -182,7 +193,7 @@ The calendar is an [extension](docs/extensions.md), a small program any language
 - **No account needed.** Khonsu runs on your machine.
 - **Your location stays local.** It's sent only when you ask for cloud cover, rounded to about 10 km. Shared links hold the satellites you follow but never your location.
 - **Only what you open.** Each tab asks its provider only when you open it. Khonsu keeps a local copy of what it downloads.
-- **Offline mode.** `khonsu web --file examples/tui-demo/iss.tle`, run from a checkout, makes no provider requests at all.
+- **Offline mode.** `khonsu web --file examples/tui-demo/iss.tle`, run from a checkout, makes no provider requests at all. Lessons are built in. `khonsu learn <lesson> --text` needs no network, and in the web app a lesson's satellites keep working from the local copy once you have opened them.
 
 ## Where the data comes from
 

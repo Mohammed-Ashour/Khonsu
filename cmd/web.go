@@ -47,7 +47,11 @@ func newWebCommand() *cli.Command {
 	return &cli.Command{Name: "web", Usage: "Open the web app: a 3D globe, orbit explanations and viewing windows", Category: "UI", Flags: flags, Action: startWeb}
 }
 
-func startWeb(ctx context.Context, c *cli.Command) error {
+func startWeb(ctx context.Context, c *cli.Command) error { return serveWeb(ctx, c, "") }
+
+// serveWeb runs the web app until interrupted and opens the browser at path, such as
+// "?lesson=what-is-an-orbit", unless --no-open is set.
+func serveWeb(ctx context.Context, c *cli.Command, path string) error {
 	var records []elements.Record
 	if file := c.String("file"); file != "" {
 		var err error
@@ -62,6 +66,7 @@ func startWeb(ctx context.Context, c *cli.Command) error {
 	return server.ServeApp(ctx, server.AppOptions{
 		Addr: c.String("addr"), UI: webui.FS(), Records: records, CacheDir: c.String("cache-dir"), CacheTTL: ttl,
 		OnReady: func(url string) {
+			url = strings.TrimSuffix(url, "/") + "/" + path
 			fmt.Fprintf(c.Writer, "Khonsu is running at %s\nPress Ctrl+C to stop.\n", url)
 			if !isLoopback(c.String("addr")) {
 				fmt.Fprintln(c.ErrWriter, "Warning: this address may be reachable from other machines. The server has no authentication, and every visitor can trigger provider requests.")

@@ -47,18 +47,25 @@ func hasContentSource(statements []Statement, suffix string) bool {
 }
 
 func TestContentInventoryAndKindConnections(t *testing.T) {
-	// IDs are saved in URLs. Preserve all three lessons and seven local stories.
+	// IDs are saved in URLs. Preserve all ten lessons and seven local stories.
 	expected := map[string]bool{
-		"light-and-heat":         false,
-		"colours-you-cannot-see": false,
-		"orbit-decides-the-data": false,
-		"puerto-rico-goes-dark":  true,
-		"los-angeles-fires":      true,
-		"helene-flood-radar":     true,
-		"cleaner-air-2020":       true,
-		"lake-mead-shrinks":      true,
-		"rising-seas":            true,
-		"arctic-sea-ice-minimum": true,
+		"what-is-an-orbit":          false,
+		"why-satellites-stay-still": false,
+		"sun-synchronous-orbits":    false,
+		"how-gps-covers-the-planet": false,
+		"why-molniya-is-stretched":  false,
+		"what-is-a-tle":             false,
+		"why-orbits-decay":          false,
+		"light-and-heat":            false,
+		"colours-you-cannot-see":    false,
+		"orbit-decides-the-data":    false,
+		"puerto-rico-goes-dark":     true,
+		"los-angeles-fires":         true,
+		"helene-flood-radar":        true,
+		"cleaner-air-2020":          true,
+		"lake-mead-shrinks":         true,
+		"rising-seas":               true,
+		"arctic-sea-ice-minimum":    true,
 	}
 	base := load(t)
 	if len(base.Lessons) != len(expected) {

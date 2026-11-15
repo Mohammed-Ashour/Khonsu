@@ -400,7 +400,7 @@ func TestLessonsAreServedWithoutLiveData(t *testing.T) {
 	if err := json.Unmarshal(recorder.Body.Bytes(), &body); err != nil || recorder.Code != http.StatusOK || len(body.Lessons) == 0 {
 		t.Fatalf("status %d, err %v, body %s", recorder.Code, err, recorder.Body.String())
 	}
-	if body.Lessons[0].ID != "light-and-heat" || body.Lessons[0].Steps[0].Text[0].Sources[0].URL == "" {
+	if body.Lessons[0].ID != "what-is-an-orbit" || body.Lessons[0].Steps[0].Text[0].Sources[0].URL == "" {
 		t.Fatalf("first lesson = %+v", body.Lessons[0])
 	}
 }
