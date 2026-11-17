@@ -46,6 +46,20 @@ func hasContentSource(statements []Statement, suffix string) bool {
 	return false
 }
 
+func TestOrbitLessonsDistinguishLiveElementsFromCuratedDescriptions(t *testing.T) {
+	tle := lessonContent(t, "what-is-a-tle")
+	requireContent(t, tle.Summary, "orbital element", "GP JSON")
+	requireContent(t, stepContent(tle.Steps[0]), "live GP elements as JSON", "not as two lines of TLE text")
+	if strings.Contains(tle.Summary, "behind every satellite") {
+		t.Error("TLE lesson must not describe the live catalog as TLE text")
+	}
+	molniya := lessonContent(t, "why-molniya-is-stretched")
+	requireContent(t, stepContent(molniya.Steps[1]), "November 2026", "current estimate")
+	if strings.Contains(stepContent(molniya.Steps[1]), "no longer works") {
+		t.Error("SATCAT source does not establish operational status")
+	}
+}
+
 func TestContentInventoryAndKindConnections(t *testing.T) {
 	// IDs are saved in URLs. Preserve all ten lessons and seven local stories.
 	expected := map[string]bool{

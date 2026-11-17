@@ -68,6 +68,7 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
       if (step.satellite) scene.satellite = step.satellite;
       if (step.camera) scene.camera = step.camera;
       if (step.tab) scene.tab = step.tab;
+      if (step.play) scene.play = step.play;
       if (typeof step.base === 'string') scene.base = step.base;
       if (picturesOf(step) || step.picture || step.compare?.length === 2 || typeof step.view === 'string') {
         delete scene.pictures;
@@ -287,8 +288,9 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
   function go(index, lesson = current?.lesson, beginning = false) {
     if (!lesson) return false;
     const step = Math.max(0, Math.min(lesson.steps.length - 1, index));
-    const applied = enter(sceneFor(lesson, step), beginning || !current?.applied || current.lesson !== lesson);
-    if (applied && lesson.steps[step].play) play(lesson.steps[step].play);
+    const scene = sceneFor(lesson, step);
+    const applied = enter(scene, beginning || !current?.applied || current.lesson !== lesson);
+    if (applied) play(scene.play ?? null);
     if (applied) {
       current = { lesson, step, answer: null, compareOn: 0, applied: true };
     } else {
@@ -312,6 +314,7 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
   }
 
   function stop() {
+    play(null);
     current = null;
     render();
     onChange();

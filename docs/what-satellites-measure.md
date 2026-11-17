@@ -56,7 +56,7 @@ The notes also hold short lessons, in the same file. They follow the same rules:
 - **Hints are only directions.** A step's *hint* tells the reader what to do, such as "switch between the two views". It never states a fact.
 - **Tests check every lesson.** Each lesson must start by choosing a satellite, use real views, and link from the kinds of data or the orbit types it teaches.
 
-Orbit lessons follow a live satellite and name the orbit types they explain, such as `GEO` or `molniya`, using the names of Khonsu's orbit explanation. The *Why is it up there?* card on the Orbit tab offers the lessons that match. Their satellites need not be described here, because what they teach comes from the satellite's elements; a test checks each one against the real elements used by the orbit tests. Steps can open a tab of the satellite panel and play the timeline.
+Orbit lessons follow a live satellite and name the orbit types they explain, such as `GEO` or `molniya`, using the names of Khonsu's orbit explanation. The *Why is it up there?* card on the Orbit tab offers the lessons that match. Lesson statements are curated, sourced explanations, not live measurements. The Orbit tab computes classifications and estimates from the satellite's current elements. A test requires every orbit-lesson satellite to have real elements in the orbit fixture and checks that its computed orbit matches a lesson topic. Steps can open a tab of the satellite panel and play the timeline.
 
 | Orbit lesson | Satellite | What it shows |
 |---|---|---|
@@ -65,7 +65,7 @@ Orbit lessons follow a live satellite and name the orbit types they explain, suc
 | Sun-synchronous orbits | Landsat 9 | The same local time at every equator crossing, and how Earth's bulge turns the orbit |
 | How GPS covers the planet | NAVSTAR 75 | Six planes at about 20,200 km, and why a receiver needs four satellites |
 | Why Molniya orbits are so stretched | Molniya 1-29 | A 12-hour ellipse that lingers over the north, and why 63.4° matters |
-| What is a TLE? | ISS | The two lines of elements, their epoch, and why they age |
+| What is a TLE? | ISS | Orbital elements, TLE text versus live GP JSON, their epoch, and why they age |
 | Why orbits decay | ISS | Drag, the Sun's effect on it, reboosts and how long debris stays up |
 
 `khonsu learn` lists every lesson and story, `khonsu learn <lesson>` opens one in the web app, and `khonsu learn <lesson> --text` prints it in the terminal.

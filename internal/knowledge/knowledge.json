@@ -2567,7 +2567,7 @@
      "tab": "orbit",
      "text": [
       {
-       "text": "Molniya 1-29 was launched on 29 April 1975. It no longer works, and its tilt is now about 64.3 degrees.",
+       "text": "Molniya 1-29 was launched on 29 April 1975. Its tilt was about 64.3 degrees in the elements checked for this lesson in November 2026; the Orbit tab shows the current estimate.",
        "sources": [
         "celestrak-satcat-7780"
        ]
@@ -2609,7 +2609,7 @@
   {
    "id": "what-is-a-tle",
    "title": "What is a TLE?",
-   "summary": "Read the two lines of numbers behind every satellite Khonsu draws.",
+   "summary": "Learn what an orbital element set describes, and how TLE text relates to Khonsu's GP JSON data.",
    "orbits": [
     "LEO"
    ],
@@ -2624,7 +2624,7 @@
        ]
       },
       {
-       "text": "The elements come from fitting observations by the US Space Surveillance Network.",
+       "text": "The elements come from fitting observations by the US Space Surveillance Network. Khonsu receives live GP elements as JSON, not as two lines of TLE text. For the ISS, these formats describe the same orbital fields.",
        "sources": [
         "celestrak-gp"
        ]

@@ -49,10 +49,11 @@ func TestOrbitLessonsFollowKnownSatellitesOfTheirOrbit(t *testing.T) {
 				continue
 			}
 			topics, tested := known[step.Satellite]
-			if _, described := base.satellites[step.Satellite]; !described && !tested {
-				t.Errorf("%s step %d: satellite %s is neither described nor in the orbit test data", lesson.ID, i+1, step.Satellite)
+			if !tested {
+				t.Errorf("%s step %d: satellite %s lacks real elements in the orbit test data", lesson.ID, i+1, step.Satellite)
+				continue
 			}
-			if tested && !slices.ContainsFunc(lesson.Orbits, func(topic string) bool { return slices.Contains(topics, topic) }) {
+			if !slices.ContainsFunc(lesson.Orbits, func(topic string) bool { return slices.Contains(topics, topic) }) {
 				t.Errorf("%s step %d: satellite %s's orbit (%v) is none of the lesson's %v", lesson.ID, i+1, step.Satellite, topics, lesson.Orbits)
 			}
 		}

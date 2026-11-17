@@ -924,9 +924,21 @@ function setPlaying(value) {
   button.title = label;
 }
 
-// Lessons play the timeline so the satellite moves along its track.
+// A playing lesson temporarily owns the timeline controls, not the user's settings.
+let lessonTimeline = null;
 function playTimeline(speed) {
   const select = byId('speed-select');
+  if (speed == null) {
+    if (lessonTimeline) {
+      const previous = lessonTimeline;
+      lessonTimeline = null;
+      select.value = previous.speed;
+      setLive(previous.live);
+      setPlaying(previous.playing);
+    }
+    return;
+  }
+  lessonTimeline ??= { live: state.live, playing: state.playing, speed: select.value };
   if ([...select.options].some((option) => Number(option.value) === speed)) select.value = String(speed);
   setLive(false);
   if (state.time >= state.window.end) state.time = state.window.start;
@@ -1141,7 +1153,16 @@ function wireLayersPanel() {
 
 // Lessons that turn the camera themselves ask for the new satellite not to be framed.
 function showSatellite(id, { frame = false } = {}) {
-  return addSatellite(id, undefined, { frame });
+  const key = canonicalId(id);
+  const added = addSatellite(key, undefined, { frame });
+  // Selection may still see the previous lesson's camera, or already select this ID.
+  // Pending tracks frame after loading; an existing track must honor the request now.
+  if (added && frame) {
+    const entry = state.tracked.get(key);
+    if (entry.track) globe?.home(key);
+    else entry.framePending = true;
+  }
+  return added;
 }
 
 function faceGlobe(lat, lon, distance = null) {
@@ -1385,7 +1406,7 @@ async function start() {
     layers: () => layersPanel,
     showSatellite,
     face: faceGlobe,
-    openTab: (name) => showTab(name),
+    openTab: (name) => { if (state.tab !== name) showTab(name); },
     play: playTimeline,
     onChange() {
       byId('headline').hidden = Boolean(lessonPlayer.current());
