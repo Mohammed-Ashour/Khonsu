@@ -11,7 +11,8 @@ import (
 	"github.com/Mohammed-Ashour/khonsu/internal/elements"
 )
 
-// testdata/explain-gp.json holds CelesTrak GP elements fetched on 2026-11-13.
+// testdata/explain-gp.json holds CelesTrak GP elements fetched on 2026-11-13,
+// plus GOES 19 fetched on 2026-11-17.
 func loadExplainFixtures(t *testing.T) map[string]elements.Record {
 	t.Helper()
 	data, err := os.ReadFile("testdata/explain-gp.json")
@@ -57,6 +58,7 @@ func TestExplainRealSatellites(t *testing.T) {
 		{"ISS (ZARYA)", "LEO", nil, 0, 0, 0, ""},
 		{"NAVSTAR 75 (USA 265)", "MEO", nil, 1, 2, 0, ""},
 		{"GOES 18", "GEO", nil, 0, 0, 0, ""},
+		{"GOES 19", "GEO", nil, 0, 0, 0, ""},
 		{"SENTINEL-2A", "LEO", sso, 10, 143, 10.5, ""},
 		{"LANDSAT 9", "LEO", sso, 16, 233, 10.2, ""},
 		{"LANDSAT 8", "LEO", sso, 16, 233, 10.2, ""},

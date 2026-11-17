@@ -42,6 +42,12 @@ export function sharpPoints(instruments) {
     .map((instrument) => ({ label: instrument.short || instrument.id.toUpperCase(), x: instrument.resolution_m, y: instrument.revisit_days }));
 }
 
+// Orbit lessons first, since the data lessons build on them.
+export function lessonGroups(lessons) {
+  const orbits = (lessons ?? []).filter((lesson) => (lesson.orbits ?? []).length);
+  return [['How orbits work', orbits], ['Reading the data', (lessons ?? []).filter((lesson) => !orbits.includes(lesson))]];
+}
+
 export function createLearnHub({ api, element, panel, layers, showSatellite, startLesson, startStory, onClose }) {
   let data = null;
   let request = null;
@@ -168,11 +174,16 @@ export function createLearnHub({ api, element, panel, layers, showSatellite, sta
 
   function lessonsChapter() {
     const lessons = data.lessons ?? [];
-    return [note('Try a short guided tour. Look at the picture, make a prediction, then check the explanation and its sources.', 'learn-intro'), ...lessons.map((lesson) => {
-      const card = element('div', 'learn-story');
-      card.append(element('h3', 'learn-story-title', lesson.title), note(lesson.summary), button('Start', 'text-button', () => startLesson(lesson.id)));
-      return card;
-    })];
+    const card = (lesson) => {
+      const node = element('div', 'learn-story');
+      node.append(element('h3', 'learn-story-title', lesson.title), note(lesson.summary), button('Start', 'text-button', () => startLesson(lesson.id)));
+      return node;
+    };
+    const nodes = [note('Try a short guided tour. Look at the globe, make a prediction, then check the explanation and its sources.', 'learn-intro')];
+    for (const [title, group] of lessonGroups(lessons)) {
+      if (group.length) nodes.push(element('h3', 'why-title', title), ...group.map(card));
+    }
+    return nodes;
   }
 
   async function render() {

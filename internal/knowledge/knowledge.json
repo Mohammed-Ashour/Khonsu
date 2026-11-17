@@ -494,6 +494,126 @@
    "label": "NSIDC",
    "title": "Sea Ice Index V4, northern September monthly extent, CSV",
    "url": "https://noaadata.apps.nsidc.org/NOAA/G02135/north/monthly/data/N_09_extent_v4.0.csv"
+  },
+  "nasa-orbit-catalog": {
+   "label": "NASA",
+   "title": "Catalog of Earth Satellite Orbits",
+   "url": "https://science.nasa.gov/earth/earth-observatory/catalog-of-earth-satellite-orbits/"
+  },
+  "nasa-spot-station": {
+   "label": "NASA",
+   "title": "Spot The Station",
+   "url": "https://www.nasa.gov/spot-the-station/"
+  },
+  "jsc-orbit-tutorial": {
+   "label": "NASA Johnson Space Center",
+   "title": "Orbit Tutorial",
+   "url": "https://eol.jsc.nasa.gov/Tools/orbitTutorial.htm"
+  },
+  "nasa-iss-facts": {
+   "label": "NASA",
+   "title": "International Space Station Facts and Figures",
+   "url": "https://www.nasa.gov/international-space-station/space-station-facts-and-figures/"
+  },
+  "nasa-iss-reference": {
+   "label": "NASA",
+   "title": "International Space Station",
+   "url": "https://www.nasa.gov/reference/international-space-station/"
+  },
+  "nasa-iss-faq": {
+   "label": "NASA",
+   "title": "International Space Station Frequently Asked Questions",
+   "url": "https://www.nasa.gov/international-space-station-frequently-asked-questions/"
+  },
+  "nasa-iss-trajectory": {
+   "label": "NASA",
+   "title": "ISS Trajectory Operations (April 2025)",
+   "url": "https://ntrs.nasa.gov/api/citations/20250003418/downloads/2025_April_POIWG_TOPO_final_rework.pdf"
+  },
+  "nesdis-goes19-east": {
+   "label": "NOAA NESDIS",
+   "title": "NOAA's GOES-19 Now Operational as GOES East",
+   "url": "https://www.nesdis.noaa.gov/news/noaas-goes-19-now-operational-goes-east-providing-critical-new-data-forecasters"
+  },
+  "noaa-geo-polar": {
+   "label": "NOAA",
+   "title": "Polar-orbiting and Geostationary Satellites",
+   "url": "https://www.noaa.gov/heritage/resource-collections/polar-orbiting-and-geostationary-satellites-revolutionizing-earth-observations"
+  },
+  "gsfc-orbit-primer": {
+   "label": "NASA Goddard",
+   "title": "GDC Orbit Primer",
+   "url": "https://science.nasa.gov/wp-content/uploads/2023/05/GDC_OrbitPrimer.pdf"
+  },
+  "gps-space": {
+   "label": "GPS.gov",
+   "title": "Space Segment",
+   "url": "https://www.gps.gov/space-segment"
+  },
+  "gps-sps-standard": {
+   "label": "GPS.gov",
+   "title": "GPS Standard Positioning Service Performance Standard (2020)",
+   "url": "https://www.gps.gov/sites/default/files/2025-07/2020-SPS-performance-standard.pdf"
+  },
+  "gsfc-gnss-intro": {
+   "label": "NASA Goddard",
+   "title": "Introduction to GPS and other Global Navigation Satellite Systems",
+   "url": "https://ntrs.nasa.gov/api/citations/20120010317/downloads/20120010317.pdf"
+  },
+  "wiki-molniya": {
+   "label": "Wikipedia",
+   "title": "Molniya orbit",
+   "url": "https://en.wikipedia.org/wiki/Molniya_orbit"
+  },
+  "celestrak-satcat-7780": {
+   "label": "CelesTrak",
+   "title": "SATCAT record for MOLNIYA 1-29",
+   "url": "https://celestrak.org/satcat/records.php?CATNR=7780"
+  },
+  "celestrak-tle-faq": {
+   "label": "CelesTrak",
+   "title": "FAQs: Two-Line Element Set Format",
+   "url": "https://celestrak.org/columns/v04n03/"
+  },
+  "celestrak-tle-faq2": {
+   "label": "CelesTrak",
+   "title": "More Frequently Asked Questions",
+   "url": "https://celestrak.org/columns/v04n05/"
+  },
+  "celestrak-gp": {
+   "label": "CelesTrak",
+   "title": "A New Way to Obtain GP Data (aka TLEs)",
+   "url": "https://celestrak.org/NORAD/documentation/gp-data-formats.php"
+  },
+  "swpc-drag": {
+   "label": "NOAA SWPC",
+   "title": "Satellite Drag",
+   "url": "https://www.swpc.noaa.gov/impacts/satellite-drag"
+  },
+  "nasa-solar-max": {
+   "label": "NASA",
+   "title": "NASA, NOAA: Sun Reaches Maximum Phase in 11-Year Solar Cycle",
+   "url": "https://science.nasa.gov/science-research/heliophysics/nasa-noaa-sun-reaches-maximum-phase-in-11-year-solar-cycle/"
+  },
+  "nasa-dragon-boost": {
+   "label": "NASA",
+   "title": "NASA, SpaceX CRS-33 Dragon Boost Space Station",
+   "url": "https://www.nasa.gov/blogs/spacestation/2025/12/29/spacex-dragon-boosts-stations-orbit/"
+  },
+  "nasa-progress-boost": {
+   "label": "NASA",
+   "title": "Station Orbiting Higher as Exercise Research and Maintenance Continue",
+   "url": "https://www.nasa.gov/blogs/spacestation/2025/11/19/station-orbiting-higher-as-exercise-research-and-maintenance-continue/"
+  },
+  "odpo-faq": {
+   "label": "NASA Orbital Debris Program Office",
+   "title": "Frequently Asked Questions",
+   "url": "https://orbitaldebris.jsc.nasa.gov/faq/"
+  },
+  "esa-reentry": {
+   "label": "ESA",
+   "title": "Reentry and collision avoidance",
+   "url": "https://www.esa.int/Space_Safety/Space_Debris/Reentry_and_collision_avoidance"
   }
  },
  "kinds": [
@@ -1988,6 +2108,727 @@
   }
  ],
  "lessons": [
+  {
+   "id": "what-is-an-orbit",
+   "title": "What is an orbit?",
+   "summary": "Follow the ISS to see why a satellite keeps falling without ever landing.",
+   "orbits": [
+    "LEO"
+   ],
+   "steps": [
+    {
+     "satellite": "25544",
+     "text": [
+      {
+       "text": "An orbit is a fall that never reaches the ground. Something thrown sideways fast enough keeps falling towards Earth while the ground curves away beneath it.",
+       "sources": [
+        "esa-orbits"
+       ]
+      },
+      {
+       "text": "Earth's gravity mostly controls a satellite's motion. The closer a satellite is to Earth, the stronger the pull and the faster it moves.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      },
+      {
+       "text": "The space station flies at about 28,000 km/h.",
+       "sources": [
+        "nasa-spot-station"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "How long does the ISS take to go once around Earth?",
+      "choices": [
+       "About 90 minutes",
+       "About 12 hours",
+       "About a day"
+      ],
+      "answer": 0,
+      "explain": {
+       "text": "Each orbit takes 90 to 93 minutes, depending on the station's exact altitude. In 24 hours it makes about 16 orbits.",
+       "sources": [
+        "jsc-orbit-tutorial",
+        "nasa-iss-facts"
+       ]
+      }
+     }
+    },
+    {
+     "tab": "orbit",
+     "text": [
+      {
+       "text": "The station's orbit is tilted 51.6 degrees to the equator, so it never goes farther north or south than 51.6 degrees latitude.",
+       "sources": [
+        "nasa-iss-faq"
+       ]
+      },
+      {
+       "text": "From places farther north or south, such as Alaska, the station never passes directly overhead.",
+       "sources": [
+        "nasa-spot-station"
+       ]
+      },
+      {
+       "text": "Its path still takes it over more than 90 percent of Earth's population.",
+       "sources": [
+        "nasa-iss-facts"
+       ]
+      }
+     ],
+     "hint": "Look at the inclination and period in the Orbit tab."
+    },
+    {
+     "play": 600,
+     "text": [
+      {
+       "text": "NASA gives the station's altitude as 370 to 460 km. In March 2025, NASA updated the station's altitude plan to keep it between 405 and 425 km.",
+       "sources": [
+        "nasa-iss-reference",
+        "nasa-iss-trajectory"
+       ]
+      }
+     ],
+     "hint": "Look at the track as the timeline plays, and compare each new pass with the one before.",
+     "question": {
+      "prompt": "After one orbit, where will the ISS cross the equator next?",
+      "choices": [
+       "At the same place",
+       "Farther west",
+       "Farther east"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "Earth turns while the station goes around, so each orbit crosses the equator about 22.9 degrees of longitude farther west.",
+       "sources": [
+        "jsc-orbit-tutorial"
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "why-satellites-stay-still",
+   "title": "Why do some satellites stay still?",
+   "summary": "Watch GOES-19 hang over one spot while Earth turns, and see what it can and cannot see.",
+   "orbits": [
+    "GEO"
+   ],
+   "steps": [
+    {
+     "satellite": "60133",
+     "play": 600,
+     "text": [
+      {
+       "text": "A geostationary satellite flies above the equator from west to east. It takes 23 hours 56 minutes 4 seconds to go around once, exactly as long as Earth takes to turn.",
+       "sources": [
+        "esa-orbits"
+       ]
+      },
+      {
+       "text": "Because it keeps pace with Earth, it seems to hang over one fixed spot.",
+       "sources": [
+        "esa-orbits"
+       ]
+      },
+      {
+       "text": "To do that, it flies 35,786 km up at about 3 km per second.",
+       "sources": [
+        "esa-orbits"
+       ]
+      }
+     ],
+     "hint": "Look at GOES-19 as the timeline plays.",
+     "question": {
+      "prompt": "How long does GOES-19 take to go once around Earth?",
+      "choices": [
+       "About 90 minutes",
+       "About 12 hours",
+       "About 23 hours 56 minutes"
+      ],
+      "answer": 2,
+      "explain": {
+       "text": "A geostationary orbit takes one sidereal day, 23 hours 56 minutes 4 seconds, matching Earth's spin.",
+       "sources": [
+        "esa-orbits"
+       ]
+      }
+     }
+    },
+    {
+     "tab": "orbit",
+     "text": [
+      {
+       "text": "NOAA made GOES-19 its GOES East satellite on 7 April 2025, above the equator at 75.2 degrees west.",
+       "sources": [
+        "nesdis-goes19-east"
+       ]
+      },
+      {
+       "text": "A geosynchronous orbit is geostationary only when it is circular and directly over the equator. The satellite then does not move at all relative to the ground.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      }
+     ],
+     "hint": "Look at the period and inclination in the Orbit tab."
+    },
+    {
+     "camera": {
+      "lat": 0,
+      "lon": -75.2,
+      "distance": 4
+     },
+     "text": [
+      {
+       "text": "Each of NOAA's two geostationary weather satellites views almost a third of Earth's surface.",
+       "sources": [
+        "noaa-geo-polar"
+       ]
+      },
+      {
+       "text": "Every few minutes, GOES satellites send information about clouds, water vapour and wind.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      },
+      {
+       "text": "Places far to the north or south are always at the edge of the view, so geostationary satellites do not work well for them.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "How many evenly spaced geostationary satellites does it take to cover nearly the whole globe?",
+      "choices": [
+       "Three",
+       "Ten",
+       "Thirty"
+      ],
+      "answer": 0,
+      "explain": {
+       "text": "Just three evenly spaced geostationary satellites can provide near-global coverage.",
+       "sources": [
+        "esa-orbits"
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "sun-synchronous-orbits",
+   "title": "Sun-synchronous orbits",
+   "summary": "See how Landsat 9 crosses the equator at the same local time on every pass.",
+   "orbits": [
+    "sun_synchronous"
+   ],
+   "steps": [
+    {
+     "satellite": "49260",
+     "text": [
+      {
+       "text": "Landsat 9 flies a near-polar orbit 705 km up, tilted 98.2 degrees, and goes around Earth every 99 minutes.",
+       "sources": [
+        "usgs-landsat9"
+       ]
+      },
+      {
+       "text": "Its orbit is Sun-synchronous: whenever and wherever it crosses the equator, the local solar time on the ground is the same.",
+       "sources": [
+        "usgs-landsat9",
+        "nasa-orbit-catalog"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "Landsat 9 crosses the equator at about 10:12 a.m. local time. 99 minutes later it crosses the equator again, farther west. What is the local time on the ground there?",
+      "choices": [
+       "About 10:12 a.m.",
+       "About 11:51 a.m.",
+       "About 8:33 a.m."
+      ],
+      "answer": 0,
+      "explain": {
+       "text": "Landsat 9 crosses the equator heading south at about 10:12 a.m. local time, give or take 5 minutes, on every pass.",
+       "sources": [
+        "usgs-landsat9",
+        "landsat9"
+       ]
+      }
+     }
+    },
+    {
+     "tab": "orbit",
+     "text": [
+      {
+       "text": "Earth's equator bulges a little. The bulge slowly turns the plane of an orbit.",
+       "sources": [
+        "gsfc-orbit-primer"
+       ]
+      },
+      {
+       "text": "When the plane turns 0.9856 degrees a day, it keeps pace with the Sun's apparent motion through the year. That makes the orbit Sun-synchronous.",
+       "sources": [
+        "gsfc-orbit-primer"
+       ]
+      },
+      {
+       "text": "For a circular orbit 700 km up, that takes a tilt of 98.2 degrees.",
+       "sources": [
+        "gsfc-orbit-primer"
+       ]
+      }
+     ],
+     "hint": "Look at the orbit explanation in the Orbit tab for the equator crossing time."
+    },
+    {
+     "text": [
+      {
+       "text": "Keeping the sunlight angle as steady as possible lets scientists compare images from the same season over several years without worrying much that changes in shadows and lighting will create illusions of change.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      },
+      {
+       "text": "Landsat 9 repeats its path every 16 days. Flying 8 days apart from Landsat 8, the pair can image each place every 8 days.",
+       "sources": [
+        "usgs-landsat9",
+        "landsat9"
+       ]
+      },
+      {
+       "text": "Drag and the pull of the Sun and Moon change the orbit, so these satellites need regular adjustments.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "how-gps-covers-the-planet",
+   "title": "How GPS covers the planet",
+   "summary": "Follow a GPS satellite to see how a few dozen satellites cover the whole Earth.",
+   "orbits": [
+    "MEO"
+   ],
+   "steps": [
+    {
+     "satellite": "41019",
+     "camera": {
+      "lat": 25,
+      "lon": 0,
+      "distance": 14
+     },
+     "play": 600,
+     "text": [
+      {
+       "text": "GPS satellites fly in medium Earth orbit, about 20,200 km up, and each circles Earth twice a day.",
+       "sources": [
+        "gps-space"
+       ]
+      },
+      {
+       "text": "They are arranged in six equally spaced orbital planes.",
+       "sources": [
+        "gps-space"
+       ]
+      },
+      {
+       "text": "Each plane is tilted 55 degrees to the equator, and the GPS standard allows 3 degrees either way.",
+       "sources": [
+        "gps-sps-standard",
+        "gsfc-gnss-intro"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "How many times a day does a GPS satellite go around Earth?",
+      "choices": [
+       "Once",
+       "Twice",
+       "About 16 times"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "Each GPS satellite circles Earth twice a day.",
+       "sources": [
+        "gps-space"
+       ]
+      }
+     }
+    },
+    {
+     "tab": "orbit",
+     "text": [
+      {
+       "text": "The United States commits to keeping at least 24 operational GPS satellites available 95 percent of the time.",
+       "sources": [
+        "gps-space"
+       ]
+      },
+      {
+       "text": "On 3 July 2023, GPS.gov counted 31 operational satellites.",
+       "sources": [
+        "gps-space"
+       ]
+      },
+      {
+       "text": "The 24-slot arrangement lets users see at least four satellites from virtually anywhere on the planet.",
+       "sources": [
+        "gps-space"
+       ]
+      }
+     ],
+     "hint": "Look at the inclination in the Orbit tab and compare it with 55 degrees."
+    },
+    {
+     "text": [
+      {
+       "text": "A receiver solves for four unknowns: three position coordinates and the error of its own clock.",
+       "sources": [
+        "gsfc-gnss-intro"
+       ]
+      }
+     ],
+     "hint": "Open the group list and search for GPS to follow more of the constellation.",
+     "question": {
+      "prompt": "How many satellites must a receiver measure at once to fix its position and clock?",
+      "choices": [
+       "Two",
+       "Three",
+       "Four"
+      ],
+      "answer": 2,
+      "explain": {
+       "text": "Four unknowns need simultaneous measurements from four satellites.",
+       "sources": [
+        "gsfc-gnss-intro"
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "id": "why-molniya-is-stretched",
+   "title": "Why Molniya orbits are so stretched",
+   "summary": "Watch Molniya 1-29 race past Earth and linger high over the north.",
+   "orbits": [
+    "molniya"
+   ],
+   "steps": [
+    {
+     "satellite": "7780",
+     "play": 600,
+     "text": [
+      {
+       "text": "The Molniya orbit was invented by the Russians, and it works well for observing high latitudes.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      },
+      {
+       "text": "It is a long ellipse with Earth close to one end.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      },
+      {
+       "text": "It combines a tilt of 63.4 degrees with an eccentricity of 0.722.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      }
+     ],
+     "hint": "Look at how the satellite slows near the top of its orbit as the timeline plays.",
+     "question": {
+      "prompt": "Where does a Molniya satellite spend most of its 12-hour orbit?",
+      "choices": [
+       "Evenly spread around Earth",
+       "Close to Earth, near its lowest point",
+       "High above one hemisphere, near its farthest point"
+      ],
+      "answer": 2,
+      "explain": {
+       "text": "The satellite moves fast close to Earth and slowly far away, so it spends about two-thirds of each 12-hour orbit over one hemisphere.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      }
+     }
+    },
+    {
+     "tab": "orbit",
+     "text": [
+      {
+       "text": "Molniya 1-29 was launched on 29 April 1975. Its tilt was about 64.3 degrees in the elements checked for this lesson in November 2026; the Orbit tab shows the current estimate.",
+       "sources": [
+        "celestrak-satcat-7780"
+       ]
+      },
+      {
+       "text": "At a tilt of 63.4 degrees, the main effect of Earth's bulge stops shifting the orbit's lowest point, so the satellite does not need fuel to correct it.",
+       "sources": [
+        "wiki-molniya",
+        "gsfc-orbit-primer"
+       ]
+      }
+     ],
+     "hint": "Look at the Orbit tab for the inclination, period and the Molniya pattern."
+    },
+    {
+     "text": [
+      {
+       "text": "Geostationary satellites sit over the equator, so far northern places are always at the edge of their view.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      },
+      {
+       "text": "Permanent coverage of a region as large as Russia needs at least three Molniya satellites, each working about eight hours around its high point.",
+       "sources": [
+        "wiki-molniya"
+       ]
+      },
+      {
+       "text": "Soviet and Russian communications satellites have used this orbit since the mid-1960s.",
+       "sources": [
+        "wiki-molniya"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "what-is-a-tle",
+   "title": "What is a TLE?",
+   "summary": "Learn what an orbital element set describes, and how TLE text relates to Khonsu's GP JSON data.",
+   "orbits": [
+    "LEO"
+   ],
+   "steps": [
+    {
+     "satellite": "25544",
+     "text": [
+      {
+       "text": "A two-line element set, or TLE, is two 69-character lines of data that describe a satellite's orbit.",
+       "sources": [
+        "celestrak-tle-faq"
+       ]
+      },
+      {
+       "text": "The elements come from fitting observations by the US Space Surveillance Network. Khonsu receives live GP elements as JSON, not as two lines of TLE text. For the ISS, these formats describe the same orbital fields.",
+       "sources": [
+        "celestrak-gp"
+       ]
+      },
+      {
+       "text": "They are mean elements fitted with the SGP4/SDP4 model. Simply plugging them into another model gives predictions with unpredictable errors.",
+       "sources": [
+        "celestrak-tle-faq2"
+       ]
+      }
+     ]
+    },
+    {
+     "tab": "orbit",
+     "text": [
+      {
+       "text": "The epoch is the moment the element set describes. Every value that changes with time refers to it.",
+       "sources": [
+        "celestrak-tle-faq"
+       ]
+      },
+      {
+       "text": "Line 2 holds the inclination, the right ascension of the ascending node, the eccentricity, the argument of perigee, the mean anomaly and the mean motion.",
+       "sources": [
+        "celestrak-tle-faq"
+       ]
+      },
+      {
+       "text": "Mean motion is measured in revolutions per day. B*, on line 1, is a drag coefficient used by SGP4.",
+       "sources": [
+        "celestrak-tle-faq"
+       ]
+      }
+     ],
+     "hint": "Look at the element epoch in the Orbit tab."
+    },
+    {
+     "text": [
+      {
+       "text": "An element set's accuracy depends on the sensors, the amount of data, the type of orbit and the space environment, so it differs from one set to the next.",
+       "sources": [
+        "celestrak-tle-faq2"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "You use a two-week-old TLE for the ISS. What happens to the predicted position?",
+      "choices": [
+       "It is as accurate as a fresh one",
+       "It is likely to be off, because drag has changed the real orbit",
+       "It stops working after exactly one day"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "At the station's height, drag can make its projected path build up small errors, so flight controllers update its trajectory data about three times a week.",
+       "sources": [
+        "nasa-spot-station"
+       ]
+      }
+     }
+    },
+    {
+     "text": [
+      {
+       "text": "The US Space Force catalog ran out of five-digit numbers on 11 July 2026. New objects get six-digit numbers, and CelesTrak does not provide their data as TLEs.",
+       "sources": [
+        "celestrak-gp"
+       ]
+      },
+      {
+       "text": "The OMM format, part of a CCSDS standard, carries catalog numbers of up to nine digits.",
+       "sources": [
+        "celestrak-gp"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "why-orbits-decay",
+   "title": "Why orbits decay",
+   "summary": "See why the ISS keeps sinking, why the Sun makes it worse, and how the station climbs back.",
+   "orbits": [
+    "LEO"
+   ],
+   "steps": [
+    {
+     "satellite": "25544",
+     "text": [
+      {
+       "text": "The air is thin where low satellites fly, but it still drags on them and pulls them closer to Earth.",
+       "sources": [
+        "swpc-drag"
+       ]
+      },
+      {
+       "text": "Gravity then speeds them up. Eventually they spiral lower into the atmosphere, where they burn up or fall to Earth.",
+       "sources": [
+        "nasa-orbit-catalog"
+       ]
+      },
+      {
+       "text": "The space station falls towards Earth continually because of atmospheric friction and needs periodic rocket firings to raise its orbit.",
+       "sources": [
+        "nasa-iss-reference"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "The Sun becomes more active. What happens to the drag on the ISS?",
+      "choices": [
+       "It goes up",
+       "It goes down",
+       "It stays the same"
+      ],
+      "answer": 0,
+      "explain": {
+       "text": "The drag force on satellites increases when the Sun is active.",
+       "sources": [
+        "swpc-drag"
+       ]
+      }
+     }
+    },
+    {
+     "text": [
+      {
+       "text": "When the Sun adds energy to the upper atmosphere, the air rises, and denser layers reach the heights where satellites fly.",
+       "sources": [
+        "swpc-drag"
+       ]
+      },
+      {
+       "text": "When the Sun is quiet, low satellites boost their orbits about four times a year. Near the peak of the 11-year cycle, they may need to every 2 to 3 weeks.",
+       "sources": [
+        "swpc-drag"
+       ]
+      },
+      {
+       "text": "In October 2024, NASA and NOAA announced that the Sun had reached the maximum period of its cycle.",
+       "sources": [
+        "nasa-solar-max"
+       ]
+      },
+      {
+       "text": "NASA's trajectory team reported that solar maximum made drag on the station harder to predict.",
+       "sources": [
+        "nasa-iss-trajectory"
+       ]
+      }
+     ],
+     "hint": "Look at the Kp chip in the top bar for today's space weather."
+    },
+    {
+     "tab": "orbit",
+     "text": [
+      {
+       "text": "In April 2025, NASA's trajectory team said station reboosts were typically scheduled once a month.",
+       "sources": [
+        "nasa-iss-trajectory"
+       ]
+      },
+      {
+       "text": "On 29 December 2025, a SpaceX Dragon fired its thrusters for more than 19 minutes to raise the station's orbit.",
+       "sources": [
+        "nasa-dragon-boost"
+       ]
+      },
+      {
+       "text": "A NASA update in November 2025 reported that the Progress 93 cargo ship fired its engines for over 14 minutes to raise the station.",
+       "sources": [
+        "nasa-progress-boost"
+       ]
+      }
+     ],
+     "hint": "Look at the apogee, perigee and element epoch in the Orbit tab."
+    },
+    {
+     "text": [
+      {
+       "text": "Satellites, rocket stages and pieces of them reenter the atmosphere every day, and they usually burn up.",
+       "sources": [
+        "esa-reentry"
+       ]
+      }
+     ],
+     "question": {
+      "prompt": "Which piece of debris stays in orbit longer?",
+      "choices": [
+       "One at 500 km",
+       "One at 800 km"
+      ],
+      "answer": 1,
+      "explain": {
+       "text": "Debris below 600 km normally falls back within several years. At 800 km, decay often takes centuries.",
+       "sources": [
+        "odpo-faq"
+       ]
+      }
+     }
+    }
+   ]
+  },
   {
    "id": "light-and-heat",
    "title": "Light or heat?",

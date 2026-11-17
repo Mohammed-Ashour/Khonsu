@@ -732,10 +732,31 @@ async function refreshReport() {
   renderOrbit();
 }
 
+// Lessons about this orbit, offered under the explanation. A newer render wins.
+let whyLessonsToken = 0;
+function renderWhyLessons(explanation) {
+  const row = byId('orbit-why-lessons');
+  const token = ++whyLessonsToken;
+  row.replaceChildren();
+  row.hidden = true;
+  if (!explanation || !lessonPlayer) return;
+  lessonPlayer.forOrbit(explanation).then((found) => {
+    if (token !== whyLessonsToken || !found.length) return;
+    row.replaceChildren(...found.map((lesson) => {
+      const button = element('button', 'text-button data-view', `Lesson: ${lesson.title}`);
+      button.type = 'button';
+      button.addEventListener('click', () => lessonPlayer.start(lesson.id));
+      return button;
+    }));
+    row.hidden = false;
+  });
+}
+
 function renderWhy(explanation) {
   const card = byId('orbit-why');
   const view = explanationView(explanation);
   card.hidden = !view;
+  renderWhyLessons(view ? explanation : null);
   if (!view) return;
   byId('orbit-why-chips').replaceChildren(...view.chips.map((label) => element('li', 'why-chip', label)));
   byId('orbit-why-list').replaceChildren(...view.items.map((item) => {
@@ -901,6 +922,27 @@ function setPlaying(value) {
   const label = value ? 'Pause timeline' : 'Play timeline';
   button.setAttribute('aria-label', label);
   button.title = label;
+}
+
+// A playing lesson temporarily owns the timeline controls, not the user's settings.
+let lessonTimeline = null;
+function playTimeline(speed) {
+  const select = byId('speed-select');
+  if (speed == null) {
+    if (lessonTimeline) {
+      const previous = lessonTimeline;
+      lessonTimeline = null;
+      select.value = previous.speed;
+      setLive(previous.live);
+      setPlaying(previous.playing);
+    }
+    return;
+  }
+  lessonTimeline ??= { live: state.live, playing: state.playing, speed: select.value };
+  if ([...select.options].some((option) => Number(option.value) === speed)) select.value = String(speed);
+  setLive(false);
+  if (state.time >= state.window.end) state.time = state.window.start;
+  setPlaying(true);
 }
 
 function jumpTo(time) {
@@ -1109,9 +1151,18 @@ function wireLayersPanel() {
   });
 }
 
-// Lessons pick a satellite and turn the camera themselves, so the new satellite is not framed.
-function showSatellite(id) {
-  return addSatellite(id, undefined, { frame: false });
+// Lessons that turn the camera themselves ask for the new satellite not to be framed.
+function showSatellite(id, { frame = false } = {}) {
+  const key = canonicalId(id);
+  const added = addSatellite(key, undefined, { frame });
+  // Selection may still see the previous lesson's camera, or already select this ID.
+  // Pending tracks frame after loading; an existing track must honor the request now.
+  if (added && frame) {
+    const entry = state.tracked.get(key);
+    if (entry.track) globe?.home(key);
+    else entry.framePending = true;
+  }
+  return added;
 }
 
 function faceGlobe(lat, lon, distance = null) {
@@ -1355,6 +1406,8 @@ async function start() {
     layers: () => layersPanel,
     showSatellite,
     face: faceGlobe,
+    openTab: (name) => { if (state.tab !== name) showTab(name); },
+    play: playTimeline,
     onChange() {
       byId('headline').hidden = Boolean(lessonPlayer.current());
       syncUrl();

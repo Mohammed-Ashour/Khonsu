@@ -292,10 +292,13 @@ export function createGlobe(container, { onPick, onSelect }) {
   }
 
   // Puts the camera on the side of Earth facing a direction, from a distance that keeps it in frame.
-  function frameDirection(direction) {
+  function frameDirection(direction, radius = null) {
     anchor = null;
-    // Include the orbit's height, so high satellites stay in frame.
-    const distance = Math.max(3.6, Math.min(controls.maxDistance, direction.length() * 2.6));
+    // Only orbit framing fits a bounding sphere; surface-point views keep their zoom.
+    const halfVertical = camera.fov * Math.PI / 360;
+    const halfAngle = Math.min(halfVertical, Math.atan(Math.tan(halfVertical) * camera.aspect));
+    const fit = radius == null ? 0 : radius / Math.sin(halfAngle) * 1.1;
+    const distance = Math.min(controls.maxDistance, Math.max(3.6, (radius ?? direction.length()) * 2.6, fit));
     camera.position.copy(direction.normalize().add(new Vector3(0, 0.35, 0)).normalize().multiplyScalar(distance));
     controls.target.set(0, 0, 0);
     controls.update();
@@ -305,7 +308,13 @@ export function createGlobe(container, { onPick, onSelect }) {
     const body = bodies.get(id);
     const direction = body ? body.marker.position.clone() : new Vector3(0.68, 0.42, 0.76);
     if (direction.lengthSq() < 1e-6) direction.set(0.68, 0.42, 0.76);
-    frameDirection(direction);
+    // A perigee marker alone underestimates the room needed by an elliptical orbit.
+    const positions = body?.line.geometry.getAttribute('position');
+    let radius = Math.max(1, direction.length());
+    for (let i = 0; i < (positions?.count ?? 0); i += 1) {
+      radius = Math.max(radius, Math.hypot(positions.getX(i), positions.getY(i), positions.getZ(i)));
+    }
+    frameDirection(direction, radius);
   }
 
   function setFollowing(value) {

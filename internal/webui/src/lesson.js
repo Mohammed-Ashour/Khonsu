@@ -31,7 +31,14 @@ function safe(statement) {
   };
 }
 
-export function createLessonPlayer({ api, element, card, list, layers, showSatellite, face, onChange }) {
+// Lessons that explain an orbit explanation's class or patterns, in lesson order.
+export function lessonsForOrbit(lessons, explanation) {
+  if (!explanation) return [];
+  const topics = new Set([explanation.regime, ...(explanation.patterns ?? [])].filter(Boolean));
+  return (lessons ?? []).filter((lesson) => (lesson.orbits ?? []).some((topic) => topics.has(topic)));
+}
+
+export function createLessonPlayer({ api, element, card, list, layers, showSatellite, face, openTab = () => {}, play = () => {}, onChange }) {
   let lessons = null;
   let request = null;
   // The lesson on screen: { lesson, step, answer, compareOn }.
@@ -60,6 +67,8 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     for (const step of lesson.steps.slice(0, index + 1)) {
       if (step.satellite) scene.satellite = step.satellite;
       if (step.camera) scene.camera = step.camera;
+      if (step.tab) scene.tab = step.tab;
+      if (step.play) scene.play = step.play;
       if (typeof step.base === 'string') scene.base = step.base;
       if (picturesOf(step) || step.picture || step.compare?.length === 2 || typeof step.view === 'string') {
         delete scene.pictures;
@@ -77,7 +86,8 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
 
   function enter(scene, beginning = false) {
     // Selection is synchronous. A capacity refusal must leave the rest of the scene untouched.
-    if (scene.satellite && showSatellite(scene.satellite) === false) return false;
+    // With no camera of its own, the scene lets the app frame the satellite.
+    if (scene.satellite && showSatellite(scene.satellite, { frame: !scene.camera }) === false) return false;
     const panel = layers();
     if (beginning) panel?.beginLesson();
     if (panel) {
@@ -86,6 +96,7 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
       else panel.show(scene.compare?.[0] ?? scene.view, '', null, { base: scene.base });
     }
     if (scene.camera) face(scene.camera.lat, scene.camera.lon, scene.camera.distance || null);
+    if (scene.tab) openTab(scene.tab);
     return true;
   }
 
@@ -277,7 +288,9 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
   function go(index, lesson = current?.lesson, beginning = false) {
     if (!lesson) return false;
     const step = Math.max(0, Math.min(lesson.steps.length - 1, index));
-    const applied = enter(sceneFor(lesson, step), beginning || !current?.applied || current.lesson !== lesson);
+    const scene = sceneFor(lesson, step);
+    const applied = enter(scene, beginning || !current?.applied || current.lesson !== lesson);
+    if (applied) play(scene.play ?? null);
     if (applied) {
       current = { lesson, step, answer: null, compareOn: 0, applied: true };
     } else {
@@ -301,6 +314,7 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
   }
 
   function stop() {
+    play(null);
     current = null;
     render();
     onChange();
@@ -331,6 +345,8 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     start,
     stop,
     renderList,
+    // Lessons about this orbit explanation's class or patterns; none if they cannot load.
+    forOrbit: (explanation) => load().then((all) => lessonsForOrbit(all, explanation), () => []),
     current: () => (current?.applied ? { id: current.lesson.id, step: current.step } : null),
     // True while the lesson has placed the camera, so the app should not reframe it.
     holdsCamera: () => Boolean(current?.applied && sceneFor(current.lesson, current.step).camera),

@@ -109,6 +109,92 @@ test('actual addSatellite and showSatellite report capacity without evicting tra
   for (let i = 1; i <= 7; i += 1) assert.ok(tracked.has(String(i)));
 });
 
+test('lesson framing honors the destination even for a selected track or a previous camera owner', async () => {
+  const state = { tracked: new Map([['25544', { track: {} }], ['60133', { track: {} }]]), selected: '25544' };
+  const homes = [];
+  const app = actualFunctions(['addSatellite', 'showSatellite', 'select'], {
+    state, canonicalId: String, globe: { select() {}, home: (id) => homes.push(id) },
+    syncUrl() {}, renderTracked() {}, renderCatalog() {}, renderInspector() {}, renderStatus() {},
+    refreshPlan() {}, refreshReport() {}, applySelection() {},
+    lessonPlayer: null,
+  });
+  const player = createLessonPlayer({
+    api: { lessons: async () => ({ lessons: [
+      { id: 'iss', title: 'ISS', steps: [{ satellite: '25544' }] },
+      { id: 'goes', title: 'GOES', steps: [{ satellite: '60133' }, { camera: { lat: 0, lon: -75, distance: 12 } }] },
+    ] }) },
+    element: lessonNode, card: lessonNode('section'), list: lessonNode('div'), layers: () => null,
+    showSatellite: app.showSatellite, face() {}, onChange() {},
+  });
+  app.lessonPlayer = player;
+  await player.start('iss');
+  assert.equal(homes.at(-1), '25544', 'already-selected ISS still frames');
+  await player.start('goes', 1);
+  homes.length = 0;
+  await player.start('iss');
+  assert.deepEqual(homes, ['25544'], 'the previous camera cannot suppress destination framing');
+  await player.start('goes', 1);
+  homes.length = 0;
+  await player.start('goes', 0);
+  assert.deepEqual(homes, ['60133'], 'Back to a camera-less step frames an already selected track');
+});
+
+test('a lesson frames an already-tracked pending satellite when its data arrives', async () => {
+  const pending = deferred();
+  const entry = { id: '25544', track: null, framePending: false };
+  const state = { tracked: new Map([['25544', entry]]), selected: '25544', window: { start: 0 } };
+  const homes = [];
+  const app = actualFunctions(['addSatellite', 'showSatellite', 'loadTrack'], {
+    state, canonicalId: String, api: { track: () => pending.promise }, clearTimeout,
+    select: (id) => { state.selected = id; },
+    globe: { setTrack() {}, select() {}, home: (id) => homes.push(id) },
+    lessonPlayer: { holdsCamera: () => false },
+    renderTracked() {}, renderCatalog() {}, renderInspector() {}, renderStatus() {},
+  });
+  const loading = app.loadTrack(entry);
+  assert.equal(app.showSatellite('25544', { frame: true }), true);
+  assert.equal(entry.framePending, true);
+  assert.deepEqual(homes, []);
+  pending.resolve({ data: { name: 'ISS' } });
+  await loading;
+  assert.deepEqual(homes, ['25544']);
+  assert.equal(entry.framePending, false);
+});
+
+test('the lesson tab adapter refreshes only when the tab changes', () => {
+  const adapter = source.match(/openTab: (\(name\) => \{[^\n]+\}),/)[1];
+  const state = { tab: 'orbit' };
+  const calls = [];
+  const context = vm.createContext({ state, showTab: (name) => { calls.push(name); state.tab = name; } });
+  vm.runInContext(`openTab = ${adapter}`, context);
+  context.openTab('orbit');
+  context.openTab('data');
+  context.openTab('data');
+  assert.deepEqual(calls, ['data']);
+});
+
+for (const previous of [{ live: true, playing: false, speed: '1' }, { live: false, playing: true, speed: '60' }, { live: false, playing: false, speed: '10' }]) {
+  test(`lesson playback restores prior timeline settings ${JSON.stringify(previous)}`, () => {
+    const state = { ...previous, time: 10, window: { start: 0, end: 100 } };
+    const speed = { value: previous.speed, options: [1, 10, 60, 600].map((value) => ({ value: String(value) })) };
+    const app = actualFunctions(['playTimeline'], {
+      state, byId: () => speed,
+      setLive(value) { state.live = value; if (value) state.playing = false; },
+      setPlaying(value) { state.playing = value; },
+    }, source.match(/^let lessonTimeline = .*$/m)[0]);
+    app.playTimeline(600);
+    app.playTimeline(10); // Another playing step must not overwrite the user's snapshot.
+    assert.equal(state.playing, true);
+    assert.equal(state.live, false);
+    app.playTimeline(null);
+    assert.equal(state.live, previous.live);
+    assert.equal(state.playing, previous.playing);
+    assert.equal(speed.value, previous.speed);
+    app.playTimeline(null);
+    assert.equal(speed.value, previous.speed, 'release is idempotent');
+  });
+}
+
 function lessonNode(tagName, className = '', textContent = '') {
   return {
     tagName, className, textContent, children: [], dataset: {}, attributes: {}, listeners: {},

@@ -27,7 +27,7 @@ func TestEveryLocalStoryIsExposedAndItsPicturesAreRegistered(t *testing.T) {
 	if err := json.Unmarshal(recorder.Body.Bytes(), &hub); err != nil {
 		t.Fatal(err)
 	}
-	if recorder.Code != http.StatusOK || len(hub.Stories) != 7 || len(hub.Lessons) != 3 {
+	if recorder.Code != http.StatusOK || len(hub.Stories) != 7 || len(hub.Lessons) != 10 {
 		t.Fatalf("status=%d stories=%d lessons=%d", recorder.Code, len(hub.Stories), len(hub.Lessons))
 	}
 	base, err := knowledge.Load()

@@ -118,7 +118,7 @@ About 2.3% of other low orbits also match by coincidence. Real repeats are kept 
 
 - every rule at its boundaries with synthetic elements;
 - that every sentence has an https source;
-- real CelesTrak elements for the ISS, a GPS satellite, GOES-18, QZS-2, Sentinel-1C, Sentinel-2A, Sentinel-3A, Sentinel-6A, Landsat 8 and 9, TerraSAR-X, Terra, SWOT, Jason-3 and two Molniya objects.
+- real CelesTrak elements for the ISS, a GPS satellite, GOES-18 and GOES-19, QZS-2, Sentinel-1C, Sentinel-2A, Sentinel-3A, Sentinel-6A, Landsat 8 and 9, TerraSAR-X, Terra, SWOT, Jason-3 and two Molniya objects.
 
 ## Checks and limits
 
