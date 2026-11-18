@@ -94,7 +94,8 @@ ul { list-style: none; }
 .headline-main { margin-top: 5px; font-size: 16px; font-weight: 550; letter-spacing: -.01em; }
 .headline-sub { margin-top: 3px; color: var(--soft); font-size: 12px; line-height: 1.45; }
 .headline .text-button { margin-top: 8px; }
-.sat-label { position: absolute; z-index: 2; transform: translate(10px, -50%); padding: 2px 6px; border-radius: 3px; background: rgba(10, 14, 30, .8); font-size: 11px; white-space: nowrap; pointer-events: none; }
+.sat-label { position: absolute; z-index: 2; transform: translate(10px, -50%); padding: 2px 6px; border-radius: 3px; background: rgba(10, 14, 30, .8); font-size: 11px; max-width: calc(50% - 20px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
+.sat-label.is-left { transform: translate(calc(-100% - 10px), -50%); }
 .pick-hint { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); padding: 8px 12px; border: 1px solid var(--accent); border-radius: 4px; background: rgba(10, 14, 30, .92); }
 .scene-error { position: absolute; inset: 50% auto auto 50%; width: min(420px, calc(100% - 40px)); padding: 16px; transform: translate(-50%, -50%); border: 1px solid rgba(218, 139, 127, .42); border-radius: 6px; background: rgba(12, 16, 34, .95); color: var(--danger); line-height: 1.5; }
 .camera-tools { position: absolute; right: 12px; bottom: 12px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
@@ -203,8 +204,10 @@ ul { list-style: none; }
 .form-error { margin-top: 8px; color: var(--danger); font-size: 12px; }
 .form-error:empty { display: none; }
 
-/* The panel floats below the headline and above the credit. It stops short of the camera tools. */
-.viewport .layers-panel { position: absolute; top: 170px; left: 14px; z-index: 4; width: min(300px, calc(100% - 28px)); max-height: max(120px, calc(100% - 310px)); overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px; border: 1px solid var(--line); border-radius: 6px; background: rgba(12, 17, 36, .96); box-shadow: 0 12px 32px rgba(0, 0, 0, .45); scrollbar-width: thin; scrollbar-color: #39425e transparent; }
+/* Layers opens next to its button, leaving the tool column reachable. */
+.viewport .layers-panel { position: absolute; bottom: 12px; right: 86px; z-index: 4; width: min(300px, calc(100% - 100px)); max-height: calc(100% - 24px); overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px; border: 1px solid var(--line); border-radius: 6px; background: rgba(12, 17, 36, .96); box-shadow: 0 12px 32px rgba(0, 0, 0, .45); scrollbar-width: thin; scrollbar-color: #39425e transparent; }
+/* Expanded picture scales retain their own space below the menu. */
+.viewport:has(.imagery-credit:not([hidden])) .layers-panel { bottom: calc(40% + 24px); max-height: calc(60% - 36px); }
 .layers-panel .eyebrow { margin-bottom: 2px; }
 .layer-group { min-width: 0; margin: 12px 0 0; padding: 0; border: 0; }
 .layer-group legend { margin-bottom: 2px; padding: 0; color: var(--muted); font: 600 10px/1.3 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
@@ -221,8 +224,11 @@ ul { list-style: none; }
 .layer-presets button:hover { border-color: rgba(235, 209, 147, .55); color: var(--accent); }
 
 @media (max-width: 1040px) {
+  /* Resume can appear at any stacked width, not just on narrow phones. */
+  .topbar-actions { min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 4px 3px; }
+  .topbar-actions::-webkit-scrollbar { display: none; }
   .resizer { display: none; }
-  .app { height: auto; min-height: 100dvh; grid-template: 52px 56dvh auto auto auto / minmax(0, 1fr); grid-template-areas: "top" "view" "time" "inspector" "catalog"; }
+  .app { height: auto; min-height: 100dvh; grid-template: 52px 56dvh auto auto auto auto / minmax(0, 1fr); grid-template-areas: "top" "view" "lesson" "time" "inspector" "catalog"; }
   .panel { overflow: visible; border: 0; border-top: 1px solid var(--line); }
   .timeline { position: sticky; bottom: 0; z-index: 3; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid var(--line); }
   .scrubber { order: 5; flex-basis: 100%; }
@@ -230,18 +236,15 @@ ul { list-style: none; }
   .catalog-list { max-height: 50vh; }
 }
 @media (max-height: 520px) and (max-width: 1040px) {
-  .app { grid-template-rows: 52px 80dvh auto auto auto; }
+  .app { grid-template-rows: 52px 80dvh auto auto auto auto; }
   .headline-sub:not(.plan-warning) { display: none; }
 }
 @media (max-width: 560px) {
   .topbar .data-status { display: none; }
-  /* The actions scroll sideways rather than push the page wider than the phone screen. */
-  .topbar-actions { min-width: 0; overflow-x: auto; scrollbar-width: none; padding: 4px 3px; }
-  .topbar-actions::-webkit-scrollbar { display: none; }
   .topbar-actions .text-button { padding: 0 8px; }
   .sky-popover { top: 56px; right: 8px; }
   .brand { letter-spacing: .02em; }
-  .pick-hint { top: auto; bottom: 8px; width: calc(100% - 16px); }
+  .pick-hint { top: 8px; width: calc(100% - 16px); }
   .topbar { justify-content: space-between; gap: 8px; padding: 0 10px; }
   .observer-button { max-width: 130px; }
   .headline { top: 8px; left: 8px; right: 8px; max-width: none; padding: 8px 10px; }
@@ -274,8 +277,14 @@ ul { list-style: none; }
 .data-view { max-width: 100%; text-align: left; white-space: normal; }
 .data-view[aria-pressed="true"] { color: var(--accent); }
 .tab-panel .data-chips li:first-child { background: rgba(170, 184, 222, .13); color: var(--soft); }
-.lesson-card { position: absolute; top: 14px; left: 14px; z-index: 3; width: min(400px, calc(100% - 28px)); max-height: calc(100% - 90px); overflow-y: auto; padding: 12px 14px; border: 1px solid rgba(235, 209, 147, .35); border-radius: 6px; background: rgba(10, 14, 30, .97); scrollbar-width: thin; }
-.lesson-title { margin: 4px 0 8px; font-size: 16px; font-weight: 600; }
+.lesson-panel { grid-area: catalog; min-width: 0; padding: 0; overflow: hidden; border-right: 1px solid var(--line); }
+.lesson-card { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+.lesson-header { flex: none; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.lesson-progress { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-top: 12px; color: var(--muted); font-size: 12px; }
+.lesson-progress .text-button { min-height: 28px; padding: 0 7px; font-size: 11px; }
+.lesson-title { margin: 4px 0 0; font-size: 17px; line-height: 1.35; font-weight: 600; overflow-wrap: anywhere; }
+.lesson-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px; scrollbar-width: thin; }
+.lesson-body > :first-child { margin-top: 0; }
 .lesson-card .why-list { display: grid; gap: 6px; margin: 0; padding-left: 16px; font-size: 13px; line-height: 1.45; }
 .lesson-hint { margin-top: 8px; font-style: italic; }
 .lesson-compare, .lesson-choices, .lesson-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
@@ -287,15 +296,19 @@ ul { list-style: none; }
 .lesson-choice:disabled { cursor: default; opacity: 1; }
 .lesson-feedback { margin-top: 8px; }
 .lesson-verdict { font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
-.lesson-actions { justify-content: flex-end; margin-top: 14px; }
-.lesson-close { margin-right: auto; order: -1; }
+.lesson-actions { justify-content: flex-end; margin-top: 0; }
+.lesson-actions button { min-height: 36px; padding: 0 9px; }
+.lesson-close { margin-right: auto; }
 .learn-list { display: grid; gap: 10px; margin-top: 12px; }
 .lesson-item { padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; }
 .lesson-item-title { margin: 0 0 4px; font-size: 14px; font-weight: 600; }
 .lesson-item .text-button { margin-top: 8px; }
 @media (max-width: 1040px) {
-  /* The globe stays visible above the card. */
-  .lesson-card { top: auto; bottom: 8px; left: 8px; width: calc(100% - 16px); max-height: 52%; }
+  /* A normal row below the globe, never a sheet over its tools or credits. */
+  .lesson-panel { grid-area: lesson; border-right: 0; }
+  .lesson-card { height: auto; }
+  .lesson-body { overflow: visible; }
+  .lesson-header { padding-bottom: 14px; }
 }
 .group-field { position: relative; }
 .group-button { width: 100%; min-height: 34px; padding: 0 28px 0 9px; border: 1px solid rgba(186, 197, 230, .36); border-radius: 4px; background: var(--raised) no-repeat right 10px center / 10px 6px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238f98b3' stroke-width='1.5'/%3E%3C/svg%3E"); color: var(--ink); font-size: 13px; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -311,6 +324,9 @@ ul { list-style: none; }
 @keyframes skeleton { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 @media (prefers-reduced-motion: reduce) { .catalog-skeleton { animation: none; } }
 .learn { grid-area: catalog; display: flex; flex-direction: column; gap: 10px; border-right: 1px solid var(--line); }
+@media (max-width: 1040px) {
+  .learn { grid-area: lesson; border-right: 0; }
+}
 .learn-header { display: flex; align-items: center; justify-content: space-between; }
 .learn-tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
 .learn-tab { padding: 4px 9px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: var(--soft); font-size: 12px; cursor: pointer; }
@@ -320,6 +336,32 @@ ul { list-style: none; }
 .learn-card { padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: rgba(20, 27, 48, .6); }
 .learn-card-title { font-size: 14px; font-weight: 600; cursor: pointer; }
 .learn-card .why-list, .learn-body > .why-list { display: grid; gap: 6px; margin: 8px 0 0; padding-left: 16px; font-size: 12.5px; line-height: 1.45; }
+.kind-visual { margin: 14px 0; }
+.kind-visual-title { margin: 16px 0 6px; font-size: 13px; font-weight: 600; }
+.kind-figure { margin: 0; }
+.kind-example-label { padding: 7px 9px; color: var(--soft); font-size: 11px; background: var(--surface); }
+.kind-drawing, .kind-observation { display: block; width: 100%; background: #090d1c; }
+.kind-graphic { display: block; width: 100%; height: auto; color: var(--soft); }
+.kind-graphic text { fill: var(--soft); font-family: inherit; font-size: 14px; }
+.kind-graphic .kind-ray, .kind-graphic .kind-axis { fill: none; stroke: currentColor; stroke-width: 2; }
+.kind-outgoing { color: #ebd193; fill: #ebd193; }
+.kind-return { color: #8ec5ff; fill: #8ec5ff; }
+.kind-satellite { fill: #202b44; stroke: #c0c6d8; stroke-width: 1.5; }
+.kind-ground { fill: #283e3a; stroke: #71958a; }
+.kind-tree { fill: #476a50; stroke: #8baa80; stroke-width: 2; }
+.kind-sun, .kind-city, .kind-night-dot { fill: #ebd193; }
+.kind-atmosphere { fill: none; stroke: #839cba; stroke-width: 10; opacity: .35; }
+.kind-spectrum-rays { fill: none; stroke: #8ec5ff; stroke-width: 2; }
+.kind-sample { fill: #ebd193; }
+.kind-ground-return { fill: #8ec5ff; }
+.kind-spectrum-a, .kind-spectrum-b { fill: none; stroke: #ebd193; stroke-width: 2.5; }
+.kind-spectrum-b { stroke: #8ec5ff; }
+.kind-coast { fill: none; stroke: #52647c; stroke-width: 2; }
+.kind-figure figcaption { margin-top: 8px; line-height: 1.55; }
+.kind-image-credit { margin-top: 6px; }
+.kind-image-credit .imagery-legend { margin-top: 8px; }
+.kind-load-status { margin: 6px 0; }
+.kind-visual .text-button { white-space: normal; text-align: left; }
 .learn-subtitle { margin: 10px 0 2px; color: var(--muted); font: 600 10px/1.3 var(--mono); letter-spacing: .1em; text-transform: uppercase; }
 .learn-conditions { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 0; }
 .learn-condition { padding: 1px 8px; border-radius: 9px; font-size: 11px; }
@@ -352,7 +394,6 @@ ul { list-style: none; }
 .chart-table table { width: 100%; margin-top: 4px; border-collapse: collapse; }
 .chart-table caption { text-align: left; color: var(--muted); }
 .chart-table th, .chart-table td { padding: 2px 4px; border-bottom: 1px solid var(--line); text-align: left; }
-.lesson-card.is-story { width: min(440px, calc(100% - 28px)); }
 .lesson-chart { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
 .lesson-chart-title { font-size: 12.5px; font-weight: 600; margin-bottom: 4px; }
 .lesson-credit { font-size: 11px; }

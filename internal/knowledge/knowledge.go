@@ -46,6 +46,24 @@ type Kind struct {
 	Uses       []Statement  `json:"uses"`
 	Layers     []string     `json:"layers"`
 	Lessons    []LessonLink `json:"lessons"`
+	Visual     *KindVisual  `json:"visual,omitempty"`
+}
+
+// KindVisual pairs a measurement diagram with an illustrative output and an optional
+// dated observation. Example describes only the illustration; Observation describes
+// the provider image, so a failed image cannot turn the illustration into evidence.
+type KindVisual struct {
+	Capture     Statement  `json:"capture"`
+	Example     Statement  `json:"example"`
+	Picture     *Picture   `json:"picture,omitempty"`
+	Observation *Statement `json:"observation,omitempty"`
+}
+
+type rawKindVisual struct {
+	Capture     rawStatement  `json:"capture"`
+	Example     rawStatement  `json:"example"`
+	Picture     *Picture      `json:"picture"`
+	Observation *rawStatement `json:"observation"`
 }
 
 // Condition says whether a kind of data works in some situation, such as at night or
@@ -223,6 +241,7 @@ type rawFile struct {
 		} `json:"conditions"`
 		Uses   []rawStatement `json:"uses"`
 		Layers []string       `json:"layers"`
+		Visual *rawKindVisual `json:"visual"`
 	} `json:"kinds"`
 	Instruments []struct {
 		ID          string         `json:"id"`
@@ -369,6 +388,26 @@ func parse(body []byte) (*Base, error) {
 			conditions = append(conditions, Condition{Label: c.Label, Value: c.Value, Statement: list[0]})
 		}
 		kind := Kind{ID: k.ID, Name: k.Name, Statements: list, Conditions: conditions, Uses: uses, Layers: append([]string{}, k.Layers...)}
+		if v := k.Visual; v != nil {
+			text, err := statements("kind "+k.ID+" visual", []rawStatement{v.Capture, v.Example})
+			if err != nil {
+				return nil, err
+			}
+			kind.Visual = &KindVisual{Capture: text[0], Example: text[1], Picture: v.Picture}
+			if (v.Picture == nil) != (v.Observation == nil) {
+				return nil, fmt.Errorf("kind %s: a picture and its sourced observation description must be paired", k.ID)
+			}
+			if v.Picture != nil {
+				if err := checkPicture(*v.Picture); err != nil {
+					return nil, fmt.Errorf("kind %s: %w", k.ID, err)
+				}
+				text, err := statements("kind "+k.ID+" observation", []rawStatement{*v.Observation})
+				if err != nil {
+					return nil, err
+				}
+				kind.Visual.Observation = &text[0]
+			}
+		}
 		base.Kinds = append(base.Kinds, kind)
 		base.kindByID[k.ID] = kind
 	}

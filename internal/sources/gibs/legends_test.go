@@ -15,6 +15,8 @@ func TestScientificLayersHaveProviderMatchedLocalLegends(t *testing.T) {
 		{LandTemperature, "K", "not air temperature"},
 		{SeaTemperature, "°C", "MUR"},
 		{NewLayer("goes-east-infrared", "", Info, "", "GOES-East_ABI_Band13_Clean_Infrared", true, false), "°C", "brightness temperature"},
+		{StoryWaterVapour, "cm", "not relative humidity"},
+		{StorySeaHeight, "m", "not ocean depth"},
 		{StoryNO2, "molecules/cm²", "not pollution at breathing height"},
 		{StorySeaIce, "%", "not ice thickness"},
 		{StoryRadarWater, "classes", "not flood depth"},

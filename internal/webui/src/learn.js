@@ -1,5 +1,6 @@
 import { appendSources } from './datatab.js';
 import { scatterChart, spectrumChart } from './charts.js';
+import { createKindVisual } from './kindvisual.js';
 
 // The Learn panel. It takes the place of the satellite list while it is open, and keeps the
 // globe in view, so a chapter can put a picture on the globe or pick a satellite next to the
@@ -48,7 +49,7 @@ export function lessonGroups(lessons) {
   return [['How orbits work', orbits], ['Reading the data', (lessons ?? []).filter((lesson) => !orbits.includes(lesson))]];
 }
 
-export function createLearnHub({ api, element, panel, layers, showSatellite, startLesson, startStory, onClose }) {
+export function createLearnHub({ api, element, panel, layers, imageryCatalog, showSatellite, startLesson, startStory, onClose }) {
   let data = null;
   let request = null;
   let chapter = 'kinds';
@@ -94,6 +95,11 @@ export function createLearnHub({ api, element, panel, layers, showSatellite, sta
   function kindCard(kind) {
     const card = element('details', 'learn-card');
     card.append(element('summary', 'learn-card-title', kind.name));
+    const visual = createKindVisual({ element, kind, catalog: imageryCatalog });
+    if (visual) {
+      card.append(visual.node);
+      card.addEventListener('toggle', () => { if (card.open) visual.load(); });
+    }
     // Chips say at a glance whether it works at night or through cloud; the list below says why.
     const conditions = (kind.conditions ?? []).filter((condition) => condition?.label);
     if (conditions.length) {
@@ -190,7 +196,10 @@ export function createLearnHub({ api, element, panel, layers, showSatellite, sta
     const version = ++renderVersion;
     const selectedChapter = chapter;
     const header = element('div', 'learn-header');
-    header.append(element('h2', 'eyebrow', 'Learn'), button('Close', 'text-button', () => {
+    const title = element('h2', 'eyebrow', 'Learn');
+    title.id = 'learn-title';
+    title.tabIndex = -1;
+    header.append(title, button('Close', 'text-button', () => {
       renderVersion += 1;
       onClose();
     }));

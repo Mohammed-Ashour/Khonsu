@@ -22,6 +22,151 @@ const deferred = () => {
   return { promise, resolve, reject };
 };
 
+test('satellite labels face inward rather than clipping into the camera tools', () => {
+  const flipped = [];
+  const label = { style: {}, classList: { toggle: (name, value) => flipped.push([name, value]) } };
+  let position = { x: 315, y: 280 };
+  const app = actualFunctions(['renderLabel'], {
+    byId: (id) => id === 'scene' ? { clientWidth: 390 } : label,
+    globe: { selectedScreenPosition: () => position }, selectedEntry: () => ({ name: 'NAVSTAR 75', track: {} }),
+  });
+  app.renderLabel();
+  position = { x: 75, y: 280 };
+  app.renderLabel();
+  assert.deepEqual(flipped, [['is-left', true], ['is-left', false]]);
+  assert.equal(label.hidden, false);
+  position = null;
+  app.renderLabel();
+  assert.equal(label.hidden, true);
+});
+
+function readingApp({ mobile = false } = {}) {
+  const nodes = Object.fromEntries(['catalog-panel', 'learn-panel', 'lesson-panel', 'lesson-card', 'lesson-resume', 'learn-open', 'lesson-title', 'headline', 'pick-hint', 'layers-panel', 'sky-popover', 'group-popover', 'layers-open'].map((id) => [id, {
+    hidden: !['catalog-panel', 'learn-open', 'layers-open', 'headline'].includes(id), attributes: {}, listeners: {},
+    closest() { return null; },
+    setAttribute(name, value) { this.attributes[name] = value; },
+    addEventListener(name, callback) { this.listeners[name] = callback; },
+    focus() { focused = id; },
+    scrollIntoView() { scrolls += 1; },
+  }]));
+  let focused = null, scrolls = 0, stops = 0, renders = 0, dialog = null;
+  const keys = [];
+  const app = actualFunctions(['renderReadingColumn', 'setLearnOpen', 'revealLesson', 'startLesson', 'lessonChanged', 'wireLearn', 'wireLayersPanel'], {
+    byId: (id) => nodes[id], syncUrl() {},
+    learnHub: { render() { renders += 1; } },
+    lessonPlayer: {
+      async start() { nodes['lesson-card'].hidden = false; app.lessonChanged(); },
+      stop() { stops += 1; nodes['lesson-card'].hidden = true; app.lessonChanged(); },
+    },
+    window: { matchMedia: () => ({ matches: mobile }) },
+    document: {
+      querySelector: (selector) => selector === 'dialog[open]' ? dialog : { scrollIntoView() { scrolls += 1; } },
+      addEventListener: (name, callback) => { if (name === 'keydown') keys.push(callback); },
+    },
+  }, ['readingColumn', 'lessonReturnColumn'].map((name) => source.match(new RegExp(`^let ${name} = .*`, 'm'))[0]).join('\n'));
+  app.wireLearn();
+  app.wireLayersPanel();
+  return { app, nodes, focused: () => focused, scrolls: () => scrolls, stops: () => stops, renders: () => renders,
+    dialog: (value) => { dialog = value; },
+    escape(prevented = false) {
+      const event = { key: 'Escape', defaultPrevented: prevented, preventDefault() { this.defaultPrevented = true; } };
+      keys.forEach((callback) => callback(event));
+      return event.defaultPrevented;
+    },
+  };
+}
+
+test('Learn temporarily replaces the lesson and close restores the launch column', async () => {
+  const { app, nodes, renders } = readingApp();
+  app.setLearnOpen(true);
+  await app.startLesson('lesson');
+  assert.equal(nodes['lesson-panel'].hidden, false);
+  assert.equal(nodes['learn-panel'].hidden, true);
+  assert.equal(nodes['catalog-panel'].hidden, true);
+  app.setLearnOpen(true);
+  assert.equal(nodes['lesson-panel'].hidden, true);
+  assert.equal(nodes['lesson-card'].hidden, false, 'the player survives while browsing Learn');
+  assert.equal(nodes['lesson-resume'].hidden, false);
+  app.setLearnOpen(false);
+  assert.equal(nodes['lesson-panel'].hidden, false);
+  nodes['lesson-card'].hidden = true;
+  app.lessonChanged();
+  assert.equal(nodes['learn-panel'].hidden, false, 'closing returns to the launch column');
+  assert.equal(nodes['lesson-resume'].hidden, true);
+  assert.equal(renders(), 3);
+});
+
+for (const mobile of [false, true]) {
+  test(`opening Learn brings the panel into view only on mobile: ${mobile}`, () => {
+    const { app, nodes, scrolls } = readingApp({ mobile });
+    app.setLearnOpen(true);
+    assert.equal(nodes['learn-panel'].hidden, false);
+    assert.equal(scrolls(), mobile ? 1 : 0);
+  });
+}
+
+test('an unapplied capacity-error lesson still gets a visible dock', () => {
+  const { app, nodes } = readingApp();
+  nodes['lesson-card'].hidden = false;
+  app.lessonChanged();
+  assert.equal(nodes['lesson-panel'].hidden, false);
+  assert.equal(nodes.headline.hidden, true);
+});
+
+for (const mobile of [false, true]) {
+  test(`lesson start reveals its column and scrolls only on mobile: ${mobile}`, async () => {
+    const { app, nodes, scrolls, focused } = readingApp({ mobile });
+    await app.startLesson('lesson');
+    assert.equal(nodes['lesson-panel'].hidden, false);
+    assert.equal(scrolls(), mobile ? 1 : 0);
+    assert.equal(focused(), 'lesson-title');
+  });
+}
+
+test('Escape leaves Layers alone while the sky popover owns dismissal', async () => {
+  const { app, nodes, escape, stops } = readingApp();
+  await app.startLesson('lesson');
+  nodes['layers-panel'].hidden = false;
+  nodes['sky-popover'].hidden = false;
+  assert.equal(escape(), false, 'the sky handler must get this key without Layers claiming it');
+  assert.equal(nodes['layers-panel'].hidden, false);
+  assert.equal(stops(), 0);
+  nodes['sky-popover'].hidden = true; // The sky handler dismisses its own popover.
+  assert.equal(escape(), true);
+  assert.equal(nodes['layers-panel'].hidden, true);
+  assert.equal(stops(), 0);
+});
+
+test('Escape closes Layers, then Learn, then the lesson without dismissing native interactions', async () => {
+  const fixture = readingApp();
+  const { app, nodes, escape, stops, focused } = fixture;
+  await app.startLesson('lesson');
+  nodes['layers-panel'].hidden = false;
+  assert.equal(escape(), true);
+  assert.equal(nodes['layers-panel'].hidden, true);
+  assert.equal(stops(), 0);
+  assert.equal(focused(), 'layers-open');
+  app.setLearnOpen(true);
+  escape();
+  assert.equal(nodes['lesson-panel'].hidden, false);
+  assert.equal(stops(), 0);
+  fixture.dialog({ open: true });
+  assert.equal(escape(), false);
+  fixture.dialog(null);
+  for (const id of ['pick-hint', 'sky-popover', 'group-popover']) {
+    nodes[id].hidden = false;
+    assert.equal(escape(), false);
+    nodes[id].hidden = true;
+  }
+  escape(true);
+  assert.equal(stops(), 0, 'an already handled Escape is not reused');
+  nodes['group-popover'].hidden = false;
+  nodes['group-popover'].closest = () => ({ hidden: true });
+  escape();
+  assert.equal(stops(), 1, 'a popover inside the hidden catalog cannot trap Escape');
+  assert.equal(nodes['catalog-panel'].hidden, false);
+});
+
 for (const action of ['group', 'search']) {
   for (const outcome of ['success', 'failure']) {
     test(`a cached group supersedes a late ${action} ${outcome}`, async () => {

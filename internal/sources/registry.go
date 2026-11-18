@@ -65,14 +65,14 @@ func Layers() []gibs.Layer {
 	}
 }
 
-// StoryLayers are pictures that lessons and stories show for chosen past dates.
+// StoryLayers are pictures that guided content and kind examples show for chosen past dates.
 func StoryLayers() []gibs.Layer {
 	return storyLayers
 }
 
 var storyLayers = []gibs.Layer{
 	gibs.StoryNightLights, gibs.StoryFires, gibs.StoryFalseColor, gibs.StoryTrueColor, gibs.StoryTrueColorNPP, gibs.StoryLandsat,
-	gibs.StoryRadarWater, gibs.StoryNO2, gibs.StorySeaHeight, gibs.StorySeaIce,
+	gibs.StoryRadarWater, gibs.StoryNO2, gibs.StorySeaHeight, gibs.StorySeaIce, gibs.StoryWaterVapour,
 }
 
 // FindLayer returns an imagery layer by ID, including story layers.

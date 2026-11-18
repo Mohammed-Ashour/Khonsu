@@ -1,5 +1,25 @@
 {
  "sources": {
+  "goes-band8": {
+   "label": "NOAA",
+   "title": "ABI Band 8: Upper-Level Water Vapor Quick Guide",
+   "url": "https://www.goes.noaa.gov/documents/ABIQuickGuide_Band08.pdf"
+  },
+  "goes-band10": {
+   "label": "NOAA",
+   "title": "ABI Band 10: Lower-Level Water Vapor Quick Guide",
+   "url": "https://www.goes.noaa.gov/documents/ABIQuickGuide_Band10.pdf"
+  },
+  "worldview-water-vapour": {
+   "label": "NASA GIBS / Worldview",
+   "title": "MODIS Terra precipitable water vapour, 5 km daytime",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/modis/terra/MODIS_Terra_Water_Vapor_5km_Day.md"
+  },
+  "worldview-sea-height": {
+   "label": "NASA GIBS / Worldview",
+   "title": "MEaSUREs gridded sea surface height anomalies",
+   "url": "https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/multi-mission/tpj/JPL_MEaSUREs_L4_Sea_Surface_Height_Anomalies.md"
+  },
   "earthdata-spectrum": {
    "label": "NASA Earthdata",
    "title": "Electromagnetic Spectrum",
@@ -620,6 +640,12 @@
   {
    "id": "visible",
    "name": "Visible light",
+   "visual": {
+    "capture": {"text": "Sunlight reaches the surface and clouds, then reflected light enters the satellite's passive sensor. Red, green and blue channels can be combined into a true-colour image.", "sources": ["earthdata-passive", "eo-false-color"]},
+    "example": {"text": "This illustration separates water, land and cloud in a true-colour-style image. It is a drawing, not a satellite observation.", "sources": ["eo-false-color"]},
+    "picture": {"layer": "story-true-color", "date": "2022-07-03", "box": {"min_lat": 35.9, "min_lon": -115, "max_lat": 36.5, "max_lon": -113.8}},
+    "observation": {"text": "Terra MODIS true colour around Lake Mead. Red, green and blue channels resemble a photograph, but this is a processed, mapped image rather than an ordinary camera view.", "sources": ["worldview-modis-true-color"]}
+   },
    "statements": [
     {
      "text": "Visible light is the part of the spectrum our eyes can see. True-colour images combine red, green and blue light to resemble human vision.",
@@ -670,6 +696,12 @@
   {
    "id": "near_infrared",
    "name": "Near infrared",
+   "visual": {
+    "capture": {"text": "A passive sensor records near-infrared sunlight reflected by the surface. Plants reflect it strongly; it is not the heat they emit.", "sources": ["eo-false-color", "earthdata-passive"]},
+    "example": {"text": "In this illustrative false-colour composite, green represents a near-infrared channel so vegetation stands out. The drawing contains no measured reflectance values.", "sources": ["worldview-modis-false-color"]},
+    "picture": {"layer": "story-false-color", "date": "2025-01-08", "box": {"min_lat": 33.7, "min_lon": -119, "max_lat": 34.5, "max_lon": -117.4}},
+    "observation": {"text": "Terra MODIS bands 7-2-1 over southern California. Near infrared is displayed in green, shortwave infrared in red and visible red in blue. This is a three-band composite, not a near-infrared-only image.", "sources": ["worldview-modis-false-color"]}
+   },
    "statements": [
     {
      "text": "Plants reflect near-infrared light very strongly, so images that use it make vegetated land stand out.",
@@ -712,6 +744,12 @@
   {
    "id": "shortwave_infrared",
    "name": "Shortwave infrared",
+   "visual": {
+    "capture": {"text": "For reflected-light land images, the sensor records shortwave-infrared sunlight returning from the surface. Water absorbs parts of this light, so the signal helps distinguish moisture and burned land.", "sources": ["eo-false-color"]},
+    "example": {"text": "This illustrative composite maps shortwave infrared to red, near infrared to green and visible red to blue. Its coloured patches are not measurements or a fire map.", "sources": ["worldview-modis-false-color"]},
+    "picture": {"layer": "story-false-color", "date": "2025-01-08", "box": {"min_lat": 33.7, "min_lon": -119, "max_lat": 34.5, "max_lon": -117.4}},
+    "observation": {"text": "Terra MODIS bands 7-2-1 over southern California. The shortwave-infrared contribution is red, vegetation often looks green, and thick snow or ice can appear blue. A colour alone does not establish a fire or its severity.", "sources": ["worldview-modis-false-color"]}
+   },
    "statements": [
     {
      "text": "Newly burned land reflects strongly in shortwave infrared, which makes it valuable for mapping fire damage.",
@@ -720,7 +758,7 @@
      ]
     },
     {
-     "text": "This VIIRS false-colour view displays shortwave infrared as red, near infrared as green and visible red light as blue. Vegetation looks bright green, burns red and thick snow or ice sky blue. High ice clouds can also look blue.",
+     "text": "The separate NOAA-20 VIIRS globe layer displays shortwave infrared as red, near infrared as green and visible red light as blue. Vegetation looks bright green, burns red and thick snow or ice sky blue. High ice clouds can also look blue.",
      "sources": [
       "worldview-viirs-false-color"
      ]
@@ -764,6 +802,12 @@
   {
    "id": "thermal_infrared",
    "name": "Thermal infrared",
+   "visual": {
+    "capture": {"text": "Warm surfaces and clouds emit infrared radiation. A passive detector records this energy, including at night; clouds can hide the ground. Retrieving surface temperature requires processing, not simply reading a camera colour.", "sources": ["earthdata-passive", "eo-false-color", "worldview-modis-lst"]},
+    "example": {"text": "The drawing uses a cool-to-warm palette to illustrate a temperature map. These are not temperature measurements; blank areas illustrate missing coverage rather than cold ground.", "sources": ["worldview-modis-lst"]},
+    "picture": {"layer": "land-temperature", "date": "2025-01-08"},
+    "observation": {"text": "Terra MODIS daytime land surface temperature, in kelvin. It is the temperature of the land surface, not the air above it. Cloud screening and unavailable observations leave gaps.", "sources": ["worldview-modis-lst"]}
+   },
    "statements": [
     {
      "text": "Warm surfaces emit thermal infrared radiation. Energy absorbed by the ocean, for example, returns to the atmosphere as infrared.",
@@ -832,6 +876,12 @@
   {
    "id": "water_vapour",
    "name": "Water vapour",
+   "visual": {
+    "capture": {"text": "Water vapour absorbs and emits infrared radiation. GOES ABI bands at 6.2, 6.9 and 7.3 micrometres receive radiation mainly from different atmospheric moisture layers. The contributing altitude and depth vary with atmospheric conditions; these are not simply views of ground radiation passing through moisture.", "sources": ["goes-band8", "goes-band10", "nesdis-abi-channels"]},
+    "example": {"text": "This illustrative map contrasts lower and higher water content. It contains no measured humidity or water-vapour amounts.", "sources": ["worldview-water-vapour"]},
+    "picture": {"layer": "story-water-vapour", "date": "2025-01-08", "box": {"min_lat": -10, "min_lon": -100, "max_lat": 50, "max_lon": 20}},
+    "observation": {"text": "Terra MODIS total-column precipitable water vapour, in centimetres of water if condensed. This is not relative humidity, and it is not the same quantity as a GOES altitude-sensitive water-vapour image. Gaps mean no displayed observation.", "sources": ["worldview-water-vapour", "nesdis-abi-channels"]}
+   },
    "statements": [
     {
      "text": "GOES has three infrared bands, at 6.2, 6.9 and 7.3 µm, that track water vapour in the upper, middle and lower atmosphere.",
@@ -847,6 +897,12 @@
   {
    "id": "night_lights",
    "name": "Light at night",
+   "visual": {
+    "capture": {"text": "The VIIRS Day/Night Band receives faint visible and near-infrared light from artificial lights and natural sources, including reflected moonlight. It is not a thermal night-vision image.", "sources": ["black-marble", "worldview-encc"]},
+    "example": {"text": "Bright dots in this drawing illustrate a night-light image. They are not measured city brightness, power use or outages.", "sources": ["black-marble", "worldview-encc"]},
+    "picture": {"layer": "story-night-lights", "date": "2017-07-24", "box": {"min_lat": 17.6, "min_lon": -67.6, "max_lat": 18.8, "max_lon": -65.2}},
+    "observation": {"text": "Suomi NPP VIIRS ENCC near Puerto Rico. Brightness is contrast-normalised and can include moonlight and cloud effects. It cannot be compared across nights to measure outages or changes in lighting.", "sources": ["worldview-encc"]}
+   },
    "statements": [
     {
      "text": "The VIIRS Day/Night Band is a single wide band, sensitive to visible and near-infrared light, that records Earth's lights at night.",
@@ -893,6 +949,12 @@
   {
    "id": "passive_microwave",
    "name": "Passive microwave",
+   "visual": {
+    "capture": {"text": "A microwave radiometer receives naturally emitted energy from Earth rather than sending radar pulses. These observations can be used to retrieve quantities such as soil moisture or sea ice, depending on the instrument and processing.", "sources": ["earthdata-passive", "smap", "worldview-ice"]},
+    "example": {"text": "This drawing illustrates a gridded sea-ice concentration product. The cells show the kind of output, not measured ice cover or thickness.", "sources": ["worldview-ice"]},
+    "picture": {"layer": "story-sea-ice", "date": "2012-09-16", "box": {"min_lat": 65, "min_lon": -170, "max_lat": 85, "max_lon": -110}, "plain": true},
+    "observation": {"text": "GCOM-W1 AMSR2 sea-ice concentration near the Beaufort Sea, in percent of each grid cell. This is a microwave-derived ice product, not SMAP soil moisture, ice thickness or a total ice-extent measurement.", "sources": ["worldview-ice"]}
+   },
    "statements": [
     {
      "text": "SMAP measures liquid water in the surface soil of unfrozen land not covered by water. Its observations cover the globe every 2 to 3 days.",
@@ -938,6 +1000,12 @@
   {
    "id": "radar",
    "name": "Imaging radar",
+   "visual": {
+    "capture": {"text": "The radar sends microwave pulses toward the surface and records the echoes. Processing combines returns along the satellite's path into an image; surface structure and moisture affect the signal.", "sources": ["earthdata-active", "earthdata-sar"]},
+    "example": {"text": "This drawing illustrates a classified water map made from radar. It is not a raw backscatter image, a measured flood outline or a water-depth map.", "sources": ["worldview-opera"]},
+    "picture": {"layer": "story-radar-water", "date": "2024-09-26", "box": {"min_lat": 28.6, "min_lon": -84, "max_lat": 29.9, "max_lon": -81.4}},
+    "observation": {"text": "OPERA surface-water classes derived from Sentinel-1 radar over northern Florida. Blue denotes open water and green inundated vegetation; masks and radar shadow are separate classes. This is not a before-and-after flood difference or a depth measurement.", "sources": ["worldview-opera"]}
+   },
    "statements": [
     {
      "text": "Radar is an active instrument: it sends out pulses of energy and measures what is reflected back.",
@@ -989,6 +1057,12 @@
   {
    "id": "altimetry",
    "name": "Altimetry",
+   "visual": {
+    "capture": {"text": "A radar altimeter sends pulses toward the surface and times the returning echoes to measure range. Combining that distance with the satellite's orbit and corrections allows sea-surface height to be estimated.", "sources": ["earthdata-active", "worldview-sea-height"]},
+    "example": {"text": "The illustrative map shows heights below and above a reference surface. It contains no measured sea-level anomalies and does not represent waves or ocean depth.", "sources": ["worldview-sea-height"]},
+    "picture": {"layer": "story-sea-height", "date": "2017-10-29"},
+    "observation": {"text": "MEaSUREs gridded sea-surface height anomalies, in metres relative to a mean surface. The date is the centre of a five-day window. This corrected, multi-altimeter map is not a photograph, a single satellite pass or ocean depth.", "sources": ["worldview-sea-height"]}
+   },
    "statements": [
     {
      "text": "Altimeters are active instruments: they send pulses down to the surface and use the reflections to measure its height.",
@@ -1023,6 +1097,12 @@
   {
    "id": "atmospheric_composition",
    "name": "Gases in the air",
+   "visual": {
+    "capture": {"text": "For reflected-sunlight gas measurements, a spectrometer records light after it has passed through the atmosphere. Gas absorption changes the spectrum; processing uses those changes to infer gas amounts, with clouds and aerosols affecting coverage.", "sources": ["svs-oco2", "earthdata-passive"]},
+    "example": {"text": "The coloured cells illustrate a gas-column map. They are not measured pollution values or a photograph of visible gas, and missing cells do not mean clean air.", "sources": ["worldview-omi"]},
+    "picture": {"layer": "story-no2", "date": "2020-01-15", "box": {"min_lat": 22, "min_lon": 102, "max_lat": 38, "max_lon": 134}},
+    "observation": {"text": "Aura OMI tropospheric nitrogen dioxide over eastern China, in molecules per square centimetre. This example is OMI, not Sentinel-5P TROPOMI. It is a retrieved atmospheric column, not concentration at breathing height or proof of a cause.", "sources": ["worldview-omi"]}
+   },
    "statements": [
     {
      "text": "Sentinel-5P measures the atmosphere for air quality, ozone and UV radiation, and climate monitoring and forecasting.",
@@ -1060,6 +1140,10 @@
   {
    "id": "laser_ranging",
    "name": "Laser ranging",
+   "visual": {
+    "capture": {"text": "A laser instrument sends short pulses of light and records their returns from the canopy and ground. Timing those returns provides information about distance and vertical structure; clouds can obscure or contaminate the measurement.", "sources": ["earthdata-active", "gedi", "icesat2-lasers"]},
+    "example": {"text": "This illustrative profile separates canopy and ground returns along a track. It is not acquired GEDI or ICESat-2 data, and no measured tree heights are shown.", "sources": ["gedi", "icesat2-lasers"]}
+   },
    "statements": [
     {
      "text": "Laser altimeters are active instruments: they send out pulses of light and measure what is reflected back.",
@@ -1090,6 +1174,10 @@
   {
    "id": "imaging_spectroscopy",
    "name": "Imaging spectroscopy",
+   "visual": {
+    "capture": {"text": "An imaging spectrometer separates incoming light into many wavelength channels for each ground pixel. EMIT uses visible and infrared spectral signatures to map surface minerals.", "sources": ["earthdata-passive", "emit"]},
+    "example": {"text": "These illustrative curves show how two pixels can have different spectra. They are not retrieved EMIT measurements, a mineral library or a validated material identification; the axes deliberately carry no measured values.", "sources": ["emit", "earthdata-resolution"]}
+   },
    "statements": [
     {
      "text": "Spectral resolution is an instrument's ability to tell finer wavelengths apart, with more and narrower bands.",
@@ -1266,7 +1354,8 @@
     "visible",
     "near_infrared",
     "shortwave_infrared",
-    "thermal_infrared"
+    "thermal_infrared",
+    "water_vapour"
    ],
    "statements": [
     {

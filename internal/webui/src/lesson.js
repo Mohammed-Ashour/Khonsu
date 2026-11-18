@@ -38,11 +38,13 @@ export function lessonsForOrbit(lessons, explanation) {
   return (lessons ?? []).filter((lesson) => (lesson.orbits ?? []).some((topic) => topics.has(topic)));
 }
 
-export function createLessonPlayer({ api, element, card, list, layers, showSatellite, face, openTab = () => {}, play = () => {}, onChange }) {
+export function createLessonPlayer({ api, element, card, list, layers, showSatellite, face, openTab = () => {}, play = () => {}, status, fallbackFocus = () => null, browseSatellites, onChange }) {
   let lessons = null;
   let request = null;
   // The lesson on screen: { lesson, step, answer, compareOn }.
   let current = null;
+  let returnTrigger = null;
+  let heading = null;
 
   function load() {
     request ??= api.lessons().then((body) => {
@@ -243,14 +245,15 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     }
     const focused = card.ownerDocument?.activeElement;
     const focusKey = card.contains?.(focused) ? focused?.dataset?.lessonFocus : null;
+    const scrollTop = card.querySelector?.('.lesson-body')?.scrollTop ?? 0;
     const { lesson } = current;
     card.classList?.toggle?.('is-story', Boolean(lesson.story));
     const step = { ...lesson.steps[current.step], ...sceneFor(lesson, current.step) };
     const total = lesson.steps.length;
-    const nodes = [
-      element('p', 'eyebrow', current.applied ? `${lesson.story ? 'Story' : 'Lesson'} · step ${current.step + 1} of ${total}` : 'Scene not applied'),
-      element('h2', 'lesson-title', lesson.title),
-    ];
+    const nodes = [];
+    heading = element('h2', 'lesson-title', lesson.title);
+    heading.id = 'lesson-title';
+    heading.tabIndex = -1;
     if (current.error) {
       const error = element('p', 'note is-error', current.error);
       error.setAttribute('role', 'alert');
@@ -274,9 +277,16 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     const last = current.step === total - 1;
     const next = button(last ? 'Finish' : 'Next', 'primary-button', () => (last ? stop() : go(current.step + 1)));
     next.disabled = !current.applied;
-    actions.append(back, next, button('Close', 'text-button lesson-close', stop));
-    nodes.push(actions);
-    card.replaceChildren(...nodes);
+    actions.append(button('Close', 'text-button lesson-close', stop), back, next);
+    const header = element('header', 'lesson-header');
+    const progress = element('div', 'lesson-progress');
+    progress.append(element('p', '', current.applied ? `${lesson.story ? 'Story' : 'Lesson'}, step ${current.step + 1} of ${total}` : 'Scene not applied'));
+    if (browseSatellites) progress.append(button('Satellites', 'text-button', browseSatellites));
+    header.append(actions, progress, heading);
+    const body = element('div', 'lesson-body');
+    body.append(...nodes);
+    card.replaceChildren(header, body);
+    body.scrollTop = scrollTop;
     card.hidden = false;
     if (focusKey) {
       const controls = [...(card.querySelectorAll?.('button') ?? [])];
@@ -302,14 +312,24 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     }
     render();
     onChange();
+    if (applied && status) {
+      const announcement = `Step ${step + 1} of ${lesson.steps.length}. ${lesson.title}`;
+      if (status.textContent !== announcement) status.textContent = announcement;
+    }
+    // Reveal the column before focusing; a hidden panel cannot receive focus.
+    heading?.focus?.({ preventScroll: true });
+    const body = card.querySelector?.('.lesson-body');
+    if (body) body.scrollTop = 0;
     return applied;
   }
 
   // Shared links apply the resolved destination once, without fetching earlier images or tracks.
   async function start(id, stepIndex = 0) {
+    const trigger = card.ownerDocument?.activeElement;
     const all = await load();
     const lesson = all.find((item) => item.id === id);
     if (!lesson || !Array.isArray(lesson.steps) || !lesson.steps.length) return false;
+    if (!card.contains?.(trigger)) returnTrigger = trigger;
     return go(stepIndex, lesson, true);
   }
 
@@ -317,7 +337,14 @@ export function createLessonPlayer({ api, element, card, list, layers, showSatel
     play(null);
     current = null;
     render();
+    if (status) status.textContent = '';
     onChange();
+    const fallback = fallbackFocus();
+    const target = returnTrigger?.isConnected && returnTrigger !== card.ownerDocument?.body && !returnTrigger.closest?.('[hidden]') ? returnTrigger : fallback;
+    target?.focus?.();
+    // Connected controls in collapsed disclosures or inert regions may refuse focus.
+    if (card.ownerDocument?.activeElement !== target) fallback?.focus?.();
+    returnTrigger = null;
   }
 
   // Fills the lesson list with a start button for each lesson.

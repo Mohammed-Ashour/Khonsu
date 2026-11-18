@@ -4,7 +4,7 @@
 
 const STORAGE_KEY = 'khonsu.panels';
 export const PANELS = {
-  catalog: { variable: '--catalog-width', initial: 268, min: 200, max: 480, label: 'Resize the satellite list' },
+  catalog: { variable: '--catalog-width', initial: 268, min: 200, max: 480, label: 'Resize the reading column' },
   inspector: { variable: '--inspector-width', initial: 320, min: 280, max: 640, label: 'Resize the satellite details' },
 };
 // The globe keeps at least this much width between the two columns.
