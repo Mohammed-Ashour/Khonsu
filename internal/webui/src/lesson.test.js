@@ -77,7 +77,7 @@ const LESSONS = [{
   ],
 }];
 
-function setup({ views = true, lessons = LESSONS, select = () => true, seaLevel, play = () => {} } = {}) {
+function setup({ views = true, lessons = LESSONS, select = () => true, seaLevel, play = () => {}, status = element('p'), fallbackFocus = () => null, browseSatellites } = {}) {
   const log = [];
   const scene = {};
   const panel = {
@@ -107,10 +107,87 @@ function setup({ views = true, lessons = LESSONS, select = () => true, seaLevel,
     face: (lat, lon, distance) => { log.push(['face', lat, lon, distance]); scene.camera = [lat, lon, distance]; },
     openTab: (name) => log.push(['tab', name]),
     play: (speed) => { if (speed != null) log.push(['play', speed]); play(speed); },
+    status, fallbackFocus, browseSatellites,
     onChange: () => { changes += 1; },
   });
-  return { player, card, list, log, scene, changes: () => changes };
+  return { player, card, list, log, scene, status, changes: () => changes };
 }
+
+test('the dock puts Close, Back and Next before citations and focuses its heading on start', async () => {
+  const { player, card } = setup();
+  await player.start('light-and-heat');
+  assert.equal(document.activeElement.id, 'lesson-title');
+  assert.equal(document.activeElement.tabIndex, -1);
+  assert.deepEqual(findAll(card, (node) => node.tagName === 'button').slice(0, 3).map((node) => node.textContent), ['Close', 'Back', 'Next']);
+  assert.equal(card.children[0].className, 'lesson-header');
+  assert.equal(card.children[1].className, 'lesson-body');
+});
+
+test('only step transitions update the live status, not answers or comparisons', async () => {
+  const announcements = [];
+  let text = '';
+  const status = { get textContent() { return text; }, set textContent(value) { text = value; announcements.push(value); } };
+  const { player, card } = setup({ status });
+  await player.start('light-and-heat');
+  assert.deepEqual(announcements, ['Step 1 of 3. Light or heat?']);
+  buttonNamed(card, 'Clouds').click();
+  assert.equal(announcements.length, 1);
+  buttonNamed(card, 'Next').click();
+  buttonNamed(card, 'Next').click();
+  buttonNamed(card, 'Infrared').click();
+  assert.equal(announcements.length, 3);
+  assert.match(announcements.at(-1), /Step 3 of 3/);
+  player.stop();
+  assert.equal(announcements.at(-1), '');
+});
+
+test('closing returns focus to a visible trigger or the host fallback', async () => {
+  const trigger = element('button');
+  trigger.isConnected = true;
+  trigger.closest = () => null;
+  const fallback = element('button');
+  const { player } = setup({ fallbackFocus: () => fallback });
+  trigger.focus();
+  await player.start('light-and-heat');
+  player.stop();
+  assert.equal(document.activeElement, trigger);
+  trigger.focus();
+  await player.start('light-and-heat');
+  trigger.closest = () => ({ hidden: true });
+  player.stop();
+  assert.equal(document.activeElement, fallback);
+  trigger.focus();
+  await player.start('light-and-heat');
+  trigger.isConnected = false;
+  player.stop();
+  assert.equal(document.activeElement, fallback);
+});
+
+test('closing falls back when a connected disclosure trigger refuses focus', async () => {
+  const trigger = element('button');
+  trigger.isConnected = true;
+  trigger.closest = () => null;
+  const fallback = element('button');
+  const { player } = setup({ fallbackFocus: () => fallback });
+  trigger.focus();
+  await player.start('light-and-heat');
+  // A trigger inside a now-closed <details> remains connected but focus() does nothing.
+  trigger.focus = () => {};
+  player.stop();
+  assert.equal(document.activeElement, fallback);
+});
+
+test('the satellite browser action leaves the player state intact', async () => {
+  let browsed = 0;
+  const { player, card } = setup({ browseSatellites: () => { browsed += 1; } });
+  await player.start('light-and-heat');
+  buttonNamed(card, 'Clouds').click();
+  const before = player.current();
+  buttonNamed(card, 'Satellites').click();
+  assert.equal(browsed, 1);
+  assert.deepEqual(player.current(), before);
+  assert.match(textOf(card), /Yes\./);
+});
 
 test('lessonFromUrl and withLesson round-trip the lesson and step', () => {
   assert.deepEqual(lessonFromUrl('?sats=1&lesson=light-and-heat&step=3'), { id: 'light-and-heat', step: 2 });
@@ -285,7 +362,7 @@ test('question and comparison rerenders keep keyboard focus inside the card', as
   buttonNamed(card, 'Nothing').click();
   assert.equal(document.activeElement, buttonNamed(card, 'Next'), 'answered choices become disabled, so focus moves to Next');
   buttonNamed(card, 'Next').click();
-  assert.equal(document.activeElement, buttonNamed(card, 'Next'));
+  assert.equal(document.activeElement.id, 'lesson-title', 'successful navigation focuses the step heading');
   buttonNamed(card, 'Next').click();
   buttonNamed(card, 'Infrared').click();
   assert.equal(document.activeElement, buttonNamed(card, 'Infrared'));

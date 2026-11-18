@@ -16,13 +16,32 @@ The notes are written by hand. A satellite that isn't listed is "not described y
 
 To add a satellite, find its NORAD number on [CelesTrak SATCAT](https://celestrak.org/satcat/search.php). Add it with its instruments, giving each new sentence a source you have read. Then run `go test ./internal/knowledge`.
 
+## Visual examples in Learn
+
+Every expanded kind pairs an output example with a sourced capture diagram. Drawings are labelled illustrations, not measured data. Ten kinds can load a dated GIBS image on expansion; no image is requested for a closed kind or while serving a local file. If an image fails, the labelled illustration stays available with a retry action. Quantitative rasters show their provider scale and missing-data qualifications.
+
+| Kind | Dated example | Capture diagram |
+|---|---|---|
+| Visible light | Terra MODIS true colour, Lake Mead, 2022-07-03 | Reflected sunlight |
+| Near infrared | Terra MODIS 7-2-1 composite, southern California, 2025-01-08; NIR is green | Reflected sunlight, not emitted heat |
+| Shortwave infrared | Same MODIS composite; SWIR is red | Reflected shortwave infrared |
+| Thermal infrared | Terra MODIS land surface temperature, 2025-01-08 | Emitted infrared |
+| Water vapour | Terra MODIS total-column water, 2025-01-08; not a GOES altitude-specific quantity | Passive infrared reception |
+| Light at night | Suomi NPP ENCC, Puerto Rico, 2017-07-24; brightness is not comparable across nights | Faint visible and near-infrared light |
+| Passive microwave | GCOM-W1 AMSR2 sea-ice concentration, Beaufort Sea, 2012-09-16 | Naturally emitted microwaves |
+| Imaging radar | OPERA water classes from Sentinel-1, northern Florida, 2024-09-26 | Outgoing pulse and echo |
+| Altimetry | MEaSUREs sea-height anomalies, five-day window centred on 2017-10-29 | Range from return timing, then orbit and processing |
+| Gases in the air | Aura OMI NO2 column, eastern China, 2020-01-15; not TROPOMI or breathing-height concentration | Spectral absorption |
+| Laser ranging | Illustrative canopy/ground profile, not acquired GEDI or ICESat-2 data | Laser pulse and returns |
+| Imaging spectroscopy | Illustrative pixel spectra, not measured EMIT spectra or mineral identification | Separate wavelengths per pixel |
+
 ## Satellites described
 
 | Satellite | NORAD | Instruments | Kinds of data |
 |---|---|---|---|
 | ISS | 25544 | ECOSTRESS, GEDI, EMIT | Thermal infrared, Laser ranging, Imaging spectroscopy |
-| Terra | 25994 | MODIS | Visible light, Near infrared, Shortwave infrared, Thermal infrared |
-| Aqua | 27424 | MODIS | Visible light, Near infrared, Shortwave infrared, Thermal infrared |
+| Terra | 25994 | MODIS | Visible light, Near infrared, Shortwave infrared, Thermal infrared, Water vapour |
+| Aqua | 27424 | MODIS | Visible light, Near infrared, Shortwave infrared, Thermal infrared, Water vapour |
 | NOAA 20 | 43013 | VIIRS | Visible light, Near infrared, Shortwave infrared, Thermal infrared, Light at night |
 | NOAA 21 | 54234 | VIIRS | Visible light, Near infrared, Shortwave infrared, Thermal infrared, Light at night |
 | Suomi NPP | 37849 | VIIRS | Visible light, Near infrared, Shortwave infrared, Thermal infrared, Light at night |
@@ -173,6 +192,8 @@ All views come from [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/), and
 - NASA Earth Observatory, [Arctic Sea Ice Ties for 10th Lowest on Record](https://science.nasa.gov/earth/earth-observatory/arctic-sea-ice-ties-for-10th-lowest-on-record-154807/)
 - NSIDC, [Sea Ice Index, Version 4 (G02135)](https://nsidc.org/data/g02135/versions/4)
 - NOAA, [ABI Band 2 Quick Guide](https://www.goes.noaa.gov/documents/ABIQuickGuide_Band02.pdf)
+- NOAA, [ABI Band 8 Upper-Level Water Vapor Quick Guide](https://www.goes.noaa.gov/documents/ABIQuickGuide_Band08.pdf)
+- NOAA, [ABI Band 10 Lower-Level Water Vapor Quick Guide](https://www.goes.noaa.gov/documents/ABIQuickGuide_Band10.pdf)
 - NOAA, [ABI Spectral Attributes](https://www.goes.noaa.gov/abispectralattributes.php)
 - NASA Earth Observatory, [Remote Sensing](https://science.nasa.gov/earth/earth-observatory/remote-sensing)
 - WMO OSCAR, [Mid-wave infrared observing missions](https://space.oscar.wmo.int/observingmissions/view/39)
@@ -213,6 +234,8 @@ All views come from [NASA GIBS](https://nasa-gibs.github.io/gibs-api-docs/), and
 - NASA GIBS / Worldview, [Terra MODIS corrected reflectance, true color](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/modis/terra/MODIS_Terra_CorrectedReflectance_TrueColor.md)
 - NASA GIBS / Worldview, [Terra MODIS corrected reflectance, bands 7-2-1](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/modis/terra/MODIS_Terra_CorrectedReflectance_Bands721.md)
 - NASA GIBS / Worldview, [NOAA-20 VIIRS thermal anomalies, 375 m](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/viirs/noaa20/VIIRS_NOAA20_Thermal_Anomalies_375m_All.md)
+- NASA GIBS / Worldview, [MODIS Terra precipitable water vapour](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/modis/terra/MODIS_Terra_Water_Vapor_5km_Day.md)
+- NASA GIBS / Worldview, [MEaSUREs gridded sea surface height anomalies](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/multi-mission/tpj/JPL_MEaSUREs_L4_Sea_Surface_Height_Anomalies.md)
 - NASA GIBS / Worldview, [Aura OMI tropospheric nitrogen dioxide column](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/omi/OMI_Nitrogen_Dioxide_Tropo_Column.md)
 - NASA GIBS / Worldview, [HLS Landsat 8/9 OLI adjusted reflectance](https://raw.githubusercontent.com/nasa-gibs/worldview/main/config/default/common/config/metadata/layers/multi-mission/hls/HLS_L30_Nadir_BRDF_Adjusted_Reflectance.md)
 - NASA JPL, [SMAP Team Investigating Radar Instrument Anomaly, updated 5 August 2015](https://smap.jpl.nasa.gov/news/1244/smap-team-investigating-radar-instrument-anomaly/)

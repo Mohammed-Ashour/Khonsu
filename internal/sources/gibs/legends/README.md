@@ -1,6 +1,6 @@
 # NASA GIBS legends
 
-Unmodified provider PNGs downloaded on 2026-11-14. The WMS capabilities document links these legends for the layer identifiers in `../legends.go`.
+Unmodified provider PNGs downloaded on 2026-11-14, with water vapour and sea-height scales added on 2026-11-18. The WMS capabilities document links these legends for the layer identifiers in `../legends.go`.
 
 | Local file | Provider URL |
 |---|---|
@@ -10,6 +10,8 @@ Unmodified provider PNGs downloaded on 2026-11-14. The WMS capabilities document
 | no2.png | https://gibs.earthdata.nasa.gov/legends/OMI_Nitrogen_Dioxide_Tropo_Column_H.png |
 | sea-ice.png | https://gibs.earthdata.nasa.gov/legends/AMSR_Sea_Ice_Concentration_H.png |
 | radar-water.png | https://gibs.earthdata.nasa.gov/legends/OPERA_Dynamic_Surface_Water_Extent_S1_H.png |
+| water-vapour.png | https://gibs.earthdata.nasa.gov/legends/MODIS_Water_Vapor_H.png |
+| sea-height.png | https://gibs.earthdata.nasa.gov/legends/MEaSUREs_Sea_Surface_Height_Anomalies_H.png |
 
 Capabilities: https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetCapabilities&VERSION=1.3.0
 

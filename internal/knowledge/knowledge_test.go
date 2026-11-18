@@ -23,6 +23,13 @@ func eachStatement(base *Base, visit func(owner string, s Statement)) {
 		for _, s := range kind.Statements {
 			visit("kind "+kind.ID, s)
 		}
+		if kind.Visual != nil {
+			visit("kind "+kind.ID+" capture", kind.Visual.Capture)
+			visit("kind "+kind.ID+" illustration", kind.Visual.Example)
+			if kind.Visual.Observation != nil {
+				visit("kind "+kind.ID+" observation", *kind.Visual.Observation)
+			}
+		}
 	}
 	for _, instrument := range base.Instruments {
 		for _, s := range instrument.Statements {

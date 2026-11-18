@@ -31,6 +31,12 @@ func legendFor(layer, id string) *Legend {
 	case "GOES-East_ABI_Band13_Clean_Infrared":
 		file, unit, source = "brightness-temperature.png", "°C", "Clean_Longwave_Infrared_Window_Band_H.png"
 		description = "Infrared brightness temperature at 10.3 µm, not a direct measurement of ground or air temperature. Clouds can hide the surface. The enhanced provider palette spans about -92 °C to above 57 °C; missing coverage is not a cold value."
+	case "MODIS_Terra_Water_Vapor_5km_Day":
+		file, unit, source = "water-vapour.png", "cm", "MODIS_Water_Vapor_H.png"
+		description = "Total precipitable water vapour in an atmospheric column, expressed as the depth of liquid water if condensed. The provider's nonlinear scale runs from 0 cm to about 9.64 cm and above. This is not relative humidity or water at one altitude; gaps are missing displayed coverage."
+	case "JPL_MEaSUREs_L4_Sea_Surface_Height_Anomalies":
+		file, unit, source = "sea-height.png", "m", "MEaSUREs_Sea_Surface_Height_Anomalies_H.png"
+		description = "Sea surface height anomaly relative to a mean surface, not ocean depth or wave height. The provider scale spans below -0.3 m to above +0.3 m. This is a corrected, gridded multi-altimeter product over a five-day window; land and gaps are not zero anomaly."
 	case "OMI_Nitrogen_Dioxide_Tropo_Column":
 		file, unit, source = "no2.png", "molecules/cm²", "OMI_Nitrogen_Dioxide_Tropo_Column_H.png"
 		description = "Tropospheric nitrogen dioxide column, not pollution at breathing height. The provider palette spans below zero to 2 × 10¹⁶ molecules/cm² and above. Cloud and missing scan rows leave gaps; a gap does not mean clean air."

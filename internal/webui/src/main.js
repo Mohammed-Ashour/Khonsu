@@ -67,6 +67,8 @@ let dataTab = null;
 let lessonPlayer = null;
 let groupPicker = null;
 let learnHub = null;
+let readingColumn = 'catalog';
+let lessonReturnColumn = 'catalog';
 // Each group's satellites, kept for the session so switching back is instant.
 const groupCache = new Map();
 // What the catalog list last showed, so an unchanged list is not rebuilt.
@@ -745,7 +747,7 @@ function renderWhyLessons(explanation) {
     row.replaceChildren(...found.map((lesson) => {
       const button = element('button', 'text-button data-view', `Lesson: ${lesson.title}`);
       button.type = 'button';
-      button.addEventListener('click', () => lessonPlayer.start(lesson.id));
+      button.addEventListener('click', () => startLesson(lesson.id));
       return button;
     }));
     row.hidden = false;
@@ -980,6 +982,7 @@ function renderLabel() {
   }
   label.hidden = false;
   label.textContent = entry.name;
+  label.classList.toggle('is-left', position.x > byId('scene').clientWidth / 2);
   label.style.left = `${position.x}px`;
   label.style.top = `${position.y}px`;
 }
@@ -1061,6 +1064,7 @@ function openObserverDialog() {
 
 function setPicking(value) {
   byId('pick-hint').hidden = !value;
+  byId('headline').hidden = value || !byId('lesson-card').hidden;
   globe?.setPicking(value);
 }
 
@@ -1134,7 +1138,7 @@ async function openDataDialog() {
   if (!sources.live_data) statusNote.textContent = 'Live data is off while serving a local file, so no provider requests are made.';
 }
 
-// The Layers button shows or hides the panel. Escape inside the panel closes it and returns focus to the button.
+// Dismiss Layers before a lesson, including when focus has moved back to the globe.
 function wireLayersPanel() {
   const button = byId('layers-open');
   const panel = byId('layers-panel');
@@ -1143,8 +1147,8 @@ function wireLayersPanel() {
     button.setAttribute('aria-expanded', String(open));
   };
   button.addEventListener('click', () => setOpen(panel.hidden));
-  panel.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') return;
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || event.defaultPrevented || panel.hidden || !byId('sky-popover').hidden || document.querySelector('dialog[open]')) return;
     event.preventDefault();
     setOpen(false);
     button.focus();
@@ -1171,16 +1175,69 @@ function faceGlobe(lat, lon, distance = null) {
   setFollow(false);
 }
 
-// Learn takes the satellite list's column while it is open; the globe stays in view.
+// Catalog, Learn and the lesson share one column, never the globe's surface.
+function renderReadingColumn() {
+  const hasLesson = !byId('lesson-card').hidden;
+  if (readingColumn === 'lesson' && !hasLesson) readingColumn = 'catalog';
+  byId('catalog-panel').hidden = readingColumn !== 'catalog';
+  byId('learn-panel').hidden = readingColumn !== 'learn';
+  byId('lesson-panel').hidden = readingColumn !== 'lesson';
+  byId('lesson-resume').hidden = !hasLesson || readingColumn === 'lesson';
+  byId('learn-open').setAttribute('aria-pressed', String(readingColumn === 'learn'));
+}
+
 function setLearnOpen(open) {
-  byId('learn-panel').hidden = !open;
-  document.querySelector('.catalog').hidden = open;
-  byId('learn-open').setAttribute('aria-pressed', String(open));
-  if (open) learnHub.render();
+  readingColumn = open ? 'learn' : byId('lesson-card').hidden ? 'catalog' : 'lesson';
+  renderReadingColumn();
+  if (open) {
+    learnHub.render();
+    if (window.matchMedia('(max-width: 1040px)').matches) {
+      byId('learn-title')?.focus({ preventScroll: true });
+      byId('learn-panel').scrollIntoView({ block: 'start', behavior: 'instant' });
+    }
+  }
+}
+
+function revealLesson() {
+  readingColumn = 'lesson';
+  renderReadingColumn();
+  byId('lesson-title')?.focus({ preventScroll: true });
+  if (window.matchMedia('(max-width: 1040px)').matches) {
+    document.querySelector('.viewport').scrollIntoView({ block: 'start', behavior: 'instant' });
+  }
+}
+
+async function startLesson(id, step = 0) {
+  if (readingColumn !== 'lesson') lessonReturnColumn = readingColumn;
+  await lessonPlayer.start(id, step);
+  if (!byId('lesson-card').hidden) revealLesson();
+}
+
+function lessonChanged() {
+  const active = !byId('lesson-card').hidden;
+  byId('headline').hidden = active || !byId('pick-hint').hidden;
+  readingColumn = active ? 'lesson' : lessonReturnColumn;
+  renderReadingColumn();
+  if (!active && readingColumn === 'learn') learnHub.render();
+  syncUrl();
 }
 
 function wireLearn() {
   byId('learn-open').addEventListener('click', () => setLearnOpen(byId('learn-panel').hidden));
+  byId('lesson-resume').addEventListener('click', revealLesson);
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || event.defaultPrevented || event.isComposing) return;
+    // Let native dialogs, location picking and transient controls dismiss themselves first.
+    if (document.querySelector('dialog[open]') || ['pick-hint', 'layers-panel', 'sky-popover', 'group-popover'].some((id) => !byId(id).hidden && !byId(id).closest('[hidden]'))) return;
+    if (readingColumn === 'learn') {
+      event.preventDefault();
+      setLearnOpen(false);
+      byId('learn-open').focus();
+    } else if (!byId('lesson-card').hidden) {
+      event.preventDefault();
+      lessonPlayer.stop();
+    }
+  });
 }
 
 function wireDataDialog() {
@@ -1408,25 +1465,30 @@ async function start() {
     face: faceGlobe,
     openTab: (name) => { if (state.tab !== name) showTab(name); },
     play: playTimeline,
-    onChange() {
-      byId('headline').hidden = Boolean(lessonPlayer.current());
-      syncUrl();
+    status: byId('lesson-status'),
+    fallbackFocus: () => byId('learn-open'),
+    browseSatellites() {
+      readingColumn = 'catalog';
+      renderReadingColumn();
+      byId('catalog-title').focus();
     },
+    onChange: lessonChanged,
   });
   learnHub = createLearnHub({
     api,
     element,
     panel: byId('learn-panel'),
     layers: () => layersPanel,
+    imageryCatalog: layersCatalog,
     showSatellite: (id) => addSatellite(id),
-    startLesson: (id) => lessonPlayer.start(id),
-    startStory: (id) => lessonPlayer.start(id),
+    startLesson,
+    startStory: startLesson,
     onClose: () => {
       setLearnOpen(false);
       byId('learn-open').focus();
     },
   });
-  dataTab = createDataTab({ api, element, panel: byId('data-measures'), selectedEntry, dataFailure, layers: () => layersPanel, startLesson: (id) => lessonPlayer.start(id) });
+  dataTab = createDataTab({ api, element, panel: byId('data-measures'), selectedEntry, dataFailure, layers: () => layersPanel, startLesson });
   try {
     globe = createGlobe(byId('scene'), {
       onPick(point) {
@@ -1465,7 +1527,7 @@ async function start() {
   layers.start().then(() => {
     if (state.tab === 'data') dataTab.render();
     // A shared lesson link starts once the views are known, so its pictures can show.
-    if (initialLesson) lessonPlayer.start(initialLesson.id, initialLesson.step);
+    if (initialLesson) startLesson(initialLesson.id, initialLesson.step);
   });
   skyBar = createSkyBar({
     api,

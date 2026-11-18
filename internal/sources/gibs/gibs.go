@@ -73,7 +73,7 @@ type Layer struct {
 	// with a topic are the "what satellites measure" views, kept apart from the
 	// everyday base and cloud pictures.
 	Topic string `json:"topic,omitempty"`
-	// Story layers are shown only by lessons and stories, for a chosen past date, and
+	// Story layers are shown by lessons, stories and kind examples for a chosen past date, and
 	// are left out of the Layers panel.
 	Story bool `json:"story,omitempty"`
 
@@ -247,7 +247,7 @@ func (c *Client) ImageOn(ctx context.Context, layer Layer, day time.Time, box Bo
 	return body, meta, err
 }
 
-// Story marks a layer for lessons and stories only.
+// Story marks a dated regional layer for guided content and data-kind examples.
 func (l Layer) AsStory() Layer {
 	l.Story = true
 	return l
@@ -278,7 +278,7 @@ var (
 	SeaTemperature  = NewLayer("sea-temperature", "Sea surface temperature (daily)", Info, "A daily analysis that blends several satellite instruments with buoy data (GHRSST MUR).", "GHRSST_L4_MUR_Sea_Surface_Temperature", false, true).About("thermal_infrared")
 )
 
-// Story layers: pictures of past events, shown by stories for chosen dates and areas.
+// Story layers: pictures for guided content and kind examples at chosen dates and areas.
 func story(id, name, description, gibsName string, transparent bool, topic string) Layer {
 	return NewLayer(id, name, Info, description, gibsName, transparent, true).About(topic).AsStory()
 }
@@ -293,5 +293,6 @@ var (
 	StoryRadarWater   = story("story-radar-water", "Sentinel-1 surface water (OPERA)", "Water mapped from Sentinel-1 radar by NASA JPL's OPERA project.", "OPERA_L3_Dynamic_Surface_Water_Extent-Sentinel-1", true, "radar")
 	StoryNO2          = story("story-no2", "Aura OMI nitrogen dioxide", "Tropospheric nitrogen dioxide from OMI on Aura, one day.", "OMI_Nitrogen_Dioxide_Tropo_Column", true, "atmospheric_composition")
 	StorySeaHeight    = story("story-sea-height", "Sea surface height (MEaSUREs)", "Sea surface height anomalies from radar altimeters.", "JPL_MEaSUREs_L4_Sea_Surface_Height_Anomalies", true, "altimetry")
+	StoryWaterVapour  = story("story-water-vapour", "Terra MODIS column water vapour", "Total atmospheric water vapour in centimetres, not the water content at one altitude.", "MODIS_Terra_Water_Vapor_5km_Day", true, "water_vapour")
 	StorySeaIce       = story("story-sea-ice", "AMSR2 sea ice concentration", "Sea ice from the AMSR2 microwave radiometer on GCOM-W1.", "AMSRU2_Sea_Ice_Concentration_12km", true, "passive_microwave")
 )
